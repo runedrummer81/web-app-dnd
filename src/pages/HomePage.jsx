@@ -17,7 +17,7 @@ export default function HomePage() {
           </div>
           <div className="feature-card">
             <h3>🔀 Routing</h3>
-            <p>React Router 7 til navigation</p>
+            <p>React Router 7 til navigation!</p>
           </div>
         </div>
       </div>
