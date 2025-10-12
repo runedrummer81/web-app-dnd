@@ -1,3 +1,5 @@
+import DiceThrower from "../components/DiceThrower";
+
 export default function HomePage() {
   return (
     <section className="page">
@@ -8,6 +10,7 @@ export default function HomePage() {
       <h2 className="text-5xl font-mono font-bold text-blue-400">
         Go big or go home!
       </h2>
+      <DiceThrower />
     </section>
   );
 }
