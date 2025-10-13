@@ -7,11 +7,11 @@ export default function HomePage() {
   const [active, setActive] = useState(null);
   const navigate = useNavigate();
 
-  const handleClick = (item) => {
-    if (item === "New Campaign") {
-      navigate("/newcampaign");
-    }
-  };
+  // const handleClick = (item) => {
+  //   if (item === "New Campaign") {
+  //     navigate("/newcampaign");
+  //   }
+  // };
 
   return (
     <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12">
@@ -44,7 +44,7 @@ export default function HomePage() {
         </Link>
 
         <Link
-          to="/new-campaign"
+          to="/newcampaign"
           onMouseEnter={() => setActive("New Campaign")}
           onMouseLeave={() => setActive(null)}
           className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
