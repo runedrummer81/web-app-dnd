@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DiceThrower from "../components/DiceThrower";
 
 export default function HomePage() {
   const [active, setActive] = useState(null);
