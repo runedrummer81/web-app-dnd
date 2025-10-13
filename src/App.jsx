@@ -6,6 +6,8 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Session from "./pages/Session";
+import SessionEdit from "./pages/SessionEdit";
 
 export default function App() {
   return (
@@ -45,6 +47,11 @@ export default function App() {
               <ProtectedRoute>
                 <NewCampaign />
               </ProtectedRoute>
+            path="/session"
+            element={
+              // <ProtectedRoute>
+                <Session/>
+              // </ProtectedRoute>
             }
           />
         </Routes>
