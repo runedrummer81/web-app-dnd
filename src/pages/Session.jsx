@@ -1,14 +1,17 @@
 import Nav from "../components/Nav";
 import SessionComp from "../components/SessionComp";
+import { useNavigate } from "react-router";
 
 export default function Session({ title }) {
+
+  const navigate = useNavigate();
   return (
     <div>
       <nav>
         <Nav />
       </nav>
       <section className="chooseSess">
-        <button className="addSess">+ New Session</button>
+        <button className="addSess" onClick={() =>navigate("/session-edit")}>+ New Session</button>
         <div>
           <h2>Choose a session</h2>
           <SessionComp
