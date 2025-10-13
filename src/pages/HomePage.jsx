@@ -2,6 +2,7 @@ import { useState } from "react";
 import DiceThrower from "../components/DiceThrower";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import BGArtwok from "../components/BGArtwork";
 
 export default function HomePage() {
   const [active, setActive] = useState(null);
@@ -14,17 +15,19 @@ export default function HomePage() {
   // };
 
   return (
-    <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12">
+    <div className="relative min-h-screen overflow-hidden">
+      <BGArtwok />
+    <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12 relative z-10">
       {/* Left column */}
       <div className="flex flex-col space-y-6">
         <Link
           to="/continue"
           onMouseEnter={() => setActive("Continue Campaign")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
             active === "Continue Campaign"
-              ? "bg-blue-400 text-white"
-              : "text-blue-400 hover:bg-blue-200 hover:text-blue-900"
+              // ? "text-[#DACA89]"
+              // : " bg-[#2E2C27] gold-glow-animate"
           }`}
         >
           Continue Campaign
@@ -34,10 +37,10 @@ export default function HomePage() {
           to="/load"
           onMouseEnter={() => setActive("Load Campaign")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
             active === "Load Campaign"
-              ? "bg-blue-400 text-white"
-              : "text-blue-400 hover:bg-blue-200 hover:text-blue-900"
+              // ? "text-[#DACA89]"
+              // : " bg-[#2E2C27] gold-glow-animate"
           }`}
         >
           Load Campaign
@@ -47,10 +50,10 @@ export default function HomePage() {
           to="/newcampaign"
           onMouseEnter={() => setActive("New Campaign")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
             active === "New Campaign"
-              ? "bg-blue-400 text-white"
-              : "text-blue-400 hover:bg-blue-200 hover:text-blue-900"
+              // ? "text-[#DACA89]"
+              // : " bg-[#2E2C27] gold-glow-animate"
           }`}
         >
           New Campaign
@@ -60,10 +63,10 @@ export default function HomePage() {
           to="/encounters"
           onMouseEnter={() => setActive("Encounters")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
             active === "Encounters"
-              ? "bg-blue-400 text-white"
-              : "text-blue-400 hover:bg-blue-200 hover:text-blue-900"
+              // ? "text-[#DACA89]"
+              // : " bg-[#2E2C27] gold-glow-animate"
           }`}
         >
           Encounters
@@ -73,10 +76,10 @@ export default function HomePage() {
           to="/info"
           onMouseEnter={() => setActive("Information")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl font-mono font-bold p-4 rounded-lg cursor-pointer transition-colors duration-300 ${
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
             active === "Information"
-              ? "bg-blue-400 text-white"
-              : "text-blue-400 hover:bg-blue-200 hover:text-blue-900"
+              // ? "text-[#DACA89]"
+              // : " bg-[#2E2C27] gold-glow-animate"
           }`}
         >
           Information
@@ -84,8 +87,8 @@ export default function HomePage() {
       </div>
 
       {/* Right column */}
-      <div className="flex justify-center items-center h-[400px] bg-gray-100 rounded-xl transition-all duration-500">
-        {active ? (
+      <div className="flex justify-center items-center bg-transparent border border-[#DACA89] rounded-xl transition-all duration-500">
+        {/* {active ? (
           <div className="text-3xl font-bold text-gray-700">
             {active === "Continue Campaign" && "✨ Load campaign"}
             {active === "Load Campaign" &&
@@ -104,8 +107,10 @@ export default function HomePage() {
               className="rounded-xl"
             />
           </div>
-        )}
+        )} */}
       </div>
     </section>
+    </div>
+    
   );
 }
