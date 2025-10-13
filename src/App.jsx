@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
 
 export default function App() {
@@ -37,6 +38,14 @@ export default function App() {
               <ProtectedRoute>
                 <ContactPage />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/session"
+            element={
+              // <ProtectedRoute>
+                <Session/>
+              // </ProtectedRoute>
             }
           />
         </Routes>
