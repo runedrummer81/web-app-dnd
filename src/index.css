@@ -18,3 +18,42 @@
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+
+@keyframes gold-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px 2px rgba(218, 202, 137, 0.7), 0 0 2px #daca89;
+  }
+  50% {
+    box-shadow: 0 0 18px 6px rgba(218, 202, 137, 1), 0 0 8px #daca89;
+  }
+}
+
+.gold-glow-animate {
+  animation: gold-glow 1.6s infinite alternate;
+}
+
+/* Custom Scrollbar for Campaign Menu */
+.menu-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.menu-scrollbar::-webkit-scrollbar-track {
+  background: #22211c; /* very dark muted background */
+  border-radius: 8px;
+}
+
+.menu-scrollbar::-webkit-scrollbar-thumb {
+  background: #daca89; /* your golden color */
+  border-radius: 8px;
+  border: 2px solid #403c29; /* subtle dark border around thumb */
+}
+
+.menu-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #e6dfb6; /* lighter gold for hover */
+}
+
+.menu-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #daca89 #22211c; /* thumb color, track color for Firefox */
+}

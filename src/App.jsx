@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -35,6 +36,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ContactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/newcampaign"
+            element={
+              <ProtectedRoute>
+                <NewCampaign />
               </ProtectedRoute>
             }
           />

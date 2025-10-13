@@ -1,12 +1,19 @@
 import { useState } from "react";
-import DiceThrower from "../components/DiceThrower";
+import { useNavigate } from "react-router";
 
 export default function HomePage() {
   const [active, setActive] = useState(null);
+  const navigate = useNavigate();
+
+  const handleClick = (item) => {
+    if (item === "New Campaign") {
+      navigate("/newcampaign");
+    }
+  };
 
   return (
     <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12">
-      {/* Venstre kolonne */}
+      {/* Left column */}
       <div className="flex flex-col space-y-6">
         {[
           "Continue Campaign",
@@ -24,28 +31,33 @@ export default function HomePage() {
             }`}
             onMouseEnter={() => setActive(item)}
             onMouseLeave={() => setActive(null)}
+            onClick={() => handleClick(item)}
           >
             {item}
           </h3>
         ))}
       </div>
 
-      {/* Højre kolonne */}
+      {/* Right column */}
       <div className="flex justify-center items-center h-[400px] bg-gray-100 rounded-xl transition-all duration-500">
         {active ? (
           <div className="text-3xl font-bold text-gray-700">
-            {active === "Continue Campaign" && (<img
-              src="images/dnd-ice.jpg" alt="Map Preview" className="rounded-xl "/>) && "✨ Load navnet fra firebase eller en if-statement"}
-            {active === "Load Campaign" && "📂 Load one of your previous campaigns."}
-            {active === "New Campaign" && "🗺️ Make a new campaign from a template or make your very own "}
-            {active === "Encounters" && "⚔️ Make encounters you can use in every session and campaign"}
-            {active === "Information" && "📘 Find information about VORES NAVN"}
+            {active === "Continue Campaign" && "✨ Load campaign"}
+            {active === "Load Campaign" &&
+              "📂 Load one of your previous campaigns."}
+            {active === "New Campaign" &&
+              "🗺️ Make a new campaign from a template or your own creation."}
+            {active === "Encounters" &&
+              "⚔️ Make encounters for any session or campaign."}
+            {active === "Information" && "📘 Learn more about the platform."}
           </div>
         ) : (
           <div className="text-gray-400 italic text-xl">
             <img
-              src="images/dnd-ice.jpg" alt="Map Preview" className="rounded-xl "/>
-            
+              src="images/dnd-ice.jpg"
+              alt="Map Preview"
+              className="rounded-xl"
+            />
           </div>
         )}
       </div>
