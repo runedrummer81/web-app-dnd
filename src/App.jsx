@@ -51,14 +51,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/new-campaign"
-            element={
-              <ProtectedRoute>
-                <ContactPage />
-              </ProtectedRoute>
-            }
-          />
+          
           <Route
             path="/encounters"
             element={
@@ -79,9 +72,9 @@ export default function App() {
               <Route
             path="/session"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <Session/>
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route  path="/session-edit"

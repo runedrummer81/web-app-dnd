@@ -1,4 +1,4 @@
-import Nav from "../components/Nav";
+
 import SessionComp from "../components/SessionComp";
 import { useNavigate } from "react-router";
 
@@ -7,9 +7,7 @@ export default function Session({ title }) {
   const navigate = useNavigate();
   return (
     <div>
-      <nav>
-        <Nav />
-      </nav>
+      
       <section className="chooseSess">
         <button className="addSess" onClick={() =>navigate("/session-edit")}>+ New Session</button>
         <div>
@@ -23,14 +21,14 @@ export default function Session({ title }) {
         </div>
       </section>
       <section className="curentSess">
-        <h1>{title}</h1>
+        <h1>title</h1>
         <div>
-            <p>{notes}</p>
+            <p>notes</p>
             <div className="encounterNote">
-                <p>{encounter}</p>
+                <p>encounter</p>
             </div>
             <div className="mapNote">
-                <p>{map}</p>
+                <p>map</p>
             </div>
         </div>
       </section>
