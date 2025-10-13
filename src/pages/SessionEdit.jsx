@@ -23,8 +23,8 @@ export default function SessionEdit(){
                 </section>
                 <section className="bottom-nav">
                     <DiceThrower />
-                    <button>Back</button>
-                    <button>Save</button>
+                    <button onClick={() =>navigate("/session")}>Back</button>
+                    <button onClick={() =>navigate("/session")}>Save</button>
 
                 </section>
                 

@@ -25,7 +25,7 @@ export default function App() {
             }
           />
           <Route
-            path="/about"
+            path="/info"
             element={
               <ProtectedRoute>
                 <AboutPage />
@@ -33,7 +33,31 @@ export default function App() {
             }
           />
           <Route
-            path="/contact"
+            path="/continue"
+            element={
+              <ProtectedRoute>
+                <ContactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/load"
+            element={
+              <ProtectedRoute>
+                <ContactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/new-campaign"
+            element={
+              <ProtectedRoute>
+                <ContactPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/encounters"
             element={
               <ProtectedRoute>
                 <ContactPage />
@@ -48,6 +72,12 @@ export default function App() {
               // </ProtectedRoute>
             }
           />
+          <Route  path="/session-edit"
+            element={
+              <ProtectedRoute>
+                <SessionEdit />
+              </ProtectedRoute>
+            } />
         </Routes>
       </main>
     </>
