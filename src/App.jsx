@@ -8,6 +8,7 @@ import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
+import LoadPage from "./pages/LoadPage";
 
 export default function App() {
   return (
@@ -47,7 +48,7 @@ export default function App() {
             path="/load"
             element={
               <ProtectedRoute>
-                <ContactPage />
+                <LoadPage />
               </ProtectedRoute>
             }
           />
