@@ -39,7 +39,7 @@ export default function LoadPage() {
 
   useEffect(() => {
     async function getData() {
-      const response = await fetch("/CampaignDummyData.json");
+      const response = await fetch("./CampaignDummyData.json");
       const data = await response.json();
       setProjs(data);
     }
