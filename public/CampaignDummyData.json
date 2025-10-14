@@ -1,0 +1,30 @@
+[
+{
+  "id": 1,
+  "title": "Icy boy",
+  "nr": 1,
+  "template": "The cold template.",
+  "date": ["date-function"],
+  "img": "images/dnd-ice.jpg"
+  
+},
+{
+  "id": 2,
+  "title": "Custom Title",
+  "nr": 2,
+  "template": "Custom",
+  "date": ["date-function"],
+  "img": "images/dnd-ice.jpg"
+  
+},
+
+{
+  "id": 3,
+  "title": "Curse of Stradh",
+  "nr": 3,
+  "template": "Curse of Stradh.",
+  "date": ["date-function"],
+  "img": "images/dnd-ice.jpg"
+  
+}
+]
