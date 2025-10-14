@@ -1,4 +1,7 @@
 export default function SessionComp({ data }) {
+
+    
+
   return (
     <div>
       <p>{data.id}</p>
