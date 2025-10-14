@@ -3,7 +3,7 @@ import Nav from "./components/Nav";
 import Login from "./pages/Login";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
+import ContactPage from "./pages/CreateEncounter";
 import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Session from "./pages/Session";
@@ -25,7 +25,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          
+
           <Route
             path="/info"
             element={
@@ -51,7 +51,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          
+
           <Route
             path="/encounters"
             element={
@@ -66,23 +66,26 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <NewCampaign />
-              </ProtectedRoute>}
-              />
-
-              <Route
-            path="/session"
-            element={
-              <ProtectedRoute>
-                <Session/>
               </ProtectedRoute>
             }
           />
-          <Route  path="/session-edit"
+
+          <Route
+            path="/session"
+            element={
+              <ProtectedRoute>
+                <Session />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/session-edit"
             element={
               <ProtectedRoute>
                 <SessionEdit />
               </ProtectedRoute>
-            } />
+            }
+          />
         </Routes>
       </main>
     </>
