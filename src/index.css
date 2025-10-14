@@ -57,3 +57,31 @@
   scrollbar-width: thin;
   scrollbar-color: #daca89 #22211c; /* thumb color, track color for Firefox */
 }
+
+@keyframes runeGlow {
+  0% {
+    background-position: 200% 0;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -200% 0;
+    opacity: 0.6;
+  }
+}
+
+@keyframes runeWave {
+  0% {
+    background-position: 200% 0;
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -200% 0;
+    opacity: 0.5;
+  }
+}
