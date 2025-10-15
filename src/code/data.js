@@ -23,5 +23,13 @@ const data =  [
     notes: ["Note A", "Note B", "Note C"],
     encounters: ["Encounter A", "Encounter B", "Encounter C"],
     map: ["Map A", "Map B"]
+    },
+    {id: 3, 
+    title: "Baz",
+    date: formattedDate,
+    img: "images/dnd-ice.jpg",
+    notes: ["Note X", "Note Y", "Note Z"],
+    encounters: ["Encounter X", "Encounter Y", "Encounter Z"],
+    map: ["Map X", "Map Y"]
     }
 ]
