@@ -33,7 +33,7 @@ export default function Session() {
           {data.map((session) => (
             <button
               key={session.id}
-             className="flex justify-center gap-x-2 items-center bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+              className="flex justify-center gap-x-2 items-center bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
               onClick={() => handleSelectSession(session)}
             >
               <SessionComp data={session} />
@@ -67,13 +67,13 @@ export default function Session() {
             <div className="">
               <button
                 className="addSess"
-                onClick={() => navigate("/session-edit")}
+                onClick={() => navigate("/session-edit/" + selectedSession.id)}
               >
                 Change
               </button>
               <button
                 className="addSess"
-                onClick={() => navigate("/session-edit")}
+                onClick={() => navigate("/session-edit/" + selectedSession.id)}
               >
                 Run Session
               </button>
