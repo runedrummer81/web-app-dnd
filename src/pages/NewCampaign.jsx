@@ -50,22 +50,30 @@ export default function NewCampaign() {
 
     try {
       // 📥 Opret en ny campaign baseret på template-data
-      await addDoc(collection(db, "Campaigns"), {
-        title: `${selectedTemplate.title} Campaign`,
-        description: selectedTemplate.description || "No description available",
-        campaignNr: Date.now(), // fx tidsstempel som midlertidigt ID
-        templateId: selectedTemplate.id,
-        image: selectedTemplate.image || "",
-        lastOpened: new Date(),
-      });
+     const newCampaign = {
+      title: selectedTemplate.title,
+      description: selectedTemplate.description || "",
+      campaignNr: Date.now(), // eller et auto-ID
+      templateId: selectedTemplate.id,
+      lastOpened: new Date(),
+      firstOpened: new Date(),
+      sessionsCount: 0,
+      image: selectedTemplate.image || "",
+    };
 
-      console.log("✅ Ny kampagne oprettet i Firestore!");
+    const docRef = await addDoc(collection(db, "Campaigns"), newCampaign);
 
-      navigate("/session"); // Navigér videre
-    } catch (error) {
-      console.error("🔥 Fejl ved oprettelse af campaign:", error);
-    }
-  };
+    console.log("✅ Ny campaign oprettet:", docRef.id);
+
+    // 🔹 Gem campaignId i localStorage, så Session-siden ved hvilken campaign vi er i
+    localStorage.setItem("selectedCampaignId", docRef.id);
+
+    // 🔹 Naviger videre til Session-siden
+    navigate("/session", { state: { campaignId: docRef.id } });
+  } catch (error) {
+    console.error("🔥 Fejl ved oprettelse af campaign:", error);
+  }
+};
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
