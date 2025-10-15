@@ -31,6 +31,8 @@
 
 
 import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import CampaignComp from "../components/CampaignComp";
 
 export default function LoadPage() {
@@ -38,12 +40,22 @@ export default function LoadPage() {
   const [activeImg, setActiveImg] = useState(null);
 
   useEffect(() => {
-    async function getData() {
-      const response = await fetch("./CampaignDummyData.json");
-      const data = await response.json();
-      setProjs(data);
+    async function getCampaigns() {
+      try{
+      const querySnapshot = await getDocs(collection(db, "Campaigns"));
+      const campaigns = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+       console.log("✅ Campaigns hentet:", campaigns);
+      setProjs(campaigns);
+    } catch (err) {
+      console.error("🔥 Firestore fejl:", err);
     }
-    getData();
+      
+    }
+    getCampaigns();
   }, []);
 
   return (
