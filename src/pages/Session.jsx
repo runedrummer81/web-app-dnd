@@ -141,24 +141,43 @@ export default function Session() {
           </div>
 
           {/* Encounters */}
-          <div className="border border-[#DACA89]/50 rounded p-3">
-            <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">Encounters</h3>
-            {selectedSession.encounters?.length > 0 ? (
-              selectedSession.encounters.map((enc, i) => <p key={i}>{enc}</p>)
-            ) : (
-              <p className="text-[#DACA89]/70 italic">Ingen encounters endnu</p>
-            )}
-          </div>
+<div className="border border-[#DACA89]/50 rounded p-3">
+  <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">Encounters</h3>
+  {selectedSession.encounters?.length > 0 ? (
+    selectedSession.encounters.map((enc) => (
+      <p key={enc.id} className="text-[#DACA89]/90">
+        {enc.name}
+      </p>
+    ))
+  ) : (
+    <p className="text-[#DACA89]/70 italic">Ingen encounters endnu</p>
+  )}
+</div>
 
-          {/* Combat Maps */}
-          <div className="border border-[#DACA89]/50 rounded p-3">
-            <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">Combat Maps</h3>
-            {selectedSession.combatMaps?.length > 0 ? (
-              selectedSession.combatMaps.map((map, i) => <p key={i}>{map}</p>)
-            ) : (
-              <p className="text-[#DACA89]/70 italic">Ingen maps endnu</p>
-            )}
-          </div>
+    {/* Combat Maps */}
+    <div className="border border-[#DACA89]/50 rounded p-3">
+      <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">Combat Maps</h3>
+      {selectedSession.combatMaps?.length > 0 ? (
+        <div className="flex flex-wrap gap-4">
+          {selectedSession.combatMaps.map((map) => (
+            <div
+              key={map.id}
+              className="flex flex-col items-center border border-[#DACA89]/40 rounded p-2 bg-[#1F1E1A]"
+            >
+              <img
+                src={map.image}
+                alt={map.title}
+                className="w-24 h-16 object-cover rounded mb-1"
+              />
+              <p className="text-xs">{map.title}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[#DACA89]/70 italic">Ingen maps endnu</p>
+      )}
+    </div>
+
 
           <div className="flex justify-between mt-4">
             <button
