@@ -107,16 +107,17 @@ export default function Session() {
           {sessions.map((session) => (
             <div
               key={session.id}
-              className={`cursor-pointer p-5 border rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
-                selectedSession?.id === session.id ? "bg-[#2E2C27]" : ""
-              }`}
               onClick={() => handleSelectSession(session)}
-            >
-              <h3 className="text-lg uppercase tracking-widest font-semibold">
-                {session.title || `Session ${session.sessNr}`}
-              </h3>
-              <p className="text-sm opacity-70">Session #{session.sessNr}</p>
-            </div>
+              className={`flex justify-center gap-x-2 items-center bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition cursor-pointer p-5 rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
+              selectedSession?.id === session.id ? "bg-[#2E2C27]" : ""
+            }`}
+>
+            <h3 className="text-lg uppercase tracking-widest font-semibold">
+            {session.title || `Session ${session.sessNr}`}
+            </h3>
+            <p className="text-sm opacity-70">Session #{session.sessNr}</p>
+          </div>
+
           ))}
 
           {sessions.length === 0 && (
