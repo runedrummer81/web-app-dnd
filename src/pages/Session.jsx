@@ -46,18 +46,63 @@ export default function Session() {
   }, [campaignId]);
 
   // 🔹 Opret ny session
-  const createNewSession = async () => {
+//   const createNewSession = async () => {
+//   if (!campaignId) return;
+
+//   try {
+//     // 🔹 Find højeste sessNr
+//     const lastSession = sessions[sessions.length - 1];
+//     const nextSessNr = lastSession ? lastSession.sessNr + 1 : 1;
+
+//     // 🔹 Opret ny session
+//     const newSession = {
+//       title: `Session ${nextSessNr}`,
+//       campaignId: campaignId,
+//       sessNr: nextSessNr,
+//       dmNotes: "",
+//       encounters: [],
+//       combatMaps: [],
+//       createdAt: new Date(),
+//     };
+
+//     const docRef = await addDoc(collection(db, "Sessions"), newSession);
+//     console.log("✅ Ny session oprettet:", docRef.id);
+
+//     // 🔹 Opdater campaignens sessionsCount i Firestore
+//     const campaignRef = doc(db, "Campaigns", campaignId);
+//     await updateDoc(campaignRef, {
+//       sessionsCount: (sessions?.length || 0) + 1,
+//       lastOpened: new Date(),
+//     });
+
+//     console.log("🧩 Campaign opdateret med nyt sessionsCount!");
+
+//    // 🔹 Opdater lokalt
+//     const sessionWithId = { id: docRef.id, ...newSession };
+//     setSessions((prev) => [...prev, sessionWithId]);
+
+//     // 🔹 Naviger direkte til SessionEdit
+//     navigate("/session-edit", { state: { sessionId: docRef.id } });
+//   } catch (err) {
+//     console.error("🔥 Fejl ved oprettelse af ny session:", err);
+//   }
+// };
+
+const createNewSession = async () => {
   if (!campaignId) return;
 
   try {
-    // 🔹 Find højeste sessNr
-    const lastSession = sessions[sessions.length - 1];
-    const nextSessNr = lastSession ? lastSession.sessNr + 1 : 1;
+    // 🔹 Hent sessions direkte fra Firestore for at finde højeste sessNr
+    const q = query(collection(db, "Sessions"), where("campaignId", "==", campaignId));
+    const snapshot = await getDocs(q);
+    const fetchedSessions = snapshot.docs.map((doc) => doc.data());
+    const highestSessNr = fetchedSessions.reduce((max, s) => Math.max(max, s.sessNr || 0), 0);
+    const nextSessNr = highestSessNr + 1;
 
     // 🔹 Opret ny session
     const newSession = {
       title: `Session ${nextSessNr}`,
-      campaignId: campaignId,
+      campaignId,
       sessNr: nextSessNr,
       dmNotes: "",
       encounters: [],
@@ -66,23 +111,17 @@ export default function Session() {
     };
 
     const docRef = await addDoc(collection(db, "Sessions"), newSession);
-    console.log("✅ Ny session oprettet:", docRef.id);
 
-    // 🔹 Opdater campaignens sessionsCount i Firestore
-    const campaignRef = doc(db, "Campaigns", campaignId);
-    await updateDoc(campaignRef, {
-      sessionsCount: (sessions?.length || 0) + 1,
-      lastOpened: new Date(),
-    });
-
-    console.log("🧩 Campaign opdateret med nyt sessionsCount!");
-
-    // 🔹 Opdater lokalt
+    // 🔹 Opdater lokal state
     setSessions((prev) => [...prev, { id: docRef.id, ...newSession }]);
+
+    // 🔹 Naviger til SessionEdit
+    navigate("/session-edit", { state: { sessionId: docRef.id } });
   } catch (err) {
     console.error("🔥 Fejl ved oprettelse af ny session:", err);
   }
 };
+
 
 
   // 🔹 Håndter valg af session
@@ -99,6 +138,7 @@ export default function Session() {
         <button
           className="flex flex-row justify-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
           onClick={createNewSession}
+          
         >
           + New Session
         </button>

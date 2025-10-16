@@ -103,6 +103,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/session-edit/:sessionId"
+            element={
+              <ProtectedRoute>
+                <SessionEdit />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </>
