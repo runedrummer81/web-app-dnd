@@ -72,14 +72,6 @@ export default function App() {
           />
 
           <Route
-            path="/session/:sessionId"
-            element={
-              <ProtectedRoute>
-                <Session />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/session"
             element={
               <ProtectedRoute>
@@ -88,21 +80,14 @@ export default function App() {
             }
           />
           <Route
-            path="/session-edit/:sessionId"
+            path="/session-edit"
             element={
               <ProtectedRoute>
                 <SessionEdit />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/session-edit/:sessionId"
-            element={
-              <ProtectedRoute>
-                <SessionEdit />
-              </ProtectedRoute>
-            }
-          />
+          
         </Routes>
       </main>
     </>
