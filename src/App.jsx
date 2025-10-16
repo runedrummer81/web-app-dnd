@@ -83,7 +83,7 @@ export default function App() {
             path="/session-edit"
             element={
               <ProtectedRoute>
-                <Session-edit />
+                <SessionEdit />
               </ProtectedRoute>
             }
           />
