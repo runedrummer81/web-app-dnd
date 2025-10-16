@@ -80,6 +80,14 @@ export default function App() {
             }
           />
           <Route
+            path="/session"
+            element={
+              <ProtectedRoute>
+                <Session />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/session-edit/:sessionId"
             element={
               <ProtectedRoute>
