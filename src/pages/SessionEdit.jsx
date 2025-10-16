@@ -18,6 +18,9 @@ export default function SessionEdit() {
   const [worldMap, setWorldMap] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
   const [filters, setFilters] = useState({ forest: false, cave: false, castle: false });
+  
+  // Tilføj en midlertidig state til valgte maps i modal
+const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
 
   const sessionId = location.state?.sessionId;
 
@@ -280,76 +283,108 @@ export default function SessionEdit() {
       </section>
 
       {/* 💡 MAP MODAL */}
-      <AnimatePresence>
+        <AnimatePresence>
         {showMapModal && (
-          <motion.div
+            <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#1C1B18] border border-[#DACA89]/50 p-6 rounded-lg shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
             >
-              <div className="flex justify-between items-center mb-4">
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-[#1C1B18] border border-[#DACA89]/50 p-6 rounded-lg shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
+            >
+                <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg uppercase tracking-widest font-semibold">Vælg Combat Maps</h3>
                 <button
-                  onClick={() => setShowMapModal(false)}
-                  className="text-[#DACA89]/70 hover:text-[#DACA89]"
+                    onClick={() => {
+                    setTempSelectedMaps([]); // ryd midlertidige valg
+                    setShowMapModal(false);
+                    }}
+                    className="text-[#DACA89]/70 hover:text-[#DACA89]"
                 >
-                  ✕
+                    Cancel
                 </button>
-              </div>
+                </div>
 
-              {/* Filtre */}
-              <div className="mb-4 flex gap-4">
+                {/* Filtre */}
+                <div className="mb-4 flex gap-4">
                 {["forest", "cave", "castle"].map((type) => (
-                  <label key={type} className="flex items-center gap-2 cursor-pointer">
+                    <label key={type} className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="checkbox"
-                      checked={filters[type]}
-                      onChange={(e) =>
+                        type="checkbox"
+                        checked={filters[type]}
+                        onChange={(e) =>
                         setFilters({ ...filters, [type]: e.target.checked })
-                      }
+                        }
                     />
                     <span className="capitalize">{type}</span>
-                  </label>
+                    </label>
                 ))}
-              </div>
+                </div>
 
-              {/* Map-liste */}
-              <div className="grid grid-cols-3 gap-4">
-                {filteredMaps.map((map) => (
-                  <div
-                    key={map.id}
-                    onClick={() => handleAddMap(map)}
-                    className="cursor-pointer border border-[#DACA89]/30 rounded p-2 bg-[#1F1E1A] hover:border-[#DACA89]"
-                  >
-                    <img
-                      src={map.image}
-                      alt={map.title}
-                      className="w-full h-32 object-cover rounded mb-2"
-                    />
-                    <p className="text-center text-sm">{map.title}</p>
-                  </div>
-                ))}
-              </div>
+                {/* Map-liste */}
+                <div className="grid grid-cols-3 gap-4">
+                {filteredMaps.map((map) => {
+                    const isSelected = tempSelectedMaps.find((m) => m.id === map.id);
+                    return (
+                    <div
+                        key={map.id}
+                        onClick={() => {
+                        if (isSelected) {
+                            setTempSelectedMaps(tempSelectedMaps.filter((m) => m.id !== map.id));
+                        } else {
+                            setTempSelectedMaps([...tempSelectedMaps, map]);
+                        }
+                        }}
+                        className={`cursor-pointer border rounded p-2 bg-[#1F1E1A] hover:border-[#DACA89] ${
+                        isSelected ? "border-[#DACA89] ring-2 ring-[#DACA89]/50" : "border-[#DACA89]/30"
+                        }`}
+                    >
+                        <img
+                        src={map.image}
+                        alt={map.title}
+                        className="w-full h-32 object-cover rounded mb-2"
+                        />
+                        <p className="text-center text-sm">{map.title}</p>
+                    </div>
+                    );
+                })}
+                </div>
 
-              <div className="flex justify-end mt-6">
+                {/* Confirm-knap */}
+                <div className="flex justify-end mt-6 gap-2">
                 <button
-                  onClick={() => setShowMapModal(false)}
-                  className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                    onClick={() => {
+                    // Tilføj midlertidige maps til combatMaps
+                    const newMaps = tempSelectedMaps.filter(
+                        (map) => !combatMaps.find((m) => m.id === map.id)
+                    );
+                    setCombatMaps([...combatMaps, ...newMaps]);
+                    setTempSelectedMaps([]); // ryd midlertidige valg
+                    setShowMapModal(false);
+                    }}
+                    className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
                 >
-                  Luk
+                    Confirm
                 </button>
-              </div>
+                <button
+                    onClick={() => {
+                    setTempSelectedMaps([]); // ryd midlertidige valg
+                    setShowMapModal(false);
+                    }}
+                    className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                >
+                    Cancel
+                </button>
+                </div>
             </motion.div>
-          </motion.div>
+            </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
     </div>
   );
 }
