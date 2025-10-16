@@ -82,7 +82,10 @@ export default function Session() {
   } catch (err) {
     console.error("🔥 Fejl ved oprettelse af ny session:", err);
   }
+   gotoEdit
 };
+
+const gotoEdit = navigate("/session-edit", { state: { sessionId: selectedSession.id } }) 
 
 
   // 🔹 Håndter valg af session
@@ -99,6 +102,7 @@ export default function Session() {
         <button
           className="flex flex-row justify-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
           onClick={createNewSession}
+          
         >
           + New Session
         </button>
