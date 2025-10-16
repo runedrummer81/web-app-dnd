@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { doc, deleteDoc } from "firebase/firestore";
 import {
+  doc,
+  deleteDoc,
   collection,
   getDocs,
   addDoc,
@@ -27,6 +28,7 @@ export default function CreateEncounters() {
   const [encounterName, setEncounterName] = useState("");
   const [savedEncounters, setSavedEncounters] = useState([]);
   const [hoveredCreature, setHoveredCreature] = useState(null);
+  const [expandedEncounterId, setExpandedEncounterId] = useState(null);
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -73,7 +75,6 @@ export default function CreateEncounters() {
       return [...prev, { ...creature, count: 1 }];
     });
 
-    // Close dropdown + hover preview after click
     setFilteredCreatures([]);
     setHoveredCreature(null);
     setSearchTerm("");
@@ -104,6 +105,10 @@ export default function CreateEncounters() {
     setSelectedCreatures([]);
   };
 
+  const toggleExpand = (id) => {
+    setExpandedEncounterId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8 gap-8">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
@@ -118,7 +123,6 @@ export default function CreateEncounters() {
             className="p-3 rounded-t-lg bg-gray-800 border border-yellow-600 focus:ring-2 focus:ring-yellow-400 outline-none w-full"
           />
 
-          {/* Animated dropdown */}
           <div
             className={`absolute z-10 w-full bg-gray-900 border border-yellow-600 rounded-b-lg max-h-64 overflow-y-auto shadow-lg transition-all duration-200 ease-out origin-top transform ${
               filteredCreatures.length > 0
@@ -150,7 +154,7 @@ export default function CreateEncounters() {
           </div>
         </div>
 
-        {/* Encounter creation panel */}
+        {/* Encounter creation */}
         <div className="flex flex-col bg-gray-800 border border-yellow-700 rounded-xl p-6 space-y-4 shadow-lg flex-1 overflow-y-auto">
           <input
             type="text"
@@ -210,7 +214,7 @@ export default function CreateEncounters() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.1 }}
+                transition={{ duration: 0.2 }}
                 whileHover={{
                   scale: 1.05,
                   boxShadow: "0 0 20px rgba(255, 140, 0, 0.9)",
@@ -220,15 +224,7 @@ export default function CreateEncounters() {
                 className="relative cursor-pointer bg-gray-700 border-2 border-yellow-600 rounded-lg px-8 py-3 text-yellow-300 font-bold tracking-widest shadow-inner hover:text-yellow-100 transition-all duration-300 mx-auto block mt-4 overflow-hidden"
               >
                 <span className="uppercase relative z-10">Save Encounter</span>
-
-                {/* Molten lines */}
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-30 rounded-lg animate-pulse"></span>
-
-                {/* Corners as molten rivets */}
-                <span className="absolute top-0 left-0 w-2 h-2 bg-orange-400 rounded-full shadow-lg"></span>
-                <span className="absolute top-0 right-0 w-2 h-2 bg-orange-400 rounded-full shadow-lg"></span>
-                <span className="absolute bottom-0 left-0 w-2 h-2 bg-orange-400 rounded-full shadow-lg"></span>
-                <span className="absolute bottom-0 right-0 w-2 h-2 bg-orange-400 rounded-full shadow-lg"></span>
               </motion.button>
             )}
           </AnimatePresence>
@@ -236,40 +232,106 @@ export default function CreateEncounters() {
       </div>
 
       {/* RIGHT PANEL — SAVED ENCOUNTERS */}
-      <div className="w-1/3 border-l border-gray-700 pl-6 overflow-y-auto max-h-[85vh]">
-        <h2 className="text-2xl font-bold text-yellow-400 mb-4">
+      <div className="w-1/3 border-l border-gray-700 pl-6 flex flex-col">
+        <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex-shrink-0">
           Saved Encounters
         </h2>
 
-        <AnimatePresence>
-          {savedEncounters.map((enc) => (
-            <motion.div
-              key={enc.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="bg-gray-800 border border-yellow-700 rounded-lg p-4 mb-4 relative shadow-md hover:shadow-yellow-500/10 transition-shadow"
-            >
-              <h3 className="text-lg font-semibold text-yellow-300">
-                {enc.name || "Unnamed Encounter"}
-              </h3>
-              <ul className="text-sm mt-2 space-y-1">
-                {(enc.creatures || []).map((c, i) => (
-                  <li key={i}>
-                    {c.name} × {c.count}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleDeleteEncounter(enc.id)}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-400 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm transition"
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-900 max-h-[55vh]">
+          <AnimatePresence>
+            {savedEncounters.map((enc) => (
+              <motion.div
+                key={enc.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className={`relative border border-yellow-700 rounded-lg bg-gradient-to-b from-gray-800 via-gray-850 to-gray-900 shadow-md overflow-hidden transition-all duration-300 ${
+                  expandedEncounterId === enc.id
+                    ? "p-4"
+                    : "p-3 hover:bg-gray-700/40 cursor-pointer"
+                }`}
               >
-                Delete
-              </button>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                {/* Glow accent when hovered or expanded */}
+                <div
+                  className={`absolute inset-0 pointer-events-none transition-opacity duration-500 rounded-lg ${
+                    expandedEncounterId === enc.id
+                      ? "opacity-40 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.15),transparent_70%)]"
+                      : "opacity-0 group-hover:opacity-40"
+                  }`}
+                ></div>
+
+                {/* Encounter header */}
+                <div
+                  className="flex justify-between items-center relative z-10"
+                  onClick={() => toggleExpand(enc.id)}
+                >
+                  <h3 className="text-lg font-bold text-yellow-300 tracking-wide">
+                    {enc.name || "Unnamed Encounter"}
+                  </h3>
+                  <button className="text-yellow-400 hover:text-yellow-200 transition text-sm">
+                    {expandedEncounterId === enc.id ? "▲" : "▼"}
+                  </button>
+                </div>
+
+                {/* Expandable details */}
+                <AnimatePresence>
+                  {expandedEncounterId === enc.id && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-3 overflow-hidden"
+                    >
+                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-900 pr-1">
+                        {(enc.creatures || []).map((c, i) => (
+                          <li
+                            key={i}
+                            className="hover:text-yellow-300 transition-colors cursor-pointer"
+                            onMouseEnter={(e) =>
+                              setHoveredCreature({
+                                ...c,
+                                mousePos: {
+                                  x: e.clientX + 15,
+                                  y: e.clientY + 15,
+                                },
+                              })
+                            }
+                            onMouseMove={(e) =>
+                              setHoveredCreature((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      mousePos: {
+                                        x: e.clientX + 15,
+                                        y: e.clientY + 15,
+                                      },
+                                    }
+                                  : null
+                              )
+                            }
+                            onMouseLeave={() => setHoveredCreature(null)}
+                          >
+                            {c.name} × {c.count}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <button
+                        onClick={() => handleDeleteEncounter(enc.id)}
+                        className="mt-3 text-red-500 hover:text-red-400 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm transition"
+                      >
+                        Delete
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Hover preview panel (animated) */}
@@ -280,10 +342,16 @@ export default function CreateEncounters() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed z-50 w-[900px] bg-gray-900 text-gray-100 border border-yellow-700 rounded-xl shadow-2xl pointer-events-none overflow-hidden"
+            className="fixed z-50 w-[900px] max-w-[90vw] bg-gray-900 text-gray-100 border border-yellow-700 rounded-xl shadow-2xl pointer-events-none overflow-hidden"
             style={{
-              top: hoveredCreature.mousePos.y,
-              left: hoveredCreature.mousePos.x,
+              top: Math.min(
+                hoveredCreature.mousePos.y,
+                window.innerHeight - 20 - 600 // max height clamp (adjust 600 if panel is taller)
+              ),
+              left: Math.min(
+                hoveredCreature.mousePos.x,
+                window.innerWidth - 20 - 900 // max width clamp (matches w-[900px])
+              ),
             }}
           >
             {hoveredCreature.imageURL && (
