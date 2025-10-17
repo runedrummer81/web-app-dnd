@@ -101,8 +101,8 @@ const createNewSession = async () => {
     const highestSessNr = existingSessions.reduce((max, s) => Math.max(max, s.sessNr || 0), 0);
     const nextSessNr = highestSessNr + 1;
 
-    // 🔹 Lav et læsevenligt ID (f.eks. sess_001)
-    const sessionId = `sess_${nextSessNr.toString().padStart(3, "0")}`;
+     // 🔹 Gør ID unikt for campaign
+    const sessionId = `${campaignId}_sess_${nextSessNr.toString().padStart(3, "0")}`;
 
     // 🔹 Opret nyt session-objekt
     const newSession = {
