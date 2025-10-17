@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
+import { db } from "../firebase"; // kun db fra firebase.js
+import { doc, getDoc } from "firebase/firestore"; // doc og getDoc fra firestore
 import DiceThrower from "../components/DiceThrower";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
@@ -7,6 +9,28 @@ import BGArtwok from "../components/BGArtwork";
 export default function HomePage() {
   const [active, setActive] = useState(null);
   const navigate = useNavigate();
+  const [lastCampaign, setLastCampaign] = useState(null);
+
+useEffect(() => {
+  const fetchLastCampaign = async () => {
+    const campaignId = localStorage.getItem("selectedCampaignId");
+    if (!campaignId) return;
+
+    try {
+      const docRef = await import("firebase/firestore").then(({ doc, getDoc }) => {
+        const d = doc(db, "Campaigns", campaignId);
+        return getDoc(d);
+      });
+      if (docRef.exists()) {
+        setLastCampaign({ id: docRef.id, ...docRef.data() });
+      }
+    } catch (err) {
+      console.error("🔥 Kunne ikke hente sidste campaign:", err);
+    }
+  };
+
+  fetchLastCampaign();
+}, []);
 
   // const handleClick = (item) => {
   //   if (item === "New Campaign") {
@@ -21,17 +45,19 @@ export default function HomePage() {
       {/* Left column */}
       <div className="flex flex-col space-y-6">
         <Link
-          to="/continue"
+          to="/session"
           onMouseEnter={() => setActive("Continue Campaign")}
           onMouseLeave={() => setActive(null)}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
-            active === "Continue Campaign"
-              // ? "text-[#DACA89]"
-              // : " bg-[#2E2C27] gold-glow-animate"
-          }`}
+          onClick={(e) => {
+            if (!lastCampaign) e.preventDefault(); // forhindrer klik hvis ingen campaign
+          }}
+          state={{ campaignId: lastCampaign?.id }}
+          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 ${!lastCampaign ? "opacity-50 cursor-not-allowed" : ""}`}
+          
         >
           Continue Campaign
         </Link>
+
 
          <Link
           to="/load"
