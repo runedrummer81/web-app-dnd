@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getDocs, addDoc, updateDoc, collection, query, where, doc } from "firebase/firestore";
+import { getDocs, setDoc, addDoc, updateDoc, collection, query, where, doc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate, useLocation } from "react-router";
 import SessionComp from "../components/SessionComp";
@@ -92,11 +92,13 @@ const createNewSession = async () => {
   if (!campaignId) return;
 
   try {
-    // 🔹 Hent sessions direkte fra Firestore for at finde højeste sessNr
+    // 🔹 Hent eksisterende sessions for denne campaign
     const q = query(collection(db, "Sessions"), where("campaignId", "==", campaignId));
     const snapshot = await getDocs(q);
-    const fetchedSessions = snapshot.docs.map((doc) => doc.data());
-    const highestSessNr = fetchedSessions.reduce((max, s) => Math.max(max, s.sessNr || 0), 0);
+    const existingSessions = snapshot.docs.map((d) => d.data());
+
+    // 🔹 Find næste nummer
+    const highestSessNr = existingSessions.reduce((max, s) => Math.max(max, s.sessNr || 0), 0);
     const nextSessNr = highestSessNr + 1;
 
      // 🔹 Gør ID unikt for campaign
@@ -113,13 +115,23 @@ const createNewSession = async () => {
       createdAt: new Date(),
     };
 
-    const docRef = await addDoc(collection(db, "Sessions"), newSession);
+    // 🔹 Gem med custom ID i Firestore
+    await setDoc(doc(db, "Sessions", sessionId), newSession);
 
-    // 🔹 Opdater lokal state
-    setSessions((prev) => [...prev, { id: docRef.id, ...newSession }]);
+    // 🔹 Opdater campaignens info (antal sessions + sidst åbnet)
+    const campaignRef = doc(db, "Campaigns", campaignId);
+    await updateDoc(campaignRef, {
+      sessionsCount: (existingSessions?.length || 0) + 1,
+      lastOpened: new Date(),
+    });
 
-    // 🔹 Naviger til SessionEdit
-    navigate("/session-edit", { state: { sessionId: docRef.id } });
+    // 🔹 Opdater lokalt
+    setSessions((prev) => [...prev, { id: sessionId, ...newSession }]);
+
+    // 🔹 Naviger direkte til SessionEdit
+    navigate("/session-edit", { state: { sessionId } });
+
+    console.log(`✅ Ny session oprettet med ID: ${sessionId}`);
   } catch (err) {
     console.error("🔥 Fejl ved oprettelse af ny session:", err);
   }
