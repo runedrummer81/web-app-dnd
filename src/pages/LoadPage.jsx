@@ -1,87 +1,157 @@
-// import CampaignComp from "../components/CampaignComp"
-// import { useEffect, useState } from "react";
-
-// export default function LoadPage(){
-//     const [projs, setProjs] = useState([]);
-
-//      useEffect(() => {
-//     async function getData() {
-//       const response = await fetch("/CampaignDummyData.json");
-//       const data = await response.json();
-//       setProjs(data);
-//     }
-//     getData();
-//     }, []);
-
-//     return(
-//         <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none text-white">
-
-//         {projs.map((proj) => (
-//             <CampaignComp
-//                 key={proj.id}
-//                 nr={proj.nr}
-//                 date={proj.date}
-//                 title={proj.title}
-//                 img={proj.img}
-//             />
-//         ))}
-//   </div>
-//     )
-// }
-
-
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import CampaignComp from "../components/CampaignComp";
+import { useNavigate } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoadPage() {
-  const [projs, setProjs] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [activeImg, setActiveImg] = useState(null);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function getCampaigns() {
-      try{
-      const querySnapshot = await getDocs(collection(db, "Campaigns"));
-      const campaigns = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-       console.log("✅ Campaigns hentet:", campaigns);
-      setProjs(campaigns);
-    } catch (err) {
-      console.error("🔥 Firestore fejl:", err);
-    }
-      
+      try {
+        const querySnapshot = await getDocs(collection(db, "Campaigns"));
+        const fetched = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log("✅ Campaigns hentet:", fetched);
+        setCampaigns(fetched);
+      } catch (err) {
+        console.error("🔥 Firestore fejl:", err);
+      }
     }
     getCampaigns();
   }, []);
 
+  const handleContinue = () => {
+    if (!selectedCampaign) return;
+    localStorage.setItem("selectedCampaignId", selectedCampaign.id);
+    navigate("/session", { state: { campaignId: selectedCampaign.id } });
+  };
+
   return (
-    <div className="relative min-h-screen flex flex-col items-start justify-center bg-[#1C1B18] px-12 py-20 font-serif select-none overflow-hidden">
+    <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden">
+      {/* 🔹 Venstre side — Campaign liste */}
+      <div className="relative w-1/2 flex flex-col items-start justify-center px-12 py-16 z-10">
+        <h2 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89] mb-6">
+          Choose Your Campaign
+        </h2>
 
-      {/* 📸 Baggrundsbillede med fade */}
-      <div
-        className="absolute inset-0 z-0 transition-all duration-700 bg-cover bg-center"
-        style={{
-          backgroundImage: activeImg
-            ? `linear-gradient(to left, rgba(28,27,24,1) 0%, rgba(28,27,24,0.9) 20%, rgba(28,27,24,0.5) 50%, rgba(28,27,24,0.8) 80%, rgba(28,27,24,1) 100%), url(${activeImg})`
-            : "none",
-          opacity: activeImg ? 1 : 0,
-        }}
-      ></div>
+        {/* Fade-top og bottom */}
+        <div className="absolute top-16 left-0 w-full h-12 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none"></div>
+        <div className="absolute bottom-16 left-0 w-full h-12 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none"></div>
 
-      {/* 📋 Liste over kampagner */}
-      <div className="relative z-10 flex flex-col gap-6 w-full max-w-4xl">
-        {projs.map((proj) => (
-          <CampaignComp
-            key={proj.id}
-            {...proj}
-            onHover={() => setActiveImg(proj.img)}
-            onLeave={() => setActiveImg(null)}
-          />
-        ))}
+        {/* Scrollbar */}
+        <div className="overflow-y-auto max-h-[70vh] w-full pr-6 space-y-4 scrollbar-thin scrollbar-thumb-[#DACA89]/30 scrollbar-track-transparent">
+          {campaigns.map((camp) => (
+            <motion.div
+              key={camp.id}
+              onClick={() => setSelectedCampaign(camp)}
+              onMouseEnter={() => setActiveImg(camp.image || camp.img)}
+              onMouseLeave={() =>
+                setActiveImg(
+                  selectedCampaign?.image || selectedCampaign?.img || null
+                )
+              }
+              className={`cursor-pointer transition-all duration-300 border border-[#DACA89]/50 rounded-md p-4 bg-[#292621] hover:shadow-[0_0_10px_#DACA89] ${
+                selectedCampaign?.id === camp.id
+                  ? "bg-[#2E2C27] shadow-[0_0_15px_#DACA89]"
+                  : ""
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <CampaignComp {...camp} />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* 🔹 Højre side — Preview billede */}
+      <div className="relative w-1/2 flex items-center justify-center bg-[#1C1B18] overflow-hidden">
+        <AnimatePresence mode="wait">
+          {(activeImg || selectedCampaign?.image) && (
+            <motion.div
+              key={activeImg || selectedCampaign?.image || selectedCampaign?.img}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${activeImg || selectedCampaign?.image || selectedCampaign?.img})`,
+                filter: "brightness(0.85)",
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            ></motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Ingen billede fallback */}
+        {!activeImg && !selectedCampaign?.image && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center text-[#DACA89]/40 italic"
+          >
+            No preview available
+          </motion.div>
+        )}
+
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-l from-[#1C1B18] via-transparent to-transparent"></div>
+
+        {/* Continue-knap (med animation) */}
+        <AnimatePresence>
+          {selectedCampaign && (
+            <motion.div
+  key="continue-btn"
+  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+  animate={{
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { delay: 0.2, duration: 0.4, ease: "easeOut" },
+  }}
+  exit={{
+    opacity: 0,
+    y: 30,
+    scale: 0.95,
+    transition: { duration: 0.3, ease: "easeIn" },
+  }}
+  className="absolute bottom-10 right-10 z-20"
+>
+  <motion.button
+    onClick={handleContinue}
+    whileHover={{
+      scale: 1.05,
+      boxShadow: "0 0 20px rgba(218,202,137,0.6)",
+    }}
+    animate={{
+      boxShadow: [
+        "0 0 10px rgba(218,202,137,0.4)",
+        "0 0 20px rgba(218,202,137,0.7)",
+        "0 0 10px rgba(218,202,137,0.4)",
+      ],
+    }}
+    transition={{
+      repeat: Infinity,
+      repeatType: "mirror",
+      duration: 2,
+    }}
+    className="px-8 py-3 uppercase tracking-widest font-bold border border-[#DACA89] text-[#DACA89] rounded-lg bg-transparent hover:bg-[#DACA89] hover:text-[#1C1B18] transition-all"
+  >
+    Continue
+  </motion.button>
+</motion.div>
+
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
