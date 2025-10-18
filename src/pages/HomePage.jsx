@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { db } from "../firebase"; // kun db fra firebase.js
 import { doc, getDoc } from "firebase/firestore"; // doc og getDoc fra firestore
 import DiceThrower from "../components/DiceThrower";
@@ -11,26 +11,28 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [lastCampaign, setLastCampaign] = useState(null);
 
-useEffect(() => {
-  const fetchLastCampaign = async () => {
-    const campaignId = localStorage.getItem("selectedCampaignId");
-    if (!campaignId) return;
+  useEffect(() => {
+    const fetchLastCampaign = async () => {
+      const campaignId = localStorage.getItem("selectedCampaignId");
+      if (!campaignId) return;
 
-    try {
-      const docRef = await import("firebase/firestore").then(({ doc, getDoc }) => {
-        const d = doc(db, "Campaigns", campaignId);
-        return getDoc(d);
-      });
-      if (docRef.exists()) {
-        setLastCampaign({ id: docRef.id, ...docRef.data() });
+      try {
+        const docRef = await import("firebase/firestore").then(
+          ({ doc, getDoc }) => {
+            const d = doc(db, "Campaigns", campaignId);
+            return getDoc(d);
+          }
+        );
+        if (docRef.exists()) {
+          setLastCampaign({ id: docRef.id, ...docRef.data() });
+        }
+      } catch (err) {
+        console.error("🔥 Kunne ikke hente sidste campaign:", err);
       }
-    } catch (err) {
-      console.error("🔥 Kunne ikke hente sidste campaign:", err);
-    }
-  };
+    };
 
-  fetchLastCampaign();
-}, []);
+    fetchLastCampaign();
+  }, []);
 
   // const handleClick = (item) => {
   //   if (item === "New Campaign") {
@@ -39,82 +41,82 @@ useEffect(() => {
   // };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden p-10">
       <BGArtwok />
-    <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12 relative z-10">
-      {/* Left column */}
-      <div className="flex flex-col space-y-6">
-        <Link
-          to="/session"
-          onMouseEnter={() => setActive("Continue Campaign")}
-          onMouseLeave={() => setActive(null)}
-          onClick={(e) => {
-            if (!lastCampaign) e.preventDefault(); // forhindrer klik hvis ingen campaign
-          }}
-          state={{ campaignId: lastCampaign?.id }}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 ${!lastCampaign ? "opacity-50 cursor-not-allowed" : ""}`}
-          
-        >
-          Continue Campaign
-        </Link>
+      <section className="grid grid-cols-[auto_1fr] items-center min-h-screen px-12 gap-12 relative z-10">
+        {/* Left column */}
+        <div className="flex flex-col space-y-6">
+          <Link
+            to="/session"
+            onMouseEnter={() => setActive("Continue Campaign")}
+            onMouseLeave={() => setActive(null)}
+            onClick={(e) => {
+              if (!lastCampaign) e.preventDefault(); // forhindrer klik hvis ingen campaign
+            }}
+            state={{ campaignId: lastCampaign?.id }}
+            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 ${
+              !lastCampaign ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Continue Campaign
+          </Link>
 
-
-         <Link
-          to="/load"
-          onMouseEnter={() => setActive("Load Campaign")}
-          onMouseLeave={() => setActive(null)}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
-            active === "Load Campaign"
+          <Link
+            to="/load"
+            onMouseEnter={() => setActive("Load Campaign")}
+            onMouseLeave={() => setActive(null)}
+            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+              active === "Load Campaign"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
-          }`}
-        >
-          Load Campaign
-        </Link>
+            }`}
+          >
+            Load Campaign
+          </Link>
 
-        <Link
-          to="/newcampaign"
-          onMouseEnter={() => setActive("New Campaign")}
-          onMouseLeave={() => setActive(null)}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
-            active === "New Campaign"
+          <Link
+            to="/newcampaign"
+            onMouseEnter={() => setActive("New Campaign")}
+            onMouseLeave={() => setActive(null)}
+            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+              active === "New Campaign"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
-          }`}
-        >
-          New Campaign
-        </Link>
+            }`}
+          >
+            New Campaign
+          </Link>
 
-        <Link
-          to="/encounters"
-          onMouseEnter={() => setActive("Encounters")}
-          onMouseLeave={() => setActive(null)}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
-            active === "Encounters"
+          <Link
+            to="/encounters"
+            onMouseEnter={() => setActive("Encounters")}
+            onMouseLeave={() => setActive(null)}
+            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+              active === "Encounters"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
-          }`}
-        >
-          Encounters
-        </Link>
+            }`}
+          >
+            Encounters
+          </Link>
 
-        <Link
-          to="/info"
-          onMouseEnter={() => setActive("Information")}
-          onMouseLeave={() => setActive(null)}
-          className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
-            active === "Information"
+          <Link
+            to="/info"
+            onMouseEnter={() => setActive("Information")}
+            onMouseLeave={() => setActive(null)}
+            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+              active === "Information"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
-          }`}
-        >
-          Information
-        </Link>
-      </div>
+            }`}
+          >
+            Information
+          </Link>
+        </div>
 
-      {/* Right column */}
-      <div className="flex justify-center items-center bg-transparent border border-[#DACA89] rounded-xl transition-all duration-500">
-        {/* {active ? (
+        {/* Right column */}
+        <div className="flex justify-center items-center bg-transparent border border-[#DACA89] rounded-xl transition-all duration-500">
+          {/* {active ? (
           <div className="text-3xl font-bold text-gray-700">
             {active === "Continue Campaign" && "✨ Load campaign"}
             {active === "Load Campaign" &&
@@ -134,9 +136,8 @@ useEffect(() => {
             />
           </div>
         )} */}
-      </div>
-    </section>
+        </div>
+      </section>
     </div>
-    
   );
 }
