@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getDocs, addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { getDocs, setDoc, addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { FaArrowLeft } from "react-icons/fa";
@@ -11,6 +11,8 @@ export default function NewCampaign() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
+  const [showNamePopup, setShowNamePopup] = useState(false);
+  const [campaignName, setCampaignName] = useState("");
   const navigate = useNavigate();
 
   // 🔹 Fetch templates from Firestore
@@ -69,12 +71,17 @@ export default function NewCampaign() {
       console.error("Error fetching LearnMore document:", err);
     }
   };
-
+// 🔹 Når man trykker "CONFIRM" → vis pop-up for campaign-navn
+  const confirmSelection = () => {
+    if (openedIndex === null) return;
+    setShowNamePopup(true);
+  };
   // 🔹 Confirm selection (creates new campaign)
   const confirmSelection = async () => {
     if (openedIndex === null) return;
     const selectedTemplate = templates[openedIndex];
-    if (!selectedTemplate) return;
+    const formattedName = campaignName.trim().toLowerCase().replace(/\s+/g, "_");
+    const campaignId = `camp_${formattedName}`;
 
     try {
       const newCampaign = {
@@ -82,6 +89,10 @@ export default function NewCampaign() {
         description: selectedTemplate.description || "",
         campaignNr: Date.now(),
         templateId: selectedTemplate.id,
+        title: campaignName,
+        description: selectedTemplate.description || "",
+        templateId: selectedTemplate.id,
+        campaignNr: Date.now(),
         lastOpened: new Date(),
         firstOpened: new Date(),
         sessionsCount: 0,
@@ -95,6 +106,16 @@ export default function NewCampaign() {
       navigate("/session", { state: { campaignId: docRef.id } });
     } catch (error) {
       console.error("🔥 Error creating campaign:", error);
+      await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
+
+      console.log("✅ Ny campaign oprettet:", campaignId);
+
+      localStorage.setItem("selectedCampaignId", campaignId);
+      navigate("/session", { state: { campaignId } });
+    } catch (error) {
+      console.error("🔥 Fejl ved oprettelse af campaign:", error);
+    } finally {
+      setShowNamePopup(false);
     }
   };
 
@@ -179,8 +200,8 @@ export default function NewCampaign() {
         </div>
       </div>
 
-      {/* Confirm button */}
-      {openedIndex !== null && (
+      {/* CONFIRM-knap */}
+      {openedIndex !== null && !showNamePopup && (
         <button
           onClick={confirmSelection}
           className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg"
@@ -196,6 +217,36 @@ export default function NewCampaign() {
           onClose={() => setShowLearnMore(false)}
           onConfirm={confirmSelection}
         />
+      {/* 🧾 Pop-up for campaign-navn */}
+      {showNamePopup && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#292621] border border-[#DACA89]/60 rounded-lg p-8 w-[400px] text-center">
+            <h2 className="text-xl uppercase tracking-widest font-bold text-[#DACA89] mb-4">
+              Navn på din Campaign
+            </h2>
+            <input
+              type="text"
+              value={campaignName}
+              onChange={(e) => setCampaignName(e.target.value)}
+              placeholder="Skriv campaign-navn..."
+              className="w-full p-2 mb-4 rounded bg-[#1F1E1A] border border-[#DACA89]/40 text-[#DACA89] placeholder-[#DACA89]/40"
+            />
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => setShowNamePopup(false)}
+                className="border border-[#DACA89] text-[#DACA89] py-2 px-4 rounded hover:bg-[#DACA89]/10"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCampaign}
+                className="bg-[#DACA89] text-[#1C1B18] font-bold py-2 px-4 rounded hover:bg-[#cabb6f]"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
