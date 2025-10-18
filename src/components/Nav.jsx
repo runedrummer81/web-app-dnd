@@ -21,7 +21,7 @@ export default function Nav() {
   };
 
   return (
-    <nav className="flex justify-between items-center bg-gray-800 text-white p-4 shadow-lg">
+    <nav className="flex justify-between min-w-screen fixed z-40 items-center text-white p-4">
       <div className="font-bold text-xl">Dungeon Master Tools</div>
       <button
         onClick={handleLogout}
