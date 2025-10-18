@@ -144,9 +144,29 @@ const createNewSession = async () => {
     setSelectedSession((prev) => (prev?.id === session.id ? null : session));
   };
 
+
+  const handleBack = () => {
+    const from = location.state?.from;
+
+    if (from && from == '/session-edit') {
+      navigate(-3); // gå tilbage
+    } 
+    else {
+      navigate(-1); // fallback hvis forrige side var "Session-edit"
+    }
+  };
+
+
   return (
     <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none">
       {/* Venstre side: sessionliste */}
+      <button
+              onClick={() => navigate("/home")}
+              className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+            >
+               <span>Back to Home</span>
+            </button>
+
       <section className="flex flex-col justify-center w-1/3 space-y-4">
         <h2 className="text-lg uppercase tracking-widest font-semibold">Choose a Session</h2>
 
@@ -180,6 +200,20 @@ const createNewSession = async () => {
           )}
         </div>
       </section>
+
+      {/* ⚙️ Bundnavigation */}
+                <section className="col-span-2 flex justify-between mt-8 items-center">
+                 
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleBack}
+                      className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                    >
+                      Back
+                    </button>
+                    
+                  </div>
+                </section>
 
       {/* Højre side: detaljer */}
       {selectedSession && (
@@ -249,7 +283,11 @@ const createNewSession = async () => {
               Run Session
             </button>
           </div>
+
+          
         </section>
+        
+        
       )}
     </div>
   );

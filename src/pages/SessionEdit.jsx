@@ -299,15 +299,7 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
             >
                 <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg uppercase tracking-widest font-semibold">Vælg Combat Maps</h3>
-                <button
-                    onClick={() => {
-                    setTempSelectedMaps([]); // ryd midlertidige valg
-                    setShowMapModal(false);
-                    }}
-                    className="text-[#DACA89]/70 hover:text-[#DACA89]"
-                >
-                    Cancel
-                </button>
+                
                 </div>
 
                 {/* Filtre */}

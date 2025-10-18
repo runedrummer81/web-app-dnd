@@ -85,6 +85,7 @@ export default function NewCampaign() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
       {/* 🔙 Tilbage-knap */}
+      
       <button
         onClick={() => navigate("/home")}
         className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
@@ -92,6 +93,18 @@ export default function NewCampaign() {
         <FaArrowLeft size={18} />
         <span>Back to Home</span>
       </button>
+
+      {/* ⚙️ Bundnavigation */}               
+                 
+                  
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+                    >
+                      Back
+                    </button>                    
+                  
+                
 
       {/* Hovedlayout */}
       <div className="flex w-full max-w-5xl justify-center items-start gap-16 mb-6">

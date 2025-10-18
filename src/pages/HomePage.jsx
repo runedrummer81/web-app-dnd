@@ -10,6 +10,7 @@ export default function HomePage() {
   const [active, setActive] = useState(null);
   const navigate = useNavigate();
   const [lastCampaign, setLastCampaign] = useState(null);
+  
 
 useEffect(() => {
   const fetchLastCampaign = async () => {
@@ -51,7 +52,7 @@ useEffect(() => {
           onClick={(e) => {
             if (!lastCampaign) e.preventDefault(); // forhindrer klik hvis ingen campaign
           }}
-          state={{ campaignId: lastCampaign?.id }}
+          state={{ campaignId: lastCampaign?.id, from: "/home" }}
           className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 ${!lastCampaign ? "opacity-50 cursor-not-allowed" : ""}`}
           
         >
