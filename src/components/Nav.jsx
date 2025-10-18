@@ -21,11 +21,13 @@ export default function Nav() {
   };
 
   return (
-    <nav className="flex justify-between min-w-screen fixed z-40 items-center text-white p-4">
-      <div className="font-bold text-xl">Dungeon Master Tools</div>
+    <nav className="flex justify-between min-w-screen fixed z-40 items-center text-white p-20 pointer-events-none">
+      <div className="font-bold text-xl pointer-events-auto">
+        Dungeon Master Tools
+      </div>
       <button
         onClick={handleLogout}
-        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold transition-all"
+        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold transition-all pointer-events-auto"
       >
         Logout
       </button>

@@ -132,7 +132,7 @@ export default function NewCampaign() {
       {/* Back button */}
       <button
         onClick={() => navigate("/home")}
-        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+        className="absolute top-20 left-20 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
       >
         <FaArrowLeft size={18} />
         <span>Back to Home</span>
