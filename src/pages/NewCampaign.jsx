@@ -196,7 +196,7 @@ export default function NewCampaign() {
                         e.stopPropagation(); // prevent closing
                         handleLearnMore(learnMoreId); // ✅ pass correct ID
                       }}
-                      className="mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
+                      className="cursor-pointer mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
                     >
                       Learn More
                     </button>
