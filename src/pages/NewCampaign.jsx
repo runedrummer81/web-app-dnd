@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { getDocs, setDoc, addDoc, collection, doc, getDoc } from "firebase/firestore";
+import {
+  getDocs,
+  setDoc,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { FaArrowLeft } from "react-icons/fa";
@@ -71,34 +78,36 @@ export default function NewCampaign() {
       console.error("Error fetching LearnMore document:", err);
     }
   };
-// 🔹 Når man trykker "CONFIRM" → vis pop-up for campaign-navn
-  const confirmSelection = () => {
+
+  // 🔹 Show popup when confirming
+  const handleConfirmClick = () => {
     if (openedIndex === null) return;
     setShowNamePopup(true);
   };
-  // 🔹 Confirm selection (creates new campaign)
-  const confirmSelection = async () => {
-    if (openedIndex === null) return;
+
+  // 🔹 Save new campaign to Firestore
+  const saveCampaign = async () => {
+    if (openedIndex === null || !campaignName.trim()) return;
+
     const selectedTemplate = templates[openedIndex];
-    const formattedName = campaignName.trim().toLowerCase().replace(/\s+/g, "_");
+    const formattedName = campaignName
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
     const campaignId = `camp_${formattedName}`;
 
-    try {
-      const newCampaign = {
-        title: selectedTemplate.title,
-        description: selectedTemplate.description || "",
-        campaignNr: Date.now(),
-        templateId: selectedTemplate.id,
-        title: campaignName,
-        description: selectedTemplate.description || "",
-        templateId: selectedTemplate.id,
-        campaignNr: Date.now(),
-        lastOpened: new Date(),
-        firstOpened: new Date(),
-        sessionsCount: 0,
-        image: selectedTemplate.image || "",
-      };
+    const newCampaign = {
+      title: campaignName,
+      description: selectedTemplate.description || "",
+      campaignNr: Date.now(),
+      templateId: selectedTemplate.id,
+      lastOpened: new Date(),
+      firstOpened: new Date(),
+      sessionsCount: 0,
+      image: selectedTemplate.image || "",
+    };
 
+    try {
       const docRef = await addDoc(collection(db, "Campaigns"), newCampaign);
       console.log("✅ New campaign created:", docRef.id);
 
@@ -106,14 +115,13 @@ export default function NewCampaign() {
       navigate("/session", { state: { campaignId: docRef.id } });
     } catch (error) {
       console.error("🔥 Error creating campaign:", error);
-      await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
 
+      // fallback: manually set doc if addDoc fails
+      await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
       console.log("✅ Ny campaign oprettet:", campaignId);
 
       localStorage.setItem("selectedCampaignId", campaignId);
       navigate("/session", { state: { campaignId } });
-    } catch (error) {
-      console.error("🔥 Fejl ved oprettelse af campaign:", error);
     } finally {
       setShowNamePopup(false);
     }
@@ -185,8 +193,8 @@ export default function NewCampaign() {
                   {openedIndex === index && (
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // prevent closing the expanded template
-                        handleLearnMore(learnMoreId); // ✅ pass the correct document ID
+                        e.stopPropagation(); // prevent closing
+                        handleLearnMore(learnMoreId); // ✅ pass correct ID
                       }}
                       className="mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
                     >
@@ -200,10 +208,10 @@ export default function NewCampaign() {
         </div>
       </div>
 
-      {/* CONFIRM-knap */}
+      {/* CONFIRM button */}
       {openedIndex !== null && !showNamePopup && (
         <button
-          onClick={confirmSelection}
+          onClick={handleConfirmClick}
           className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg"
         >
           CONFIRM
@@ -215,9 +223,11 @@ export default function NewCampaign() {
         <LearnMore
           template={selectedTemplate}
           onClose={() => setShowLearnMore(false)}
-          onConfirm={confirmSelection}
+          onConfirm={handleConfirmClick}
         />
-      {/* 🧾 Pop-up for campaign-navn */}
+      )}
+
+      {/* 🧾 Campaign name popup */}
       {showNamePopup && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#292621] border border-[#DACA89]/60 rounded-lg p-8 w-[400px] text-center">
