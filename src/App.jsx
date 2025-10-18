@@ -9,11 +9,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
 import LoadPage from "./pages/LoadPage";
+import Border from "./components/Border";
 
 export default function App() {
   return (
     <>
       <Nav />
+      <Border />
       <main>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -87,7 +89,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-                    
         </Routes>
       </main>
     </>

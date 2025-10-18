@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+:root {
+  --primary: #daca89;
+  --secondary: #bf883c;
+  --dark-muted-bg: #22211c;
+  --dark-border: #403c29;
+}
+
 @keyframes rise {
   0% {
     transform: translateY(0) translateX(0);
@@ -22,10 +29,10 @@
 @keyframes gold-glow {
   0%,
   100% {
-    box-shadow: 0 0 10px 2px rgba(218, 202, 137, 0.7), 0 0 2px #daca89;
+    box-shadow: 0 0 10px 2px rgba(218, 202, 137, 0.7), 0 0 2px var(--primary);
   }
   50% {
-    box-shadow: 0 0 18px 6px rgba(218, 202, 137, 1), 0 0 8px #daca89;
+    box-shadow: 0 0 18px 6px rgba(218, 202, 137, 1), 0 0 8px var(--primary);
   }
 }
 
@@ -44,7 +51,7 @@
 }
 
 .menu-scrollbar::-webkit-scrollbar-thumb {
-  background: #daca89; /* your golden color */
+  background: var(--primary); /* your golden color */
   border-radius: 8px;
   border: 2px solid #403c29; /* subtle dark border around thumb */
 }
@@ -55,7 +62,7 @@
 
 .menu-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #daca89 #22211c; /* thumb color, track color for Firefox */
+  scrollbar-color: var(--primary) #22211c; /* thumb color, track color for Firefox */
 }
 
 @keyframes runeGlow {
@@ -97,15 +104,15 @@
 }
 
 .btn-glow {
-  @apply relative overflow-hidden px-10 py-3 bg-[#DACA89] text-[#1C1B18] font-bold uppercase tracking-widest rounded-lg transition-all duration-300;
+  @apply relative overflow-hidden px-10 py-3 bg-[var(--primary)] text-[#1C1B18] font-bold uppercase tracking-widest rounded-lg transition-all duration-300;
 
   /* Shimmer effect */
   background: linear-gradient(
     120deg,
-    #daca89 0%,
+    var(--primary) 0%,
     #fffacd 30%,
-    #daca89 60%,
-    #daca89 100%
+    var(--primary) 60%,
+    var(--primary) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
@@ -115,7 +122,8 @@
 .btn-glow::after {
   content: "";
   @apply absolute inset-0 rounded-lg pointer-events-none;
-  box-shadow: 0 0 20px #daca89, 0 0 50px #daca89/50, 0 0 80px #daca89/30;
+  box-shadow: 0 0 20px var(--primary), 0 0 50px var(--primary) / 50,
+    0 0 80px var(--primary) / 30;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
