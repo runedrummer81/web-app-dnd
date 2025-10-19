@@ -138,7 +138,19 @@ export default function NewCampaign() {
         <span>Back to Home</span>
       </button>
 
-      {/* Main layout */}
+      {/* ⚙️ Bundnavigation */}               
+                 
+                  
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+                    >
+                      Back
+                    </button>                    
+                  
+                
+
+      {/* Hovedlayout */}
       <div className="flex w-full max-w-5xl justify-center items-start gap-16 mb-6">
         {/* Left side */}
         <div className="flex flex-col items-center justify-center w-[360px] text-[#DACA89]">

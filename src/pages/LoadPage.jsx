@@ -38,6 +38,27 @@ export default function LoadPage() {
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
       {/* 🔹 Venstre side — Campaign liste */}
       <div className="relative w-1/2 flex flex-col items-start justify-center px-12 py-16 z-10">
+      <button
+              onClick={() => navigate("/home")}
+              className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+            >
+               <span>Back to Home</span>
+            </button>
+
+      {/* ⚙️ Bundnavigation */}
+                <section className="col-span-2 flex justify-between mt-8 items-center">
+                 
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+                    >
+                      Back
+                    </button>
+                    
+                  </div>
+                </section>
+
         <h2 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89] mb-6">
           Choose Your Campaign
         </h2>
@@ -155,7 +176,9 @@ export default function LoadPage() {
             </motion.div>
           )}
         </AnimatePresence>
+        
       </div>
+      
     </div>
   );
 }

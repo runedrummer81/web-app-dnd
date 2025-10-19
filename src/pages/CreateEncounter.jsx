@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate} from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   doc,
@@ -10,6 +11,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "../firebase";
+
 
 const handleDeleteEncounter = async (id) => {
   if (!confirm("Are you sure you want to delete this encounter?")) return;
@@ -29,6 +31,8 @@ export default function CreateEncounters() {
   const [savedEncounters, setSavedEncounters] = useState([]);
   const [hoveredCreature, setHoveredCreature] = useState(null);
   const [expandedEncounterId, setExpandedEncounterId] = useState(null);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -112,6 +116,28 @@ export default function CreateEncounters() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-20 gap-8">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
+
+      <button
+              onClick={() => navigate("/home")}
+              className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+            >
+               <span>Back to Home</span>
+            </button>
+
+      {/* ⚙️ Bundnavigation */}
+                <section className="col-span-2 flex justify-between mt-8 items-center">
+                 
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+                    >
+                      Back
+                    </button>
+                    
+                  </div>
+                </section>
+
       <div className="w-2/3 flex flex-col space-y-6">
         {/* Search bar */}
         <div className="relative w-full">
