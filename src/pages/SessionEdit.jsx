@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { getAuth } from "firebase/auth";
 import {
   doc,
   getDoc,
