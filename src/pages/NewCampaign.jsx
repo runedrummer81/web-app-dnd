@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  getDocs,
-  setDoc,
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { getDocs, setDoc, collection, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { FaArrowLeft } from "react-icons/fa";
@@ -90,7 +83,6 @@ export default function NewCampaign() {
   // 🔹 Save new campaign to Firestore
   const saveCampaign = async () => {
     if (openedIndex === null || !campaignName.trim()) return;
-
     if (!user) {
       console.error("🔥 User not authenticated!");
       return;
@@ -116,28 +108,16 @@ export default function NewCampaign() {
     };
 
     try {
-      // ✅ add document to Firestore
-      const campaignId = `camp_${formattedName}`;
-        await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
-        
-        console.log("✅ New campaign created with custom ID:", campaignId);
-        localStorage.setItem("selectedCampaignId", campaignId);
-        navigate("/session", { state: { campaignId, from: "/newcampaign" } });
-      console.log("✅ New campaign created:", docRef.id);
-
-      localStorage.setItem("selectedCampaignId", docRef.id);
-      navigate("/session", {
-        state: { campaignId: docRef.id, from: "/newcampaign" },
-      });
-    } catch (error) {
-      console.error("🔥 Error creating campaign:", error);
-
-      // fallback: manually set doc if addDoc fails
+      // ✅ add document to Firestore with custom ID
       await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
-      console.log("✅ Fallback campaign created:", campaignId);
+      console.log("✅ New campaign created with ID:", campaignId);
 
+      // ✅ Store in localStorage and navigate
       localStorage.setItem("selectedCampaignId", campaignId);
       navigate("/session", { state: { campaignId, from: "/newcampaign" } });
+    } catch (error) {
+      console.error("🔥 Error creating campaign:", error);
+      alert("Failed to create campaign. Please try again.");
     } finally {
       setShowNamePopup(false);
     }
