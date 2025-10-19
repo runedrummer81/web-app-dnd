@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
-import { getDocs, setDoc, collection, doc } from "firebase/firestore";
+import {
+  getDocs,
+  setDoc,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { FaArrowLeft } from "react-icons/fa";
+import LearnMore from "../components/LearnMore";
 
 export default function NewCampaign() {
   const [templates, setTemplates] = useState([]);
   const [openedIndex, setOpenedIndex] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showLearnMore, setShowLearnMore] = useState(false);
+
   const [showNamePopup, setShowNamePopup] = useState(false);
   const [campaignName, setCampaignName] = useState("");
   const navigate = useNavigate();
 
-  // 🔹 Hent templates fra Firestore
+  // 🔹 Fetch templates from Firestore
   useEffect(() => {
     async function getTemplates() {
       try {
@@ -20,64 +31,97 @@ export default function NewCampaign() {
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("✅ Templates hentet:", fetchedTemplates);
+        console.log("✅ Templates fetched:", fetchedTemplates);
         setTemplates(fetchedTemplates);
       } catch (err) {
-        console.error("🔥 Firestore fejl:", err);
+        console.error("🔥 Firestore error:", err);
       }
     }
-
     getTemplates();
   }, []);
 
-  // 🔹 Lås scroll, når siden er aktiv
+  // 🔹 Lock scroll when modal is open
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+    document.body.style.overflow = showLearnMore ? "hidden" : "";
+  }, [showLearnMore]);
 
-  // 🔹 Åbn / luk template-beskrivelser
   const toggleDescription = (index) => {
     setOpenedIndex(openedIndex === index ? null : index);
   };
 
-  // 🔹 Når man trykker "CONFIRM" → vis pop-up for campaign-navn
-  const confirmSelection = () => {
+  // 🔹 Fetch LearnMore data dynamically
+  const handleLearnMore = async (learnMoreId) => {
+    try {
+      const docRef = doc(db, "learnmore", learnMoreId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSelectedTemplate({
+          title: data.title,
+          description: data.description,
+          image: data.mainImage,
+          extraImage1: data.secondaryImage,
+          extraText1: data.secondaryText,
+          extraImage2: data.thirdImage,
+          thirdText: data.thirdText,
+          fourthImage: data.fourthImage,
+          fourthText: data.fourthText,
+          fifthImage: data.fifthImage,
+          fifthText: data.fifthText,
+        });
+        setShowLearnMore(true);
+      } else {
+        console.log("No LearnMore document found for ID:", learnMoreId);
+      }
+    } catch (err) {
+      console.error("Error fetching LearnMore document:", err);
+    }
+  };
+
+  // 🔹 Show popup when confirming
+  const handleConfirmClick = () => {
     if (openedIndex === null) return;
     setShowNamePopup(true);
   };
 
-  // 🔹 Gem ny campaign med læsevenligt ID
+  // 🔹 Save new campaign to Firestore
   const saveCampaign = async () => {
-    if (!campaignName.trim() || openedIndex === null) return;
+    if (openedIndex === null || !campaignName.trim()) return;
 
     const selectedTemplate = templates[openedIndex];
-    const formattedName = campaignName.trim().toLowerCase().replace(/\s+/g, "_");
+    const formattedName = campaignName
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
     const campaignId = `camp_${formattedName}`;
 
+    const newCampaign = {
+      title: campaignName,
+      description: selectedTemplate.description || "",
+      campaignNr: Date.now(),
+      templateId: selectedTemplate.id,
+      lastOpened: new Date(),
+      firstOpened: new Date(),
+      sessionsCount: 0,
+      image: selectedTemplate.image || "",
+    };
+
     try {
-      const newCampaign = {
-        title: campaignName,
-        description: selectedTemplate.description || "",
-        templateId: selectedTemplate.id,
-        campaignNr: Date.now(),
-        lastOpened: new Date(),
-        firstOpened: new Date(),
-        sessionsCount: 0,
-        image: selectedTemplate.image || "",
-      };
+      const docRef = await addDoc(collection(db, "Campaigns"), newCampaign);
+      console.log("✅ New campaign created:", docRef.id);
 
+      localStorage.setItem("selectedCampaignId", docRef.id);
+      navigate("/session", { state: { campaignId: docRef.id } });
+    } catch (error) {
+      console.error("🔥 Error creating campaign:", error);
+
+      // fallback: manually set doc if addDoc fails
       await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
-
       console.log("✅ Ny campaign oprettet:", campaignId);
 
       localStorage.setItem("selectedCampaignId", campaignId);
-      navigate("/session", { state: { campaignId: docRef.id, from: "/newcampaign" },
-      });
-    } catch (error) {
-      console.error("🔥 Fejl ved oprettelse af campaign:", error);
+      navigate("/session", { state: { campaignId } });
     } finally {
       setShowNamePopup(false);
     }
@@ -85,11 +129,10 @@ export default function NewCampaign() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
-      {/* 🔙 Tilbage-knap */}
-      
+      {/* Back button */}
       <button
         onClick={() => navigate("/home")}
-        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+        className="absolute top-20 left-20 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
       >
         <FaArrowLeft size={18} />
         <span>Back to Home</span>
@@ -109,7 +152,7 @@ export default function NewCampaign() {
 
       {/* Hovedlayout */}
       <div className="flex w-full max-w-5xl justify-center items-start gap-16 mb-6">
-        {/* Venstre side */}
+        {/* Left side */}
         <div className="flex flex-col items-center justify-center w-[360px] text-[#DACA89]">
           <button className="w-full uppercase border border-[#DACA89] font-bold py-4 tracking-wide rounded-md shadow-[0_0_10px_#DACA89] hover:shadow-[0_0_16px_#DACA89] transition">
             NY CAMPAIGN FRA TEMPLATE
@@ -119,60 +162,84 @@ export default function NewCampaign() {
           </p>
         </div>
 
-        {/* Højre side: templates fra Firestore */}
+        {/* Right side: templates */}
         <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6 border-l border-[#DACA89]/50 pl-8 menu-scrollbar">
-          {templates.map(({ title, description, image }, index) => (
-            <div
-              key={index}
-              className={`cursor-pointer p-5 border rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
-                openedIndex === index ? "bg-[#2E2C27] gold-glow-animate" : ""
-              }`}
-              onClick={() => toggleDescription(index)}
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
-                  {title}
-                </h3>
-                <div className="w-44 h-10 text-right text-xs italic text-[#DACA89]/70 select-none">
-                  {image ? (
-                    <img
-                      src={image}
-                      alt={title}
-                      className="w-16 h-10 object-cover rounded-md ml-auto"
-                    />
-                  ) : (
-                    "INTET BILLEDE"
+          {templates.map(
+            ({ id, title, description, image, learnMoreId }, index) => (
+              <div
+                key={id}
+                className={`cursor-pointer p-5 border rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
+                  openedIndex === index ? "bg-[#2E2C27] gold-glow-animate" : ""
+                }`}
+                onClick={() => toggleDescription(index)}
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
+                    {title}
+                  </h3>
+                  <div className="w-44 h-10 text-right text-xs italic text-[#DACA89]/70 select-none">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="w-16 h-10 object-cover rounded-md ml-auto"
+                      />
+                    ) : (
+                      "INTET BILLEDE"
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
+                    openedIndex === index
+                      ? "max-h-44 mt-4 opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <p className="text-[#DACA89]/90 leading-relaxed">
+                    {description || "Ingen beskrivelse tilgængelig"}
+                  </p>
+
+                  {/* Learn More button */}
+                  {openedIndex === index && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent closing
+                        handleLearnMore(learnMoreId); // ✅ pass correct ID
+                      }}
+                      className="cursor-pointer mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
+                    >
+                      Learn More
+                    </button>
                   )}
                 </div>
               </div>
-
-              <div
-                className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
-                  openedIndex === index
-                    ? "max-h-44 mt-4 opacity-100"
-                    : "max-h-0 opacity-0"
-                }`}
-              >
-                <p className="text-[#DACA89]/90 leading-relaxed">
-                  {description || "Ingen beskrivelse tilgængelig"}
-                </p>
-              </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </div>
 
-      {/* CONFIRM-knap */}
+      {/* CONFIRM button */}
       {openedIndex !== null && !showNamePopup && (
         <button
-          onClick={confirmSelection}
+          onClick={handleConfirmClick}
           className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg"
         >
           CONFIRM
         </button>
       )}
 
-      {/* 🧾 Pop-up for campaign-navn */}
+      {/* LearnMore modal */}
+      {showLearnMore && selectedTemplate && (
+        <LearnMore
+          template={selectedTemplate}
+          onClose={() => setShowLearnMore(false)}
+          onConfirm={handleConfirmClick}
+        />
+      )}
+
+      {/* 🧾 Campaign name popup */}
       {showNamePopup && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#292621] border border-[#DACA89]/60 rounded-lg p-8 w-[400px] text-center">

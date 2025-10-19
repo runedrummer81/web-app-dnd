@@ -114,7 +114,7 @@ export default function CreateEncounters() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8 gap-8">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-20 gap-8">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
       <button
