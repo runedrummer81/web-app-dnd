@@ -87,7 +87,7 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
   fetchEncounters();
 }, []);
 
-  // 🗺️ 3. Hent combat maps
+  // 🗺️ 3. Hent combat smaps
   useEffect(() => {
     async function fetchMaps() {
       const q = query(collection(db, "Maps"), where("type", "==", "combat"));
