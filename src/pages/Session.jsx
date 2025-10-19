@@ -11,6 +11,15 @@ export default function Session() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const fromPage = location.state?.from || localStorage.getItem("lastNonSessionPage");
+
+// Gem den i localStorage, så vi husker den, selv hvis man opretter en ny session
+useEffect(() => {
+  if (fromPage && !fromPage.includes("session")) {
+    localStorage.setItem("lastNonSessionPage", fromPage);
+  }
+}, [fromPage]);
+
   // 🔹 Find campaignId — enten fra navigate state eller localStorage
   useEffect(() => {
     const idFromNav = location.state?.campaignId;
@@ -146,17 +155,10 @@ const createNewSession = async () => {
 
 
       // Find hvor vi kom fra
-  const fromPage = location.state?.from || "/home";
-
-  // Håndter “tilbage”-knap
   const handleBack = () => {
-    // Hvis man kom fra Session-edit, skal vi ikke tilbage dertil
-    if (fromPage === "/session-edit") {
-      navigate("/home");
-    } else {
-      navigate(fromPage);
-    }
-  };
+  const lastPage = localStorage.getItem("lastNonSessionPage") || "/home";
+  navigate(lastPage);
+};
 
 
   useEffect(() => {
