@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate} from "react-router";
+import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   doc,
@@ -8,11 +8,11 @@ import {
   getDocs,
   addDoc,
   onSnapshot,
+  where,
   query,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { getAuth } from "firebase/auth";
-
 
 const handleDeleteEncounter = async (id) => {
   if (!confirm("Are you sure you want to delete this encounter?")) return;
@@ -34,7 +34,6 @@ export default function CreateEncounters() {
   const [expandedEncounterId, setExpandedEncounterId] = useState(null);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const fetchCreatures = async () => {
       const querySnapshot = await getDocs(collection(db, "Creatures"));
@@ -46,12 +45,27 @@ export default function CreateEncounters() {
     };
     fetchCreatures();
 
-    const q = query(collection(db, "encounters"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setSavedEncounters(
-        snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-    });
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return; // stop if user is not loaded yet
+
+    const q = query(
+      collection(db, "encounters"),
+      where("ownerId", "==", user.uid) // <-- fetch only encounters for this user
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setSavedEncounters(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      },
+      (error) => {
+        console.error("Error fetching encounters:", error);
+      }
+    );
+
     return () => unsubscribe();
   }, []);
 
@@ -123,25 +137,23 @@ export default function CreateEncounters() {
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
       <button
-              onClick={() => navigate("/home")}
-              className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-            >
-               <span>Back to Home</span>
-            </button>
+        onClick={() => navigate("/home")}
+        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+      >
+        <span>Back to Home</span>
+      </button>
 
       {/* ⚙️ Bundnavigation */}
-                <section className="col-span-2 flex justify-between mt-8 items-center">
-                 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => navigate(-1)}
-                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
-                    >
-                      Back
-                    </button>
-                    
-                  </div>
-                </section>
+      <section className="col-span-2 flex justify-between mt-8 items-center">
+        <div className="flex gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+          >
+            Back
+          </button>
+        </div>
+      </section>
 
       <div className="w-2/3 flex flex-col space-y-6">
         {/* Search bar */}
