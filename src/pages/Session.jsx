@@ -145,16 +145,23 @@ const createNewSession = async () => {
   };
 
 
-  const handleBack = () => {
-    const from = location.state?.from;
+      // Find hvor vi kom fra
+  const fromPage = location.state?.from || "/home";
 
-    if (from && from == '/session-edit') {
-      navigate(-3); // gå tilbage
-    } 
-    else {
-      navigate(-1); // fallback hvis forrige side var "Session-edit"
+  // Håndter “tilbage”-knap
+  const handleBack = () => {
+    // Hvis man kom fra Session-edit, skal vi ikke tilbage dertil
+    if (fromPage === "/session-edit") {
+      navigate("/home");
+    } else {
+      navigate(fromPage);
     }
   };
+
+
+  useEffect(() => {
+    console.log("🧭 Session opened from:", fromPage);
+  }, [fromPage]);
 
 
   return (

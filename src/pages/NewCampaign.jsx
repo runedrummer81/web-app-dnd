@@ -74,7 +74,8 @@ export default function NewCampaign() {
       console.log("✅ Ny campaign oprettet:", campaignId);
 
       localStorage.setItem("selectedCampaignId", campaignId);
-      navigate("/session", { state: { campaignId } });
+      navigate("/session", { state: { campaignId: docRef.id, from: "/newcampaign" },
+      });
     } catch (error) {
       console.error("🔥 Fejl ved oprettelse af campaign:", error);
     } finally {
