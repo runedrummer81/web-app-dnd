@@ -31,7 +31,7 @@ export default function LoadPage() {
   const handleContinue = () => {
     if (!selectedCampaign) return;
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
-    navigate("/session", { state: { campaignId: selectedCampaign.id } });
+    navigate("/session", { state: { campaignId: selectedCampaign.id, from: "/load" }, });
   };
 
   return (

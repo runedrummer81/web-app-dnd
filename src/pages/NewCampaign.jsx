@@ -112,7 +112,7 @@ export default function NewCampaign() {
       console.log("✅ New campaign created:", docRef.id);
 
       localStorage.setItem("selectedCampaignId", docRef.id);
-      navigate("/session", { state: { campaignId: docRef.id } });
+      navigate("/session", { state: { campaignId: docRef.id, from: "/newcampaign" } });
     } catch (error) {
       console.error("🔥 Error creating campaign:", error);
 
@@ -121,7 +121,7 @@ export default function NewCampaign() {
       console.log("✅ Ny campaign oprettet:", campaignId);
 
       localStorage.setItem("selectedCampaignId", campaignId);
-      navigate("/session", { state: { campaignId } });
+      navigate("/session", { state: { campaignId, from: "/newcampaign" } });
     } finally {
       setShowNamePopup(false);
     }
