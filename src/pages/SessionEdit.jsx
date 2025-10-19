@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { getAuth } from "firebase/auth";
-import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import DiceThrower from "../components/DiceThrower";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,10 +25,14 @@ export default function SessionEdit() {
   const [combatMaps, setCombatMaps] = useState([]);
   const [worldMap, setWorldMap] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [filters, setFilters] = useState({ forest: false, cave: false, castle: false });
-  
+  const [filters, setFilters] = useState({
+    forest: false,
+    cave: false,
+    castle: false,
+  });
+
   // Tilføj en midlertidig state til valgte maps i modal
-const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
+  const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
 
   const sessionId = location.state?.sessionId;
 
@@ -68,24 +79,12 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
   // 🧩 2. Hent encounters
   useEffect(() => {
     async function fetchEncounters() {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    try {
-      const q = query(
-        collection(db, "encounters"),
-        where("ownerId", "==", user.uid)
-      );
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(collection(db, "encounters"));
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setAvailableEncounters(data);
-    } catch (err) {
-      console.error("🔥 Fejl ved hentning af encounters:", err);
     }
-  }
-
-  fetchEncounters();
-}, []);
+    fetchEncounters();
+  }, []);
 
   // 🗺️ 3. Hent combat maps
   useEffect(() => {
@@ -128,8 +127,9 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
       setFilteredMaps(availableMaps);
     } else {
       setFilteredMaps(
-        availableMaps.filter((map) =>map.tags?.some((tag) => activeFilters.includes(tag.toLowerCase()))
-      )
+        availableMaps.filter((map) =>
+          map.tags?.some((tag) => activeFilters.includes(tag.toLowerCase()))
+        )
       );
     }
   }, [filters, availableMaps]);
@@ -163,7 +163,9 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
   };
 
   if (!sessionData)
-    return <p className="text-center mt-20 text-[#DACA89]">Indlæser session...</p>;
+    return (
+      <p className="text-center mt-20 text-[#DACA89]">Indlæser session...</p>
+    );
 
   return (
     <div className="p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none grid grid-cols-2 gap-8">
@@ -171,7 +173,9 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
       <section className="flex flex-col space-y-6">
         {/* Noter */}
         <div>
-          <h2 className="text-lg uppercase tracking-widest font-semibold mb-2">DM Notes</h2>
+          <h2 className="text-lg uppercase tracking-widest font-semibold mb-2">
+            DM Notes
+          </h2>
           <textarea
             value={sessionData.dmNotes || ""}
             onChange={handleNotesChange}
@@ -225,7 +229,9 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
         {/* World Map */}
         {worldMap && (
           <article className="border border-[#DACA89]/50 rounded p-4 bg-[#292621]">
-            <h3 className="text-lg uppercase tracking-widest mb-2">World Map</h3>
+            <h3 className="text-lg uppercase tracking-widest mb-2">
+              World Map
+            </h3>
             <img
               src={worldMap}
               alt="World Map"
@@ -297,100 +303,110 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
       </section>
 
       {/* 💡 MAP MODAL */}
-        <AnimatePresence>
+      <AnimatePresence>
         {showMapModal && (
-            <motion.div
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-            >
+          >
             <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#1C1B18] border border-[#DACA89]/50 p-6 rounded-lg shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1C1B18] border border-[#DACA89]/50 p-6 rounded-lg shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
             >
-                <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg uppercase tracking-widest font-semibold">Vælg Combat Maps</h3>
-                
-                </div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg uppercase tracking-widest font-semibold">
+                  Vælg Combat Maps
+                </h3>
+              </div>
 
-                {/* Filtre */}
-                <div className="mb-4 flex gap-4">
+              {/* Filtre */}
+              <div className="mb-4 flex gap-4">
                 {["forest", "cave", "castle"].map((type) => (
-                    <label key={type} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={type}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
-                        type="checkbox"
-                        checked={filters[type]}
-                        onChange={(e) =>
+                      type="checkbox"
+                      checked={filters[type]}
+                      onChange={(e) =>
                         setFilters({ ...filters, [type]: e.target.checked })
-                        }
+                      }
                     />
                     <span className="capitalize">{type}</span>
-                    </label>
+                  </label>
                 ))}
-                </div>
+              </div>
 
-                {/* Map-liste */}
-                <div className="grid grid-cols-3 gap-4">
+              {/* Map-liste */}
+              <div className="grid grid-cols-3 gap-4">
                 {filteredMaps.map((map) => {
-                    const isSelected = tempSelectedMaps.find((m) => m.id === map.id);
-                    return (
+                  const isSelected = tempSelectedMaps.find(
+                    (m) => m.id === map.id
+                  );
+                  return (
                     <div
-                        key={map.id}
-                        onClick={() => {
+                      key={map.id}
+                      onClick={() => {
                         if (isSelected) {
-                            setTempSelectedMaps(tempSelectedMaps.filter((m) => m.id !== map.id));
+                          setTempSelectedMaps(
+                            tempSelectedMaps.filter((m) => m.id !== map.id)
+                          );
                         } else {
-                            setTempSelectedMaps([...tempSelectedMaps, map]);
+                          setTempSelectedMaps([...tempSelectedMaps, map]);
                         }
-                        }}
-                        className={`cursor-pointer border rounded p-2 bg-[#1F1E1A] hover:border-[#DACA89] ${
-                        isSelected ? "border-[#DACA89] ring-2 ring-[#DACA89]/50" : "border-[#DACA89]/30"
-                        }`}
+                      }}
+                      className={`cursor-pointer border rounded p-2 bg-[#1F1E1A] hover:border-[#DACA89] ${
+                        isSelected
+                          ? "border-[#DACA89] ring-2 ring-[#DACA89]/50"
+                          : "border-[#DACA89]/30"
+                      }`}
                     >
-                        <img
+                      <img
                         src={map.image}
                         alt={map.title}
                         className="w-full h-32 object-cover rounded mb-2"
-                        />
-                        <p className="text-center text-sm">{map.title}</p>
+                      />
+                      <p className="text-center text-sm">{map.title}</p>
                     </div>
-                    );
+                  );
                 })}
-                </div>
+              </div>
 
-                {/* Confirm-knap */}
-                <div className="flex justify-end mt-6 gap-2">
+              {/* Confirm-knap */}
+              <div className="flex justify-end mt-6 gap-2">
                 <button
-                    onClick={() => {
+                  onClick={() => {
                     // Tilføj midlertidige maps til combatMaps
                     const newMaps = tempSelectedMaps.filter(
-                        (map) => !combatMaps.find((m) => m.id === map.id)
+                      (map) => !combatMaps.find((m) => m.id === map.id)
                     );
                     setCombatMaps([...combatMaps, ...newMaps]);
                     setTempSelectedMaps([]); // ryd midlertidige valg
                     setShowMapModal(false);
-                    }}
-                    className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                  }}
+                  className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
                 >
-                    Confirm
+                  Confirm
                 </button>
                 <button
-                    onClick={() => {
+                  onClick={() => {
                     setTempSelectedMaps([]); // ryd midlertidige valg
                     setShowMapModal(false);
-                    }}
-                    className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                  }}
+                  className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
                 >
-                    Cancel
+                  Cancel
                 </button>
-                </div>
+              </div>
             </motion.div>
-            </motion.div>
+          </motion.div>
         )}
-        </AnimatePresence>
+      </AnimatePresence>
     </div>
   );
 }
