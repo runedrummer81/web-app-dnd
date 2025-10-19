@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate} from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAuth } from "firebase/auth";
 import {
   doc,
   deleteDoc,
@@ -11,7 +12,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
+
 
 
 const handleDeleteEncounter = async (id) => {
@@ -99,11 +100,14 @@ export default function CreateEncounters() {
     );
   };
 
-  const auth = getAuth();
-  const user = auth.currentUser;
+  
 
   const handleSaveEncounter = async () => {
     if (!encounterName.trim() || selectedCreatures.length === 0) return;
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
     await addDoc(collection(db, "encounters"), {
       name: encounterName,
       creatures: selectedCreatures,
