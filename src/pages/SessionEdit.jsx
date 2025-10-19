@@ -115,7 +115,8 @@ const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
       setFilteredMaps(availableMaps);
     } else {
       setFilteredMaps(
-        availableMaps.filter((map) => activeFilters.includes(map.category?.toLowerCase()))
+        availableMaps.filter((map) =>map.tags?.some((tag) => activeFilters.includes(tag.toLowerCase()))
+      )
       );
     }
   }, [filters, availableMaps]);
