@@ -11,8 +11,10 @@ import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { FaArrowLeft } from "react-icons/fa";
 import LearnMore from "../components/LearnMore";
+import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
 
 export default function NewCampaign() {
+  const { user, loading } = useAuth(); // ✅ get current user
   const [templates, setTemplates] = useState([]);
   const [openedIndex, setOpenedIndex] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -89,6 +91,11 @@ export default function NewCampaign() {
   const saveCampaign = async () => {
     if (openedIndex === null || !campaignName.trim()) return;
 
+    if (!user) {
+      console.error("🔥 User not authenticated!");
+      return;
+    }
+
     const selectedTemplate = templates[openedIndex];
     const formattedName = campaignName
       .trim()
@@ -105,20 +112,24 @@ export default function NewCampaign() {
       firstOpened: new Date(),
       sessionsCount: 0,
       image: selectedTemplate.image || "",
+      ownerId: user.uid, // ✅ associate with current user
     };
 
     try {
+      // ✅ add document to Firestore
       const docRef = await addDoc(collection(db, "Campaigns"), newCampaign);
       console.log("✅ New campaign created:", docRef.id);
 
       localStorage.setItem("selectedCampaignId", docRef.id);
-      navigate("/session", { state: { campaignId: docRef.id, from: "/newcampaign" } });
+      navigate("/session", {
+        state: { campaignId: docRef.id, from: "/newcampaign" },
+      });
     } catch (error) {
       console.error("🔥 Error creating campaign:", error);
 
       // fallback: manually set doc if addDoc fails
       await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
-      console.log("✅ Ny campaign oprettet:", campaignId);
+      console.log("✅ Fallback campaign created:", campaignId);
 
       localStorage.setItem("selectedCampaignId", campaignId);
       navigate("/session", { state: { campaignId, from: "/newcampaign" } });
@@ -126,6 +137,8 @@ export default function NewCampaign() {
       setShowNamePopup(false);
     }
   };
+
+  if (loading) return null; // wait until auth is loaded
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
@@ -138,17 +151,13 @@ export default function NewCampaign() {
         <span>Back to Home</span>
       </button>
 
-      {/* ⚙️ Bundnavigation */}               
-                 
-                  
-                    <button
-                      onClick={() => navigate(-1)}
-                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
-                    >
-                      Back
-                    </button>                    
-                  
-                
+      {/* ⚙️ Bundnavigation */}
+      <button
+        onClick={() => navigate(-1)}
+        className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+      >
+        Back
+      </button>
 
       {/* Hovedlayout */}
       <div className="flex w-full max-w-5xl justify-center items-start gap-16 mb-6">

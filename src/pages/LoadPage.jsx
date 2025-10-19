@@ -1,69 +1,79 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import CampaignComp from "../components/CampaignComp";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
 
 export default function LoadPage() {
+  const { user, loading } = useAuth(); // ✅ get current user
   const [campaigns, setCampaigns] = useState([]);
   const [activeImg, setActiveImg] = useState(null);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user) return; // wait until user is loaded
+
     async function getCampaigns() {
       try {
-        const querySnapshot = await getDocs(collection(db, "Campaigns"));
+        // ✅ Only fetch campaigns for this user
+        const q = query(
+          collection(db, "Campaigns"),
+          where("ownerId", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
         const fetched = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("✅ Campaigns hentet:", fetched);
+        console.log("✅ User campaigns fetched:", fetched);
         setCampaigns(fetched);
       } catch (err) {
-        console.error("🔥 Firestore fejl:", err);
+        console.error("🔥 Firestore error:", err);
       }
     }
     getCampaigns();
-  }, []);
+  }, [user]);
 
   const handleContinue = () => {
     if (!selectedCampaign) return;
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
-    navigate("/session", { state: { campaignId: selectedCampaign.id, from: "/load" }, });
+    navigate("/session", {
+      state: { campaignId: selectedCampaign.id, from: "/load" },
+    });
   };
+
+  if (loading) return null; // wait until auth is ready
 
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
-      {/* 🔹 Venstre side — Campaign liste */}
+      {/* 🔹 Left side — Campaign list */}
       <div className="relative w-1/2 flex flex-col items-start justify-center px-12 py-16 z-10">
-      <button
-              onClick={() => navigate("/home")}
-              className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-            >
-               <span>Back to Home</span>
-            </button>
+        <button
+          onClick={() => navigate("/home")}
+          className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+        >
+          <span>Back to Home</span>
+        </button>
 
-      {/* ⚙️ Bundnavigation */}
-                <section className="col-span-2 flex justify-between mt-8 items-center">
-                 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => navigate(-1)}
-                      className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
-                    >
-                      Back
-                    </button>
-                    
-                  </div>
-                </section>
+        <section className="col-span-2 flex justify-between mt-8 items-center">
+          <div className="flex gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
+            >
+              Back
+            </button>
+          </div>
+        </section>
 
         <h2 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89] mb-6">
           Choose Your Campaign
         </h2>
 
-        {/* Fade-top og bottom */}
+        {/* Fade-top and bottom */}
         <div className="absolute top-16 left-0 w-full h-12 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none"></div>
         <div className="absolute bottom-16 left-0 w-full h-12 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none"></div>
 
@@ -93,7 +103,7 @@ export default function LoadPage() {
         </div>
       </div>
 
-      {/* 🔹 Højre side — Preview billede */}
+      {/* 🔹 Right side — Preview image */}
       <div className="relative w-1/2 flex items-center justify-center bg-[#1C1B18] overflow-hidden">
         <AnimatePresence mode="wait">
           {(activeImg || selectedCampaign?.image) && (
@@ -116,7 +126,6 @@ export default function LoadPage() {
           )}
         </AnimatePresence>
 
-        {/* Ingen billede fallback */}
         {!activeImg && !selectedCampaign?.image && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -128,10 +137,8 @@ export default function LoadPage() {
           </motion.div>
         )}
 
-        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-l from-[#1C1B18] via-transparent to-transparent"></div>
 
-        {/* Continue-knap (med animation) */}
         <AnimatePresence>
           {selectedCampaign && (
             <motion.div
@@ -176,9 +183,7 @@ export default function LoadPage() {
             </motion.div>
           )}
         </AnimatePresence>
-        
       </div>
-      
     </div>
   );
 }
