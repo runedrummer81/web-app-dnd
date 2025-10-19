@@ -117,7 +117,12 @@ export default function NewCampaign() {
 
     try {
       // ✅ add document to Firestore
-      const docRef = await addDoc(collection(db, "Campaigns"), newCampaign);
+      const campaignId = `camp_${formattedName}`;
+        await setDoc(doc(db, "Campaigns", campaignId), newCampaign);
+        
+        console.log("✅ New campaign created with custom ID:", campaignId);
+        localStorage.setItem("selectedCampaignId", campaignId);
+        navigate("/session", { state: { campaignId, from: "/newcampaign" } });
       console.log("✅ New campaign created:", docRef.id);
 
       localStorage.setItem("selectedCampaignId", docRef.id);
