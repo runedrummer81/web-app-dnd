@@ -79,12 +79,24 @@ export default function SessionEdit() {
   // 🧩 2. Hent encounters
   useEffect(() => {
     async function fetchEncounters() {
-      const snapshot = await getDocs(collection(db, "encounters"));
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    try {
+      const q = query(
+        collection(db, "encounters"),
+        where("ownerId", "==", user.uid)
+      );
+      const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setAvailableEncounters(data);
+    } catch (err) {
+      console.error("🔥 Fejl ved hentning af encounters:", err);
     }
-    fetchEncounters();
-  }, []);
+  }
+
+  fetchEncounters();
+}, []);
 
   // 🗺️ 3. Hent combat smaps
   useEffect(() => {
