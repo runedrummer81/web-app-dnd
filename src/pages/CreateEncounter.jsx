@@ -11,6 +11,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { getAuth } from "firebase/auth";
 
 
 const handleDeleteEncounter = async (id) => {
@@ -98,12 +99,16 @@ export default function CreateEncounters() {
     );
   };
 
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const handleSaveEncounter = async () => {
     if (!encounterName.trim() || selectedCreatures.length === 0) return;
     await addDoc(collection(db, "encounters"), {
       name: encounterName,
       creatures: selectedCreatures,
       createdAt: new Date(),
+      ownerId: user.uid,
     });
     setEncounterName("");
     setSelectedCreatures([]);
