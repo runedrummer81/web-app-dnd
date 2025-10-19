@@ -34,7 +34,7 @@ useEffect(() => {
     localStorage.setItem("selectedCampaignId", finalId);
   }, [location.state, navigate]);
 
-  // 🔹 Hent sessions for campaign
+  // 🔹 Hent sessions for campaign (testing testin med Rune)
   useEffect(() => {
     if (!campaignId) return;
     async function fetchSessions() {
