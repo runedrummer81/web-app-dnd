@@ -10,7 +10,6 @@ export default function HomePage() {
   const [active, setActive] = useState(null);
   const navigate = useNavigate();
   const [lastCampaign, setLastCampaign] = useState(null);
-  
 
   useEffect(() => {
     const fetchLastCampaign = async () => {
@@ -55,8 +54,10 @@ export default function HomePage() {
               if (!lastCampaign) e.preventDefault(); // forhindrer klik hvis ingen campaign
             }}
             state={{ campaignId: lastCampaign?.id, from: "/home" }}
-            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 ${
-              !lastCampaign ? "opacity-50 cursor-not-allowed" : ""
+            className={`block text-5xl p-4 cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] py-2 px-4  hover:bg-[#DACA89]/10 ${
+              !lastCampaign
+                ? "opacity-50 cursor-not-allowed pointer-events-none"
+                : ""
             }`}
           >
             Continue Campaign
@@ -66,7 +67,7 @@ export default function HomePage() {
             to="/load"
             onMouseEnter={() => setActive("Load Campaign")}
             onMouseLeave={() => setActive(null)}
-            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+            className={`block text-5xl p-4 cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4  hover:bg-[#DACA89]/10 transition ${
               active === "Load Campaign"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
@@ -79,7 +80,7 @@ export default function HomePage() {
             to="/newcampaign"
             onMouseEnter={() => setActive("New Campaign")}
             onMouseLeave={() => setActive(null)}
-            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+            className={`block text-5xl p-4 cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4  hover:bg-[#DACA89]/10 transition ${
               active === "New Campaign"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
@@ -92,7 +93,7 @@ export default function HomePage() {
             to="/encounters"
             onMouseEnter={() => setActive("Encounters")}
             onMouseLeave={() => setActive(null)}
-            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+            className={`block text-5xl p-4 cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4  hover:bg-[#DACA89]/10 transition ${
               active === "Encounters"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"
@@ -105,7 +106,7 @@ export default function HomePage() {
             to="/info"
             onMouseEnter={() => setActive("Information")}
             onMouseLeave={() => setActive(null)}
-            className={`block text-5xl p-4 rounded-lg cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition ${
+            className={`block text-5xl p-4 cursor-pointer bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4  hover:bg-[#DACA89]/10 transition ${
               active === "Information"
               // ? "text-[#DACA89]"
               // : " bg-[#2E2C27] gold-glow-animate"

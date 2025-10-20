@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap");
+
 @import "tailwindcss";
 
 :root {
@@ -5,6 +7,7 @@
   --secondary: #bf883c;
   --dark-muted-bg: #22211c;
   --dark-border: #403c29;
+  --font: "EB Garamond", serif;
 }
 
 @keyframes rise {
