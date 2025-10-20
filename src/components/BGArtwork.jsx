@@ -2,14 +2,21 @@ export default function BGArtwork({ imageUrl }) {
   return (
     <div className="absolute inset-0 -z-10 bg-[#1C1B18] overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700"
+        className="absolute inset-0 bg-cover bg-center transition-all duration-700 "
         style={{
-          backgroundImage: `url(${imageUrl || "/images/forest-map.png"})`,
+          backgroundImage: `url(${imageUrl || ""})`,
         }}
       ></div>
 
-      <div className="absolute inset-0 [background:linear-gradient(to_left,transparent_20%,#1C1B18_65%)]"></div>
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div
+        className="absolute inset-0
+  [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
+  [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
+
+  [background-position:left_center,right_center,center_bottom,center_top]
+  [background-repeat:no-repeat]
+"
+      ></div>
     </div>
   );
 }
