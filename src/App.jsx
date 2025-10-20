@@ -16,7 +16,7 @@ export default function App() {
     <>
       <Nav />
       <Border />
-      <main>
+      <main className="font-[var(--font)]">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
