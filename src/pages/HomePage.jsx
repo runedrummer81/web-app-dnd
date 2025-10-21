@@ -79,11 +79,27 @@ export default function HomePage() {
                 {label}
               </span>
 
-              <img
-                src="./images/button-corner.svg"
-                alt=""
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 35.9 67.5"
                 className="absolute transform scale-105 -right-8 top-1/2 -translate-y-1/2 h-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 z-0"
-              />
+              >
+                <defs>
+                  <style>
+                    {`.st0 { fill: none; stroke: var(--secondary);
+ stroke-miterlimit: 10; stroke-width: 2px; }`}
+                  </style>
+                </defs>
+                <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
+                <polyline
+                  className="st0"
+                  points="17.9 17.2 1.4 33.8 17.9 50.3"
+                />
+                <polyline
+                  className="st0"
+                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                />
+              </svg>
             </Link>
           ))}
         </div>
