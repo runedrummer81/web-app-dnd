@@ -14,7 +14,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 
-
 const handleDeleteEncounter = async (id) => {
   if (!confirm("Are you sure you want to delete this encounter?")) return;
   try {
@@ -114,8 +113,6 @@ export default function CreateEncounters() {
     );
   };
 
-  
-
   const handleSaveEncounter = async () => {
     if (!encounterName.trim() || selectedCreatures.length === 0) return;
 
@@ -137,46 +134,42 @@ export default function CreateEncounters() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-20 gap-8">
+    <div className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
-      <button
-        onClick={() => navigate("/home")}
-        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-      >
-        <span>Back to Home</span>
-      </button>
-
-      {/* ⚙️ Bundnavigation */}
-      <section className="col-span-2 flex justify-between mt-8 items-center">
-        <div className="flex gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
-          >
-            Back
-          </button>
+      <div className="w-2/3 flex flex-col space-y-10">
+        <div className="flex items-center gap-4 mb-4">
+          <img
+            src="images/ornament.svg"
+            alt="text ornament"
+            className=" stroke-[var(--secondary)] w-8 h-auto -scale-x-100 "
+          />
+          <input
+            type="text"
+            placeholder="Name your encounter..."
+            value={encounterName}
+            onChange={(e) => setEncounterName(e.target.value)}
+            className="p-3 text-[var(--primary)] outline-none text-lg w-auto"
+          />
+          <img
+            src="images/ornament.svg"
+            alt="text ornament"
+            className=" stroke-[var(--secondary)] w-8 h-auto"
+          />
         </div>
-      </section>
-
-      <div className="w-2/3 flex flex-col space-y-6">
         {/* Search bar */}
-        <div className="relative w-full">
+        <div className="relative w-full ">
+          <div className="border-2 border-[var(--secondary)] overflow-hidden ">
           <input
             type="text"
             placeholder="Search for a creature..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="p-3 rounded-t-lg bg-gray-800 border border-yellow-600 focus:ring-2 focus:ring-yellow-400 outline-none w-full"
+            className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black outline-none w-full"
           />
+          </div>
 
-          <div
-            className={`absolute z-10 w-full bg-gray-900 border border-yellow-600 rounded-b-lg max-h-64 overflow-y-auto shadow-lg transition-all duration-200 ease-out origin-top transform ${
-              filteredCreatures.length > 0
-                ? "opacity-100 scale-y-100 translate-y-0"
-                : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
-            }`}
-          >
+          <div>
             {filteredCreatures.map((creature) => (
               <div
                 key={creature.id}
@@ -195,25 +188,17 @@ export default function CreateEncounters() {
                   );
                 }}
               >
-                <span className="text-yellow-200">{creature.name}</span>
+                <span className="text-">{creature.name}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Encounter creation */}
-        <div className="flex flex-col bg-gray-800 border border-yellow-700 rounded-xl p-6 space-y-4 shadow-lg flex-1 overflow-y-auto">
-          <input
-            type="text"
-            placeholder="Name your encounter..."
-            value={encounterName}
-            onChange={(e) => setEncounterName(e.target.value)}
-            className="p-3 rounded-lg bg-gray-900 border border-yellow-600 focus:ring-2 focus:ring-yellow-400 outline-none w-full"
-          />
-
-          <div className="flex flex-col gap-3">
+        <div className="flex flex-col p-6 space-y-4 flex-1 overflow-y-auto text-[var(--secondary)] ">
+          <div className="flex flex-col gap-3 text">
             {selectedCreatures.length === 0 && (
-              <p className="text-gray-400 italic text-center">
+              <p className="italic text-center text-[var(--secondary)]">
                 No creatures selected
               </p>
             )}
@@ -226,7 +211,7 @@ export default function CreateEncounters() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="flex justify-between items-center border-b border-gray-700 pb-2"
+                  className="flex justify-between items-center border-b border-[var(--secondary)] pb-2"
                 >
                   <span>{c.name}</span>
                   <div className="flex items-center gap-2">
@@ -247,7 +232,7 @@ export default function CreateEncounters() {
                       onClick={() => handleRemoveCreature(c.id)}
                       className="ml-3 text-red-500 hover:text-red-400 transition"
                     >
-                      Remove
+                      X
                     </button>
                   </div>
                 </motion.div>
