@@ -2,7 +2,7 @@ export default function BGArtwork({ imageUrl }) {
   return (
     <div className="absolute inset-0 -z-10 bg-[#1C1B18] overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 "
+        className="absolute inset-0 bg-cover duration-300 "
         style={{
           backgroundImage: `url(${imageUrl || ""})`,
         }}
