@@ -159,7 +159,7 @@ export default function Login() {
 
           {/* Submit button */}
 <div className="flex ">
-<img src="images/ornament.svg" alt="text ornament" className=" stroke-[var(--secondary)] w-8 h-auto -scale-x-100 "/>
+<img src="images/ornament-secondary.svg" alt="text ornament" className=" stroke-[var(--secondary)] w-8 h-auto -scale-x-100 "/>
           <button
             type="submit"
             disabled={loading}
@@ -173,7 +173,7 @@ export default function Login() {
               ? "Forge Account"
               : "Enter Realm"}
           </button>
-<img src="images/ornament.svg" alt="text ornament" className=" color-[var(--secondary)] w-8 h-auto " />
+<img src="images/ornament-secondary.svg" alt="text ornament" className=" color-[var(--secondary)] w-8 h-auto " />
 </div>
           {/* Forgot password */}
           {!isSignup && (
