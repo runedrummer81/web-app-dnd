@@ -87,7 +87,7 @@ export default function Login() {
       </div>
       <div >
         <img
-          src="../images/corners.svg"
+          src="images/corners.svg"
           alt="eye-logo"
           className="w-50 h-50 flex mb-4 mx-auto"
         />
