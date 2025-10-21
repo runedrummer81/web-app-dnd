@@ -80,7 +80,7 @@ export default function HomePage() {
               </span>
 
               <img
-                src="/images/button-corner.svg"
+                src="./images/button-corner.svg"
                 alt=""
                 className="absolute transform scale-105 -right-8 top-1/2 -translate-y-1/2 h-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 z-0"
               />
