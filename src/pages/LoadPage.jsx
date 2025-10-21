@@ -96,7 +96,7 @@ export default function LoadPage() {
 
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
-      {/* Left side — Cinematic stack */}
+      {/* Left side — Campaign list */}
       <div className="relative w-1/2 flex flex-col items-center justify-center z-10">
         <button
           onClick={() => navigate("/home")}
@@ -129,27 +129,54 @@ export default function LoadPage() {
                   key={camp.id}
                   layout
                   initial={{ opacity: 0, y: yOffset }}
-                  animate={{
-                    opacity,
-                    scale,
-                    y: yOffset, // spring-animated
-                  }}
+                  animate={{ opacity, scale, y: yOffset }}
                   exit={{ opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 25,
-                  }}
-                  className="w-80"
+                  transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                  className="w-96 relative"
                 >
+                  {/* outer: border with padding, allow overflow for arrow */}
                   <div
-                    className={`text-center text-3xl font-semibold px-6 py-3 rounded-lg transition-all duration-200 ${
-                      isCenter
-                        ? "bg-[#DACA89] text-[#1C1B18] border-2 border-[#DACA89]"
-                        : "bg-[#2A2A2A]/50 text-[#DACA89] border border-[#DACA89]/30"
+                    className={`relative p-1 overflow-visible ${
+                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
                     }`}
                   >
-                    {camp.title || camp.name || "Untitled Campaign"}
+                    {/* inner: selected box has background/text, others only text */}
+                    <div
+                      className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden ${
+                        isCenter
+                          ? "bg-[#DACA89] text-[#1C1B18]"
+                          : "bg-transparent text-[#bf883c]"
+                      }`}
+                    >
+                      {camp.title || camp.name || "Untitled Campaign"}
+                    </div>
+
+                    {/* arrow extending the border only if selected */}
+                    {isCenter && (
+                      <div className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 35.9 67.5"
+                          className="h-[72px] w-auto"
+                        >
+                          <defs>
+                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                          </defs>
+                          <polyline
+                            className="st0"
+                            points="1.4 66.8 34.5 33.8 1.4 .7"
+                          />
+                          <polyline
+                            className="st0"
+                            points="17.9 17.2 1.4 33.8 17.9 50.3"
+                          />
+                          <polyline
+                            className="st0"
+                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                          />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -158,7 +185,7 @@ export default function LoadPage() {
         </div>
       </div>
 
-      {/* Right side — Dynamic background + gradient + LOAD button */}
+      {/* Right side — Background + gradient + LOAD button */}
       <div className="relative w-3/4 flex items-center justify-center overflow-hidden">
         <AnimatePresence mode="wait">
           {activeImg && (
@@ -167,7 +194,7 @@ export default function LoadPage() {
               className="absolute inset-0"
               style={{
                 backgroundImage: `url(${activeImg})`,
-                backgroundSize: "cover", // fills the space while maintaining aspect ratio
+                backgroundSize: "cover",
                 backgroundPosition: "center",
                 filter: "brightness(0.85)",
               }}
@@ -179,7 +206,6 @@ export default function LoadPage() {
           )}
         </AnimatePresence>
 
-        {/* Gradient overlay */}
         <div
           className="absolute inset-0
       [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
