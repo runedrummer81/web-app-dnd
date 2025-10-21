@@ -89,7 +89,16 @@ export default function HomePage() {
         </div>
 
         {/* Right column */}
-        <div className="absolute flex justify-center items-end bottom-0 right-20 p-28 transition-all duration-500">
+        <div className="absolute  grid-cols-[auto_1fr] justify-center items-end bottom-0 right-20 p-28 transition-all duration-500">
+          <div className="flex justify-between text-1.5xl text-[var(--primary)] text-center">
+            <div>
+              {lastCampaign?.lastOpened
+                ? lastCampaign.lastOpened.toDate().toLocaleString()
+                : "No last opened date"}
+            </div>
+            <div>Sessions: {lastCampaign?.sessionsCount}</div>
+          </div>
+
           <div className="flex gap-5 text-3xl font-bold text-[var(--primary)] text-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
