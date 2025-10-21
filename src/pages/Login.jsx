@@ -85,106 +85,118 @@ export default function Login() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <EmberAnimation count={30} />
       </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="relative z-10 bg-gray-800/90 backdrop-blur-md border-4 border-yellow-700 rounded-xl p-8 shadow-2xl w-full max-w-md"
-        aria-label={isSignup ? "Sign Up Form" : "Login Form"}
-      >
-        <h2 className="text-4xl text-yellow-400 font-extrabold mb-6 text-center drop-shadow-lg animate-pulse">
-          {isSignup ? "Forge Your Account" : "Enter the Realm"}
-        </h2>
-
-        {error && (
-          <p
-            className="text-red-400 mb-4 text-center font-medium drop-shadow-md"
-            role="alert"
-            aria-live="assertive"
-          >
-            {error}
-          </p>
-        )}
-
-        {resetMessage && (
-          <p
-            className="text-green-400 mb-4 text-center font-medium drop-shadow-md"
-            role="status"
-            aria-live="polite"
-          >
-            {resetMessage}
-          </p>
-        )}
-
-        {/* Email input */}
-        <label htmlFor="email" className="sr-only">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          placeholder="Adventurer's Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1 transition shadow-inner"
-          required
+      <div >
+        <img
+          src="../images/corners.svg"
+          alt="eye-logo"
+          className="w-50 h-50 flex mb-4 mx-auto"
         />
 
-        {/* Password input */}
-        <label htmlFor="password" className="sr-only">
-          Password
-        </label>
-        <div className="relative mb-4">
+        <form
+          onSubmit={handleSubmit}
+          aria-label={isSignup ? "Sign Up Form" : "Login Form"}
+        >
+          
+
+          {error && (
+            <p
+              className="text-red-400 mb-4 text-center font-medium drop-shadow-md"
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </p>
+          )}
+
+          {resetMessage && (
+            <p
+              className="text-green-400 mb-4 text-center font-medium drop-shadow-md"
+              role="status"
+              aria-live="polite"
+            >
+              {resetMessage}
+            </p>
+          )}
+
+          {/* Email input */}
+          <label htmlFor="email" className="sr-only">
+            Email
+          </label>
           <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Secret Key"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1 transition shadow-inner"
+            id="email"
+            type="email"
+            placeholder="Adventurer's Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 mb-4 text-[var(--primary)] placeholder-[var(--secondary)] border border-[var(--primary)] rounded focus:outline-none focus:ring-2 transition shadow-inner"
             required
           />
+
+          {/* Password input */}
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
+          <div className="relative mb-4">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Secret Key"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 rounded text-[var(--primary)] placeholder-[var(--secondary)] border border-[var(--primary)] rounded focus:outline-none focus:ring-2  focus:ring-offset-1 transition shadow-inner "
+
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+            </button>
+          </div>
+
+          {/* Submit button */}
+<div className="flex ">
+<img src="../images/ornament.svg" alt="text ornament" className=" stroke-[var(--secondary)] w-8 h-auto -scale-x-100 "/>
           <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            type="submit"
+            disabled={loading}
+            className={`w-full cursor-pointer p-3 rounded text-[var(--primary)] text-lg font-bold  ${
+              loading ? "bg-gray-400 cursor-not-allowed" : ""
+            }`}
           >
-            {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+            {loading
+              ? "Loading..."
+              : isSignup
+              ? "Forge Account"
+              : "Enter Realm"}
           </button>
-        </div>
+<img src="../images/ornament.svg" alt="text ornament" className=" color-[var(--secondary)] w-8 h-auto " />
+</div>
+          {/* Forgot password */}
+          {!isSignup && (
+            <p
+              className="text-[var(--primary)] mt-2 text-right cursor-pointer hover:underline text-sm select-none"
+              onClick={handlePasswordReset}
+            >
+              Lost your magical key?
+            </p>
+          )}
 
-        {/* Submit button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full cursor-pointer p-3 rounded text-white text-lg font-bold bg-gradient-to-r from-yellow-600 to-red-600 hover:from-yellow-500 hover:to-red-500 shadow-lg transition-all ${
-            loading ? "bg-gray-400 cursor-not-allowed" : ""
-          }`}
-        >
-          {loading ? "Loading..." : isSignup ? "Forge Account" : "Enter Realm"}
-        </button>
-
-        {/* Forgot password */}
-        {!isSignup && (
-          <p
-            className="text-yellow-300 mt-2 text-right cursor-pointer hover:underline text-sm select-none"
-            onClick={handlePasswordReset}
-          >
-            Lost your magical key?
+          {/* Toggle login/signup */}
+          <p className="text-[var(--secondary)] mt-6 text-center text-sm">
+            {isSignup ? "Already have an account?" : "New to the realm?"}{" "}
+            <span
+              className="text-[var(--primary)] cursor-pointer hover:underline"
+              onClick={() => setIsSignup(!isSignup)}
+            >
+              {isSignup ? "Enter the Realm" : "Forge Account"}
+            </span>
           </p>
-        )}
-
-        {/* Toggle login/signup */}
-        <p className="text-gray-400 mt-6 text-center text-sm">
-          {isSignup ? "Already have an account?" : "New to the realm?"}{" "}
-          <span
-            className="text-yellow-400 cursor-pointer hover:underline"
-            onClick={() => setIsSignup(!isSignup)}
-          >
-            {isSignup ? "Enter the Realm" : "Forge Account"}
-          </span>
-        </p>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
