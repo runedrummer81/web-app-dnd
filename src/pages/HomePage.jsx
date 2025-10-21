@@ -57,7 +57,7 @@ export default function HomePage() {
               state={{ campaignId: lastCampaign?.id, from: "/home" }}
               className={`font-[var(--font)] block text-3xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 ${
                 active === "Continue Campaign" ? "" : ""
-              } hover:border-2 hover:border-[var(--secondary)] hover:p-1`}
+              } hover:border-2 hover:border-[var(--secondary)] hover:p-1 hover:text-4xl`}
             >
               <span className="block hover:bg-[var(--primary)] hover:text-[var(--dark-muted-bg)]  transition-all duration-200 py-2 px-4">
                 Continue Campaign
@@ -67,7 +67,7 @@ export default function HomePage() {
 
           {lastCampaign && (
             <Link
-              to="/session"
+              to="/load"
               onMouseEnter={() => setActive("Load Campaign")}
               onMouseLeave={() => setActive(null)}
               onClick={(e) => {
@@ -76,7 +76,7 @@ export default function HomePage() {
               state={{ campaignId: lastCampaign?.id, from: "/home" }}
               className={`font-[var(--font)] block text-3xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 ${
                 active === "Load Campaign" ? "" : ""
-              } hover:border-2 hover:border-[var(--secondary)] hover:p-1`}
+              } hover:border-2 hover:border-[var(--secondary)] hover:p-1 hover:text-4xl`}
             >
               <span className="block hover:bg-[var(--primary)] hover:text-[var(--dark-muted-bg)]  transition-all duration-200 py-2 px-4">
                 Load Campaign
@@ -90,7 +90,7 @@ export default function HomePage() {
             onMouseLeave={() => setActive(null)}
             className={`font-[var(--font)] block text-3xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 ${
               active === "New Campaign" ? "" : ""
-            } hover:border-2 hover:border-[var(--secondary)] hover:p-1`}
+            } hover:border-2 hover:border-[var(--secondary)] hover:p-1 hover:text-4xl`}
           >
             <span className="block hover:bg-[var(--primary)] hover:text-[var(--dark-muted-bg)]  transition-all duration-200 py-2 px-4">
               New Campaign
@@ -103,7 +103,7 @@ export default function HomePage() {
             onMouseLeave={() => setActive(null)}
             className={`font-[var(--font)] block text-3xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 ${
               active === "Encounters" ? "" : ""
-            } hover:border-2 hover:border-[var(--secondary)] hover:p-1`}
+            } hover:border-2 hover:border-[var(--secondary)] hover:p-1 hover:text-4xl`}
           >
             <span className="block hover:bg-[var(--primary)] hover:text-[var(--dark-muted-bg)]  transition-all duration-200 py-2 px-4">
               Encounters
@@ -116,7 +116,7 @@ export default function HomePage() {
             onMouseLeave={() => setActive(null)}
             className={`font-[var(--font)] block text-3xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 ${
               active === "Information" ? "" : ""
-            } hover:border-2 hover:border-[var(--secondary)] hover:p-1`}
+            } hover:border-2 hover:border-[var(--secondary)] hover:p-1 hover:text-4xl`}
           >
             <span className="block hover:bg-[var(--primary)] hover:text-[var(--dark-muted-bg)]  transition-all duration-200 py-2 px-4">
               Information
