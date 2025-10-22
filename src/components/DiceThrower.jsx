@@ -72,34 +72,78 @@ export default function DiceThrower() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center">
+    <div className="z-50 flex items-center">
       <div className="flex items-center">
         {/* Toggle button */}
         <button
-          onClick={() => setOpen(!open)}
-          className="p-4 rounded-full bg-yellow-600 hover:bg-yellow-500 text-white cursor-pointer transition-all shadow-lg transform hover:scale-105 hover:shadow-xl"
+          onClick={() => {
+            if (rollResults) {
+              setRollResults(false); // close rollResults only
+            } else {
+              setOpen(!open); // toggle menu
+            }
+          }}
+          className="p-4 cursor-pointer transition-all transform hover:scale-105"
           title={open ? "Close Dice Menu" : "Open Dice Menu"}
         >
-          {open ? <AiOutlineClose size={24} /> : <FaDiceD20 size={24} />}
+          {open ? (
+            <AiOutlineClose size={24} className="text-[var(--primary)]" />
+          ) : (
+            <FaDiceD20 size={24} className="text-[var(--primary)]" />
+          )}
         </button>
 
         {/* Dice panel */}
         {open && (
-          <div className="flex items-center space-x-2 bg-gray-800/90 backdrop-blur-md border-2 border-yellow-600 rounded-full p-2 shadow-lg ml-2 animate-fadeIn">
+          <div className="absolute left-30 flex items-center ml-5 animate-fadeIn gap-3">
             {DICE_TYPES.map((die) => {
               const Icon = die.icon;
               return (
                 <div key={die.name} className="relative">
                   <button
                     onClick={() => handleDiceClick(die.name)}
-                    className="p-2 bg-gray-700 hover:bg-yellow-700 rounded-full text-white transition-all shadow-inner hover:shadow-lg hover:scale-110 transform"
+                    className="p-2 hover:border-2 hover:border-[var(--primary)] rounded-full text-white transition-all shadow-inner hover:shadow-lg hover:scale-110 transform"
                     title={`Click to add ${die.name}`}
                   >
-                    <Icon size={24} />
+                    <Icon
+                      size={35}
+                      className={`${
+                        die.name === "d4"
+                          ? "text-red-500"
+                          : die.name === "d6"
+                          ? "text-blue-500"
+                          : die.name === "d8"
+                          ? "text-green-500"
+                          : die.name === "d10"
+                          ? "text-yellow-500"
+                          : die.name === "d12"
+                          ? "text-purple-500"
+                          : "text-pink-500"
+                      }`}
+                    />
                   </button>
+
+                  {/* Delete button only shows when die count > 0 */}
+                  {diceCounters[die.name] > 0 && (
+                    <span className="absolute -top-2 left-0 flex items-center space-x-1">
+                      <button
+                        onClick={() => {
+                          setDiceCounters({
+                            ...diceCounters,
+                            [die.name]: diceCounters[die.name] - 1,
+                          });
+                        }}
+                        className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-400"
+                        title={`Remove one ${die.name}`}
+                      >
+                        -
+                      </button>
+                    </span>
+                  )}
+
                   {/* Red counter */}
                   {diceCounters[die.name] > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center text-white font-bold">
+                    <span className="absolute -top-2 right-0 bg-[var(--primary)] text-xs w-5 h-5 rounded-full flex items-center justify-center text-[var(--dark-muted-bg)] font-bold">
                       {diceCounters[die.name]}
                     </span>
                   )}
@@ -108,37 +152,38 @@ export default function DiceThrower() {
             })}
 
             {/* Roll Button */}
-            <button
-              onClick={handleRoll}
-              className="ml-2 px-5 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105"
-            >
-              Roll
-            </button>
+            <div className="ml-4 inline-block border-2 border-[var(--secondary)] p-1 hover:scale-105">
+              <button
+                onClick={handleRoll}
+                className="px-5 py-2 bg-[var(--primary)] text-[var(--dark-muted-bg)] font-bold transition-all"
+              >
+                Roll
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {/* Roll results */}
       {rollResults && (
-        <div className="absolute bottom-20 left-0 bg-gray-900/95 text-white border-2 border-yellow-600 rounded-lg p-4 shadow-lg w-64 animate-fadeIn">
-          <button
-            onClick={() => setRollResults(null)}
-            className="absolute top-2 right-2 text-red-500 hover:text-red-400"
-            title="Close"
-          >
-            ×
-          </button>
-          <h4 className="font-bold mb-2 text-yellow-400">Dice Roll Results</h4>
-          <ul className="text-sm">
-            {Object.entries(rollResults.results).map(([die, rolls]) => (
-              <li key={die}>
-                {die}: {rolls.join(", ")}
-              </li>
-            ))}
-          </ul>
-          <p className="font-bold mt-2 text-green-400">
-            Total: {rollResults.total}
-          </p>
+        <div className="absolute left-30 bottom-10 animate-fadeIn p-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between">
+              <h4 className="uppercase font-bold text-[var(--primary)]">
+                Dice Roll Results
+              </h4>
+            </div>
+
+            <ul className="text-sm flex gap-10">
+              {Object.entries(rollResults.results).map(([die, rolls]) => (
+                <li key={die}>
+                  {die}: {rolls.join(", ")}
+                </li>
+              ))}
+            </ul>
+
+            <p className="font-bold ">Total: {rollResults.total}</p>
+          </div>
         </div>
       )}
 
