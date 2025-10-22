@@ -11,10 +11,7 @@ import SessionEdit from "./pages/SessionEdit";
 import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
 
-
 export default function App() {
-
-  
   return (
     <>
       <Nav />
