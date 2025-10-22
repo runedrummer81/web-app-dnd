@@ -1,14 +1,49 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  doc,
+  deleteDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
+import DeleteModal from "../components/DeleteModal";
 
 export default function LoadPage() {
   const { user, loading } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [centerIndex, setCenterIndex] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, "Campaigns", campaignToDelete.id));
+
+      // Remove from local state so it disappears instantly
+      setCampaigns((prev) =>
+        prev.filter((camp) => camp.id !== campaignToDelete.id)
+      );
+
+      // Close modal
+      setDeleteModalOpen(false);
+
+      // Reset centerIndex if needed
+      setCenterIndex((prev) =>
+        Math.min(prev, campaigns.length - 2 >= 0 ? campaigns.length - 2 : 0)
+      );
+    } catch (err) {
+      console.error("Error deleting campaign:", err);
+    }
+  };
+
   const navigate = useNavigate();
   const listRef = useRef(null);
 
@@ -31,17 +66,18 @@ export default function LoadPage() {
         console.error("🔥 Firestore error:", err);
       }
     }
+
     getCampaigns();
   }, [user]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     if (campaigns.length === 0) return;
     const selectedCampaign = campaigns[centerIndex];
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
     navigate("/session", {
       state: { campaignId: selectedCampaign.id, from: "/load" },
     });
-  };
+  }, [campaigns, centerIndex, navigate]);
 
   const handleScroll = useCallback(
     (direction) => {
@@ -55,34 +91,47 @@ export default function LoadPage() {
   );
 
   useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-
-    let lastAt = 0;
-    const THROTTLE_MS = 200;
+    let scrollAccumulator = 0;
+    const SCROLL_THRESHOLD = 50;
 
     const onWheel = (e) => {
-      const now = Date.now();
-      if (now - lastAt < THROTTLE_MS) {
+      scrollAccumulator += e.deltaY;
+
+      if (scrollAccumulator >= SCROLL_THRESHOLD) {
+        handleScroll("down");
+        scrollAccumulator = 0;
         e.preventDefault();
-        return;
+      } else if (scrollAccumulator <= -SCROLL_THRESHOLD) {
+        handleScroll("up");
+        scrollAccumulator = 0;
+        e.preventDefault();
       }
-      lastAt = now;
-
-      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-      if (e.deltaY > 0) handleScroll("down");
-      else if (e.deltaY < 0) handleScroll("up");
-
-      e.preventDefault();
     };
 
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [handleScroll]);
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowUp") {
+        handleScroll("up");
+        e.preventDefault();
+      } else if (e.key === "ArrowDown") {
+        handleScroll("down");
+        e.preventDefault();
+      } else if (e.key === "Enter") {
+        handleContinue();
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handleScroll, handleContinue]);
 
   if (loading) return null;
 
-  // Compute visible campaigns around center
   const visibleCampaigns = [];
   for (let offset = -1; offset <= 1; offset++) {
     const idx = centerIndex + offset;
@@ -96,26 +145,28 @@ export default function LoadPage() {
 
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
-      {/* Left side — Cinematic stack */}
-      <div className="relative w-1/2 flex flex-col items-center justify-center z-10">
-        <button
-          onClick={() => navigate("/home")}
-          className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+      {/* Left Panel */}
+      <motion.div
+        className="relative w-1/2 flex flex-col items-center justify-center z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
+        <motion.h2
+          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[#DACA89] via-[#bf883c] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
         >
-          <span>Back to Home</span>
-        </button>
-
-        <h2 className="text-2xl uppercase tracking-widest font-semibold text-[#DACA89] mb-10">
           Choose Your Campaign
-        </h2>
+        </motion.h2>
 
-        {/* Fade top & bottom */}
         <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
         <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
 
         <div
           ref={listRef}
-          className="relative flex flex-col items-center justify-center space-y-6 h-[380px]"
+          className="relative flex flex-col items-center justify-center space-y-0 h-[380px]"
         >
           <AnimatePresence mode="popLayout">
             {visibleCampaigns.map((camp) => {
@@ -128,38 +179,113 @@ export default function LoadPage() {
                 <motion.div
                   key={camp.id}
                   layout
-                  initial={{ opacity: 0, y: yOffset }}
-                  animate={{
-                    opacity,
-                    scale,
-                    y: yOffset, // spring-animated
-                  }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity, y: yOffset, scale }}
                   exit={{ opacity: 0 }}
                   transition={{
                     type: "spring",
                     stiffness: 200,
                     damping: 25,
+                    delay: Math.abs(camp.offset) * 0.1,
                   }}
-                  className="w-80"
+                  className="w-96 relative"
                 >
-                  <div
-                    className={`text-center text-3xl font-semibold px-6 py-3 rounded-lg transition-all duration-200 ${
-                      isCenter
-                        ? "bg-[#DACA89] text-[#1C1B18] border-2 border-[#DACA89]"
-                        : "bg-[#2A2A2A]/50 text-[#DACA89] border border-[#DACA89]/30"
+                  <motion.div
+                    className={`relative p-1 overflow-visible ${
+                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
                     }`}
+                    animate={
+                      isCenter
+                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" }
+                        : { boxShadow: "0 0 0px transparent" }
+                    }
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
                   >
-                    {camp.title || camp.name || "Untitled Campaign"}
-                  </div>
+                    <motion.div
+                      className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
+                        isCenter
+                          ? "bg-[#DACA89] text-[#1C1B18]"
+                          : "bg-transparent text-[#bf883c]"
+                      }`}
+                      animate={
+                        isCenter
+                          ? {
+                              boxShadow: [
+                                "0 0 20px rgba(191,136,60,0.6)",
+                                "0 0 35px rgba(191,136,60,0.9)",
+                                "0 0 20px rgba(191,136,60,0.6)",
+                              ],
+                            }
+                          : { boxShadow: "none" }
+                      }
+                      transition={
+                        isCenter
+                          ? {
+                              repeat: Infinity,
+                              repeatType: "mirror",
+                              duration: 2,
+                              ease: "easeInOut",
+                            }
+                          : { duration: 0.2 }
+                      }
+                    >
+                      {camp.title || camp.name || "Untitled Campaign"}
+                    </motion.div>
+
+                    {isCenter && (
+                      <motion.div
+                        key="arrow"
+                        className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10"
+                        initial={{ opacity: 0 }}
+                        animate={{
+                          opacity: 1,
+                          filter:
+                            "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
+                        }}
+                        transition={{
+                          duration: 0.4,
+                          ease: "easeInOut",
+                          delay: 0.3,
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 35.9 67.5"
+                          className="h-[72px] w-auto"
+                        >
+                          <defs>
+                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                          </defs>
+                          <polyline
+                            className="st0"
+                            points="1.4 66.8 34.5 33.8 1.4 .7"
+                          />
+                          <polyline
+                            className="st0"
+                            points="17.9 17.2 1.4 33.8 17.9 50.3"
+                          />
+                          <polyline
+                            className="st0"
+                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                          />
+                        </svg>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Right side — Dynamic background + gradient + LOAD button */}
-      <div className="relative w-3/4 flex items-center justify-center overflow-hidden">
+      {/* Right Panel */}
+      <motion.div
+        className="relative w-3/4 flex items-center justify-center overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
         <AnimatePresence mode="wait">
           {activeImg && (
             <motion.div
@@ -167,19 +293,18 @@ export default function LoadPage() {
               className="absolute inset-0"
               style={{
                 backgroundImage: `url(${activeImg})`,
-                backgroundSize: "cover", // fills the space while maintaining aspect ratio
+                backgroundSize: "cover",
                 backgroundPosition: "center",
                 filter: "brightness(0.85)",
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
             />
           )}
         </AnimatePresence>
 
-        {/* Gradient overlay */}
         <div
           className="absolute inset-0
       [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
@@ -193,39 +318,128 @@ export default function LoadPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="absolute inset-0 flex items-center justify-center text-[#DACA89]/40 italic"
           >
             No preview available
           </motion.div>
         )}
 
-        <div className="absolute bottom-10 right-10 z-20">
-          {selectedCampaign && (
-            <motion.button
-              onClick={handleContinue}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 0 20px rgba(218,202,137,0.6)",
-              }}
-              animate={{
-                boxShadow: [
-                  "0 0 10px rgba(218,202,137,0.4)",
-                  "0 0 20px rgba(218,202,137,0.7)",
-                  "0 0 10px rgba(218,202,137,0.4)",
-                ],
-              }}
-              transition={{
-                repeat: Infinity,
-                repeatType: "mirror",
-                duration: 2,
-              }}
-              className="px-8 py-3 text-3xl uppercase tracking-widest font-bold border border-[#DACA89] text-[#DACA89] rounded-lg bg-transparent hover:bg-[#DACA89] hover:text-[#1C1B18] transition-all"
+        {selectedCampaign && (
+          <motion.div
+            className="absolute bottom-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 z-30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.1, ease: "easeInOut" }}
+          >
+            {/* LOAD button */}
+            <motion.div
+              className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              LOAD
+              {/* Left arrow */}
+              <motion.div
+                className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+                style={{ transform: "translateY(-0%) scale(0.97)" }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 35.9 67.5"
+                  className="h-[70px] w-auto rotate-180"
+                >
+                  <defs>
+                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                  </defs>
+                  <polyline
+                    className="st0"
+                    points="1.4 66.8 34.5 33.8 1.4 .7"
+                  />
+                  <polyline
+                    className="st0"
+                    points="17.9 17.2 1.4 33.8 17.9 50.3"
+                  />
+                  <polyline
+                    className="st0"
+                    points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                  />
+                </svg>
+              </motion.div>
+
+              {/* LOAD button itself */}
+              <motion.button
+                onClick={handleContinue}
+                className="
+            relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
+            overflow-hidden
+            before:content-[''] before:absolute before:inset-0
+            before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
+            before:translate-x-[-100%] before:skew-x-12
+            hover:before:animate-[shine_1s_ease-in-out_forwards]
+          "
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+              >
+                LOAD
+              </motion.button>
+
+              {/* Right arrow */}
+              <motion.div
+                className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+                style={{ transform: "translateY(-0%) scale(0.97)" }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 35.9 67.5"
+                  className="h-[70px] w-auto"
+                >
+                  <defs>
+                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                  </defs>
+                  <polyline
+                    className="st0"
+                    points="1.4 66.8 34.5 33.8 1.4 .7"
+                  />
+                  <polyline
+                    className="st0"
+                    points="17.9 17.2 1.4 33.8 17.9 50.3"
+                  />
+                  <polyline
+                    className="st0"
+                    points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                  />
+                </svg>
+              </motion.div>
+            </motion.div>
+
+            {/* DELETE button */}
+            <motion.button
+              onClick={() => {
+                setCampaignToDelete(selectedCampaign);
+                setDeleteModalOpen(true);
+              }}
+              whileHover={{
+                textShadow:
+                  "0 0 10px rgba(255,80,80,0.5), 0 0 20px rgba(255,80,80,0.3)",
+                color: "#ff6b6b",
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="cursor-pointer px-5 py-1 text-lg uppercase tracking-widest font-semibold text-[#a84b4b] opacity-80 hover:opacity-100 transition-all duration-300"
+            >
+              DELETE
             </motion.button>
-          )}
-        </div>
-      </div>
+          </motion.div>
+        )}
+
+        <DeleteModal
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          campaign={campaignToDelete}
+          onConfirm={handleDeleteConfirm}
+        />
+      </motion.div>
     </div>
   );
 }

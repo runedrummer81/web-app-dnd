@@ -37,6 +37,9 @@ export default function SessionEdit() {
 
   const sessionId = location.state?.sessionId;
 
+  // 💬 Modal state for encounters
+  const [showEncounterModal, setShowEncounterModal] = useState(false);
+
   // 🧠 1. Hent session + world map
   useEffect(() => {
     if (!sessionId) {
@@ -80,24 +83,24 @@ export default function SessionEdit() {
   // 🧩 2. Hent encounters
   useEffect(() => {
     async function fetchEncounters() {
-    const auth = getAuth();
-    const user = auth.currentUser;
+      const auth = getAuth();
+      const user = auth.currentUser;
 
-    try {
-      const q = query(
-        collection(db, "encounters"),
-        where("ownerId", "==", user.uid)
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setAvailableEncounters(data);
-    } catch (err) {
-      console.error("🔥 Fejl ved hentning af encounters:", err);
+      try {
+        const q = query(
+          collection(db, "encounters"),
+          where("ownerId", "==", user.uid)
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setAvailableEncounters(data);
+      } catch (err) {
+        console.error("🔥 Fejl ved hentning af encounters:", err);
+      }
     }
-  }
 
-  fetchEncounters();
-}, []);
+    fetchEncounters();
+  }, []);
 
   // 🗺️ 3. Hent combat smaps
   useEffect(() => {
@@ -164,6 +167,7 @@ export default function SessionEdit() {
       const sessionRef = doc(db, "Sessions", sessionId);
       await updateDoc(sessionRef, {
         dmNotes: sessionData.dmNotes,
+        notesHeadline: sessionData.notesHeadline, // Add this line
         encounters,
         combatMaps,
         lastEdited: new Date(),
@@ -181,105 +185,123 @@ export default function SessionEdit() {
     );
 
   return (
-    <div className="p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none grid grid-cols-2 gap-8">
+    <div className="min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none grid grid-cols-3 gap-8 px-20 pt-40 pb-20 items-stretch">
       {/* 🧾 Venstre kolonne */}
-      <section className="flex flex-col space-y-6">
+      <section className="flex flex-col min-h-full col-span-2">
         {/* Noter */}
-        <div>
-          <h2 className="text-lg uppercase tracking-widest font-semibold mb-2">
-            DM Notes
-          </h2>
+        <div className="flex justify-between items-baseline py-3">
+          <h3 className="text-lg uppercase tracking-widest">Noter</h3>
+        </div>
+        <div className="border-2 border-[var(--secondary)] p-4 focus-within:border-[var(--primary)]">
+          <input
+            type="text"
+            value={sessionData.notesHeadline || ""}
+            onChange={(e) =>
+              setSessionData({ ...sessionData, notesHeadline: e.target.value })
+            }
+            placeholder="Headline..."
+            className="w-full text-2xl uppercase font-bold text-[var(--primary)] p-2 mb-4 focus:outline-none"
+          />
+
           <textarea
             value={sessionData.dmNotes || ""}
             onChange={handleNotesChange}
             placeholder="Skriv dine noter her..."
-            className="w-full h-[40vh] p-3 rounded-md bg-[#292621] border border-[#DACA89]/50 text-[#DACA89] focus:outline-none focus:border-[#DACA89]"
+            className="w-full h-[40vh] font-light text-[var(--secondary)] p-5 focus:outline-none focus:text-[var(--primary)] resize-none"
           />
         </div>
-
-        {/* Encounters */}
-        <article className="border border-[#DACA89]/50 rounded p-4 bg-[#292621]">
-          <h3 className="text-lg uppercase tracking-widest mb-2">Encounters</h3>
-
-          <select
-            onChange={handleAddEncounter}
-            defaultValue=""
-            className="w-full bg-[#1F1E1A] border border-[#DACA89]/40 rounded p-2 mb-4 text-[#DACA89]"
-          >
-            <option value="">+ Tilføj encounter...</option>
-            {availableEncounters.map((enc) => (
-              <option key={enc.id} value={enc.id}>
-                {enc.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="space-y-2">
-            {encounters.length > 0 ? (
-              encounters.map((e) => (
-                <div
-                  key={e.id}
-                  className="flex justify-between bg-[#1F1E1A] px-3 py-2 rounded items-center"
-                >
-                  <p>{e.name}</p>
-                  <button
-                    onClick={() => handleRemoveEncounter(e.id)}
-                    className="text-red-400 hover:text-red-300 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="text-[#DACA89]/60 italic">Ingen encounters valgt</p>
-            )}
-          </div>
-        </article>
       </section>
 
       {/* 🗺️ Højre kolonne */}
-      <section className="flex flex-col space-y-6">
+      <section className="flex flex-col  min-h-full">
+        {/* Encounters */}
+        <article>
+          <div className="flex justify-between items-baseline py-3">
+            <h3 className="text-lg uppercase tracking-widest">Encounters</h3>
+            <button
+              onClick={() => setShowEncounterModal(true)}
+              className=" text-4xl transition "
+            >
+              +
+            </button>
+          </div>
+
+          <div className="space-y-2 border-2 border-[var(--secondary)] p-2">
+            {encounters.length > 0 ? (
+              encounters.map((e) => (
+                <div key={e.id} className=" px-3 py-2 items-center">
+                  <div className="flex justify-between">
+                    <p className="text-1xl">{e.name}</p>
+                    <button
+                      onClick={() => handleRemoveEncounter(e.id)}
+                      className="text-red-400 hover:text-red-300 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div>
+                    <p className="font-light text-[var(--secondary)]">
+                      {e.creatures && e.creatures.length > 0
+                        ? e.creatures.map((c, i) => (
+                            <span key={i}>
+                              {c.name} × {c.count}
+                              <br />
+                            </span>
+                          ))
+                        : "No creatures"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-[var(-primary)]/60 italic">
+                Ingen encounters valgt
+              </p>
+            )}
+          </div>
+        </article>
+
         {/* World Map */}
-        {worldMap && (
-          <article className="border border-[#DACA89]/50 rounded p-4 bg-[#292621]">
+        {/* {worldMap && (
+          <article className="border-2 border-[var(--secondary)]/50 p-4 ">
             <h3 className="text-lg uppercase tracking-widest mb-2">
               World Map
             </h3>
             <img
               src={worldMap}
               alt="World Map"
-              className="rounded-lg shadow-md w-full object-cover max-h-[250px]"
+              className="w-full object-cover max-h-[250px]"
             />
           </article>
-        )}
+        )} */}
 
         {/* Combat Maps */}
-        <article className="border border-[#DACA89]/50 rounded p-4 bg-[#292621]">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg uppercase tracking-widest">Combat Maps</h3>
-            <button
-              onClick={() => setShowMapModal(true)}
-              className="border border-[#DACA89] rounded py-1 px-3 hover:bg-[#DACA89]/10 transition"
-            >
-              Vælg Maps
-            </button>
+        <article>
+          <div className="flex justify-between items-center mb-3 pt-5">
+            <h3 className="text-lg uppercase tracking-widest">Maps</h3>
           </div>
 
           {/* Valgte maps */}
           <div className="mt-4">
             <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setShowMapModal(true)}
+                className="right-0 py-1 text-4xl px-3 transition"
+              >
+                +
+              </button>
               {combatMaps.length > 0 ? (
                 combatMaps.map((map) => (
                   <div
                     key={map.id}
-                    className="flex flex-col items-center border border-[#DACA89]/40 rounded p-2 bg-[#1F1E1A] relative"
+                    className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24"
                   >
                     <img
                       src={map.image}
                       alt={map.title}
-                      className="w-24 h-16 object-cover rounded"
+                      className="object-cover w-full h-full"
                     />
-                    <p className="text-xs mt-1">{map.title}</p>
                     <button
                       onClick={() => handleRemoveMap(map.id)}
                       className="absolute top-1 right-1 text-red-400 hover:text-red-300"
@@ -297,15 +319,9 @@ export default function SessionEdit() {
       </section>
 
       {/* ⚙️ Bundnavigation */}
-      <section className="col-span-2 flex justify-between mt-8 items-center">
+      <section className="col-span-3 flex justify-between mt-8 items-center min-w-full">
         <DiceThrower />
         <div className="flex gap-4">
-          <button
-            onClick={() => navigate("/session")}
-            className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
-          >
-            Back
-          </button>
           <button
             onClick={handleSave}
             className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
@@ -314,6 +330,59 @@ export default function SessionEdit() {
           </button>
         </div>
       </section>
+
+      {/* 💬 ENCOUNTER MODAL */}
+      <AnimatePresence>
+        {showEncounterModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6  shadow-xl w-[80%] max-w-md max-h-[70vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg uppercase tracking-widest font-semibold">
+                  Vælg Encounter
+                </h3>
+                <button
+                  onClick={() => setShowEncounterModal(false)}
+                  className="text-[var(--primary)] hover:text-white transition text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <ul className="space-y-2">
+                {availableEncounters.length > 0 ? (
+                  availableEncounters.map((enc) => (
+                    <li key={enc.id}>
+                      <button
+                        onClick={() => {
+                          handleAddEncounter({ target: { value: enc.id } });
+                          setShowEncounterModal(false);
+                        }}
+                        className="w-full text-[var(--secondary)] text-left p-2 hover:text-[var(--primary)] transition"
+                      >
+                        {enc.name}
+                      </button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-[var(--primary)] italic">
+                    Ingen encounters fundet
+                  </p>
+                )}
+              </ul>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 💡 MAP MODAL */}
       <AnimatePresence>
@@ -328,12 +397,21 @@ export default function SessionEdit() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#1C1B18] border border-[#DACA89]/50 p-6 rounded-lg shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
+              className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6 shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg uppercase tracking-widest font-semibold">
                   Vælg Combat Maps
                 </h3>
+                <button
+                  onClick={() => {
+                    setTempSelectedMaps([]);
+                    setShowMapModal(false);
+                  }}
+                  className="text-[var(--primary)] hover:text-white transition text-lg"
+                >
+                  ✕
+                </button>
               </div>
 
               {/* Filtre */}
@@ -341,7 +419,7 @@ export default function SessionEdit() {
                 {["forest", "cave", "castle"].map((type) => (
                   <label
                     key={type}
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="flex items-center gap-2 cursor-pointer text-[var(--secondary)]"
                   >
                     <input
                       type="checkbox"
@@ -373,18 +451,20 @@ export default function SessionEdit() {
                           setTempSelectedMaps([...tempSelectedMaps, map]);
                         }
                       }}
-                      className={`cursor-pointer border rounded p-2 bg-[#1F1E1A] hover:border-[#DACA89] ${
+                      className={`cursor-pointer border-2 p-2 hover:border-[var(--primary)] transition ${
                         isSelected
-                          ? "border-[#DACA89] ring-2 ring-[#DACA89]/50"
-                          : "border-[#DACA89]/30"
+                          ? "border-[var(--primary)]"
+                          : "border-[var(--secondary)]"
                       }`}
                     >
                       <img
                         src={map.image}
                         alt={map.title}
-                        className="w-full h-32 object-cover rounded mb-2"
+                        className="w-full h-32 object-cover mb-2"
                       />
-                      <p className="text-center text-sm">{map.title}</p>
+                      <p className="text-center text-sm text-[var(--secondary)]">
+                        {map.title}
+                      </p>
                     </div>
                   );
                 })}
@@ -394,24 +474,23 @@ export default function SessionEdit() {
               <div className="flex justify-end mt-6 gap-2">
                 <button
                   onClick={() => {
-                    // Tilføj midlertidige maps til combatMaps
                     const newMaps = tempSelectedMaps.filter(
                       (map) => !combatMaps.find((m) => m.id === map.id)
                     );
                     setCombatMaps([...combatMaps, ...newMaps]);
-                    setTempSelectedMaps([]); // ryd midlertidige valg
+                    setTempSelectedMaps([]);
                     setShowMapModal(false);
                   }}
-                  className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                  className="border-2 border-[var(--secondary)] py-2 px-4 hover:bg-[var(--secondary)]/10 transition text-[var(--secondary)]"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => {
-                    setTempSelectedMaps([]); // ryd midlertidige valg
+                    setTempSelectedMaps([]);
                     setShowMapModal(false);
                   }}
-                  className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+                  className="border-2 border-[var(--secondary)] py-2 px-4 hover:bg-[var(--secondary)]/10 transition text-[var(--secondary)]"
                 >
                   Cancel
                 </button>

@@ -66,48 +66,7 @@ export default function Session() {
     fetchSessions();
   }, [campaignId]);
 
-  // 🔹 Opret ny session
-  //   const createNewSession = async () => {
-  //   if (!campaignId) return;
 
-  //   try {
-  //     // 🔹 Find højeste sessNr
-  //     const lastSession = sessions[sessions.length - 1];
-  //     const nextSessNr = lastSession ? lastSession.sessNr + 1 : 1;
-
-  //     // 🔹 Opret ny session
-  //     const newSession = {
-  //       title: `Session ${nextSessNr}`,
-  //       campaignId: campaignId,
-  //       sessNr: nextSessNr,
-  //       dmNotes: "",
-  //       encounters: [],
-  //       combatMaps: [],
-  //       createdAt: new Date(),
-  //     };
-
-  //     const docRef = await addDoc(collection(db, "Sessions"), newSession);
-  //     console.log("✅ Ny session oprettet:", docRef.id);
-
-  //     // 🔹 Opdater campaignens sessionsCount i Firestore
-  //     const campaignRef = doc(db, "Campaigns", campaignId);
-  //     await updateDoc(campaignRef, {
-  //       sessionsCount: (sessions?.length || 0) + 1,
-  //       lastOpened: new Date(),
-  //     });
-
-  //     console.log("🧩 Campaign opdateret med nyt sessionsCount!");
-
-  //    // 🔹 Opdater lokalt
-  //     const sessionWithId = { id: docRef.id, ...newSession };
-  //     setSessions((prev) => [...prev, sessionWithId]);
-
-  //     // 🔹 Naviger direkte til SessionEdit
-  //     navigate("/session-edit", { state: { sessionId: docRef.id } });
-  //   } catch (err) {
-  //     console.error("🔥 Fejl ved oprettelse af ny session:", err);
-  //   }
-  // };
 
   const createNewSession = async () => {
     if (!campaignId) return;
@@ -171,11 +130,7 @@ export default function Session() {
     setSelectedSession((prev) => (prev?.id === session.id ? null : session));
   };
 
-  // Find hvor vi kom fra
-  const handleBack = () => {
-    const lastPage = localStorage.getItem("lastNonSessionPage") || "/home";
-    navigate(lastPage);
-  };
+  
 
   useEffect(() => {
     console.log("🧭 Session opened from:", fromPage);
@@ -184,12 +139,7 @@ export default function Session() {
   return (
     <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none">
       {/* Venstre side: sessionliste */}
-      <button
-        onClick={() => navigate("/home")}
-        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-      >
-        <span>Back to Home</span>
-      </button>
+      
 
       <section className="flex flex-col justify-center w-1/3 space-y-4">
         <h2 className="text-lg uppercase tracking-widest font-semibold">
@@ -227,17 +177,7 @@ export default function Session() {
         </div>
       </section>
 
-      {/* ⚙️ Bundnavigation */}
-      <section className="col-span-2 flex justify-between mt-8 items-center">
-        <div className="flex gap-4">
-          <button
-            onClick={handleBack}
-            className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
-          >
-            Back
-          </button>
-        </div>
-      </section>
+      
 
       {/* Højre side: detaljer */}
       {selectedSession && (

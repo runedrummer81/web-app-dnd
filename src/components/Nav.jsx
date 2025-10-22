@@ -2,7 +2,8 @@ import { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
+
 
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
@@ -21,14 +22,37 @@ export default function Nav() {
     }
   };
 
+  
+
+  const handleBack = () => {
+    // Sider hvor vi ikke skal bruge "navigate(-1)"
+    const sessionRoutes = "/session";
+    const sessEditRoute = "/session-edit"
+
+    if (sessionRoutes.includes(location.pathname)) {
+      const lastPage = localStorage.getItem("lastNonSessionPage") || "/home";
+      navigate(lastPage);
+    }
+    else if(sessEditRoute.includes(location.pathname)) {
+      navigate("/session");
+    }
+    else{
+      navigate("/home")
+    }
+  };
+
+  const isHomePage = location.pathname === "/home"; // 👈 tjek om vi er på forsiden
+
   return (
     <>
     <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)]">
-      {/* Back to last page button */}
-      <button
-        className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110"
-        onClick={() => navigate(-1)}
-      >
+
+      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden */}
+      {!isHomePage && (
+        <button
+          className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110"
+          onClick={handleBack}
+        >
         <svg
           width="48"
           height="41"
@@ -43,6 +67,7 @@ export default function Nav() {
           />
         </svg>
       </button>
+    )}
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
           {/* Button 1 */}

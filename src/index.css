@@ -109,36 +109,53 @@ body {
 }
 
 .btn-glow {
-  @apply relative overflow-hidden px-10 py-3 bg-[var(--primary)] text-[#1C1B18] font-bold uppercase tracking-widest rounded-lg transition-all duration-300;
+  @apply relative overflow-hidden px-14 py-3 text-4xl font-extrabold uppercase tracking-[0.25em] text-[#1C1B18] transition-all duration-300;
 
-  /* Shimmer effect */
+  /* Gradient base that matches your LoadPage */
   background: linear-gradient(
     120deg,
-    var(--primary) 0%,
-    #fffacd 30%,
-    var(--primary) 60%,
-    var(--primary) 100%
+    #f0d382 0%,
+    #ffd77f 30%,
+    #bf883c 60%,
+    #f0d382 100%
   );
   background-size: 200% 100%;
+
+  /* Subtle shimmer animation */
   animation: shimmer 3s linear infinite;
 }
 
-/* Hover glow with stronger effect */
+/* Glow overlay */
 .btn-glow::after {
   content: "";
   @apply absolute inset-0 rounded-lg pointer-events-none;
-  box-shadow: 0 0 20px var(--primary), 0 0 50px var(--primary) / 50,
-    0 0 80px var(--primary) / 30;
+  box-shadow: 0 0 15px rgba(191, 136, 60, 0.4),
+    0 0 30px rgba(191, 136, 60, 0.25), 0 0 50px rgba(191, 136, 60, 0.15);
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+/* Hover effect: glow intensifies */
 .btn-glow:hover::after {
   opacity: 1;
   transform: scale(1.05);
 }
 
-/* Optional: slightly speed up shimmer on hover */
+/* Slightly speed up shimmer on hover */
 .btn-glow:hover {
-  animation-duration: 1.5s; /* shimmer moves faster on hover */
+  animation-duration: 1.5s;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(150%) skewX(12deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-150%) skewX(12deg);
+    opacity: 0;
+  }
 }
