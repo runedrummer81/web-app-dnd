@@ -10,13 +10,15 @@ import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
 import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
+import BG from "./components/BG";
 
 export default function App() {
   return (
     <>
       <Nav />
       <Border />
-      <main className="font-[var(--font)]">
+      <BG />
+      <main>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />

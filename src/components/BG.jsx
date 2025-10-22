@@ -1,13 +1,11 @@
 export default function BG() {
   return (
-    <div className="fixed inset-0 -z-10">
+    <div className="fixed inset-0 pointer-events-none mix-blend-hard-light opacity-4 z-1 ">
       <img
         src="/images/bg.jpg"
-        alt="Background"
+        alt="Granite texture"
         className="w-full h-full object-cover"
       />
-      {/* Optional dark overlay */}
-      <div className="absolute inset-0 bg-black/60"></div>
     </div>
   );
 }

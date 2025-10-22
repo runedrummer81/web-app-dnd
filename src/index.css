@@ -3,7 +3,7 @@
 :root {
   --primary: #daca89;
   --secondary: #bf883c;
-  --dark-muted-bg: #22211c;
+  --dark-muted-bg: #141411;
   --dark-border: #403c29;
   --font: "EB Garamond", serif;
 }
@@ -159,4 +159,3 @@ body {
     opacity: 0;
   }
 }
-
