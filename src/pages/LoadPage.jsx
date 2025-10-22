@@ -1,14 +1,49 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  doc,
+  deleteDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
+import DeleteModal from "../components/DeleteModal";
 
 export default function LoadPage() {
   const { user, loading } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [centerIndex, setCenterIndex] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, "Campaigns", campaignToDelete.id));
+
+      // Remove from local state so it disappears instantly
+      setCampaigns((prev) =>
+        prev.filter((camp) => camp.id !== campaignToDelete.id)
+      );
+
+      // Close modal
+      setDeleteModalOpen(false);
+
+      // Reset centerIndex if needed
+      setCenterIndex((prev) =>
+        Math.min(prev, campaigns.length - 2 >= 0 ? campaigns.length - 2 : 0)
+      );
+    } catch (err) {
+      console.error("Error deleting campaign:", err);
+    }
+  };
+
   const navigate = useNavigate();
   const listRef = useRef(null);
 
@@ -31,6 +66,7 @@ export default function LoadPage() {
         console.error("🔥 Firestore error:", err);
       }
     }
+
     getCampaigns();
   }, [user]);
 
@@ -55,8 +91,8 @@ export default function LoadPage() {
   );
 
   useEffect(() => {
-    let scrollAccumulator = 0; // accumulate small deltaY values
-    const SCROLL_THRESHOLD = 50; // amount of deltaY required to trigger a campaign change
+    let scrollAccumulator = 0;
+    const SCROLL_THRESHOLD = 50;
 
     const onWheel = (e) => {
       scrollAccumulator += e.deltaY;
@@ -80,12 +116,11 @@ export default function LoadPage() {
         handleScroll("down");
         e.preventDefault();
       } else if (e.key === "Enter") {
-        handleContinue(); // trigger load button
+        handleContinue();
         e.preventDefault();
       }
     };
 
-    // Listen globally
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown);
 
@@ -97,7 +132,6 @@ export default function LoadPage() {
 
   if (loading) return null;
 
-  // Compute visible campaigns around center
   const visibleCampaigns = [];
   for (let offset = -1; offset <= 1; offset++) {
     const idx = centerIndex + offset;
@@ -111,8 +145,7 @@ export default function LoadPage() {
 
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
-      {/* Left side — Campaign list */}
-      {/* Left side — Campaign list */}
+      {/* Left Panel */}
       <motion.div
         className="relative w-1/2 flex flex-col items-center justify-center z-10"
         initial={{ opacity: 0 }}
@@ -128,7 +161,6 @@ export default function LoadPage() {
           Choose Your Campaign
         </motion.h2>
 
-        {/* Fade top & bottom */}
         <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
         <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
 
@@ -147,30 +179,28 @@ export default function LoadPage() {
                 <motion.div
                   key={camp.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }} // start slightly lower and invisible
-                  animate={{ opacity, y: yOffset, scale }} // fade + slide to correct spot
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity, y: yOffset, scale }}
                   exit={{ opacity: 0 }}
                   transition={{
                     type: "spring",
                     stiffness: 200,
                     damping: 25,
-                    delay: Math.abs(camp.offset) * 0.1, // stagger surrounding items
+                    delay: Math.abs(camp.offset) * 0.1,
                   }}
                   className="w-96 relative"
                 >
-                  {/* Outer border — subtle steady glow for selected */}
                   <motion.div
                     className={`relative p-1 overflow-visible ${
                       isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
                     }`}
                     animate={
                       isCenter
-                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" } // steady glow
+                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" }
                         : { boxShadow: "0 0 0px transparent" }
                     }
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                   >
-                    {/* Inner box — soft pulsing aura for selected */}
                     <motion.div
                       className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
                         isCenter
@@ -202,7 +232,6 @@ export default function LoadPage() {
                       {camp.title || camp.name || "Untitled Campaign"}
                     </motion.div>
 
-                    {/* Arrow — always visible with stronger glow */}
                     {isCenter && (
                       <motion.div
                         key="arrow"
@@ -250,7 +279,7 @@ export default function LoadPage() {
         </div>
       </motion.div>
 
-      {/* Right side — Background + gradient + buttons */}
+      {/* Right Panel */}
       <motion.div
         className="relative w-3/4 flex items-center justify-center overflow-hidden"
         initial={{ opacity: 0 }}
@@ -276,7 +305,6 @@ export default function LoadPage() {
           )}
         </AnimatePresence>
 
-        {/* Gradient overlay */}
         <div
           className="absolute inset-0
       [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
@@ -386,29 +414,31 @@ export default function LoadPage() {
               </motion.div>
             </motion.div>
 
-            {/* DELETE button — secondary */}
+            {/* DELETE button */}
             <motion.button
-              onClick={() =>
-                console.log("delete campaign", selectedCampaign.id)
-              }
+              onClick={() => {
+                setCampaignToDelete(selectedCampaign);
+                setDeleteModalOpen(true);
+              }}
               whileHover={{
                 textShadow:
                   "0 0 10px rgba(255,80,80,0.5), 0 0 20px rgba(255,80,80,0.3)",
                 color: "#ff6b6b",
               }}
               whileTap={{ scale: 0.95 }}
-              className="
-          cursor-pointer px-5 py-1 text-lg uppercase tracking-widest font-semibold
-          text-[#a84b4b] opacity-80 hover:opacity-100 transition-all duration-300
-        "
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.1, delay: 0.1 }}
+              className="cursor-pointer px-5 py-1 text-lg uppercase tracking-widest font-semibold text-[#a84b4b] opacity-80 hover:opacity-100 transition-all duration-300"
             >
               DELETE
             </motion.button>
           </motion.div>
         )}
+
+        <DeleteModal
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          campaign={campaignToDelete}
+          onConfirm={handleDeleteConfirm}
+        />
       </motion.div>
     </div>
   );
