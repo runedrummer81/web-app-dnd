@@ -184,12 +184,7 @@ export default function Session() {
   return (
     <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none">
       {/* Venstre side: sessionliste */}
-      <button
-        onClick={() => navigate("/home")}
-        className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-      >
-        <span>Back to Home</span>
-      </button>
+      
 
       <section className="flex flex-col justify-center w-1/3 space-y-4">
         <h2 className="text-lg uppercase tracking-widest font-semibold">

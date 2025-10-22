@@ -112,12 +112,7 @@ export default function LoadPage() {
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
       {/* Left side — Campaign list */}
       <div className="relative w-1/2 flex flex-col items-center justify-center z-10">
-        <button
-          onClick={() => navigate("/home")}
-          className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
-        >
-          <span>Back to Home</span>
-        </button>
+        
 
         <h2 className="text-2xl uppercase tracking-widest font-semibold text-[#DACA89] mb-10">
           Choose Your Campaign

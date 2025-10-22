@@ -300,12 +300,7 @@ export default function SessionEdit() {
       <section className="col-span-2 flex justify-between mt-8 items-center">
         <DiceThrower />
         <div className="flex gap-4">
-          <button
-            onClick={() => navigate("/session")}
-            className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
-          >
-            Back
-          </button>
+          
           <button
             onClick={handleSave}
             className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
