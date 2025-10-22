@@ -80,6 +80,18 @@ export default function NewCampaign() {
     setShowNamePopup(true);
   };
 
+  let hoverTimeout;
+
+  const handleMouseEnter = (index) => {
+    clearTimeout(hoverTimeout);
+    setOpenedIndex(index);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeout = setTimeout(() => setOpenedIndex(null), 200);
+  };
+  
+
   // 🔹 Save new campaign to Firestore
   const saveCampaign = async () => {
     if (openedIndex === null || !campaignName.trim()) return;
@@ -145,44 +157,53 @@ export default function NewCampaign() {
       </button>
 
       {/* Hovedlayout */}
-      <div className="flex w-full max-w-5xl justify-center items-start gap-16 mb-6">
+      <div className="flex w-full  justify-center items-center gap-16 mb-6">
         {/* Left side */}
-        <div className="flex flex-col items-center justify-center w-[360px] text-[#DACA89]">
-          <button className="w-full uppercase border border-[#DACA89] font-bold py-4 tracking-wide rounded-md shadow-[0_0_10px_#DACA89] hover:shadow-[0_0_16px_#DACA89] transition">
-            NY CAMPAIGN FRA TEMPLATE
+        <div className="flex flex-col items-center justify-center  ">
+          <button className="font-[var(--font)] block text-2xl cursor-pointer border-2 border-[var(--secondary)] w-[450px] p-2   ">
+
+            <div className=" text-[var(--dark-muted-bg)] bg-[var(--primary)] ">
+              NEW CAMPAIGN FROM TEMPLATE
+            </div>
+            
           </button>
-          <p className="mt-6 text-lg uppercase tracking-widest opacity-60">
-            ELLER LAV DIN EGEN
+          <p className="mt-6 text-lg uppercase tracking-widest opacity-60 text-[var(--secondary)]">
+            MAKE YOUR OWN
           </p>
+          {/* <img className="rotate-45 w-6"  src="/images/arrow-head.svg" alt="pilhoved" /> */}
         </div>
 
         {/* Right side: templates */}
-        <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6 border-l border-[#DACA89]/50 pl-8 menu-scrollbar">
+        <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6  border-[#DACA89]/50 menu-scrollbar">
           {templates.map(
             ({ id, title, description, image, learnMoreId }, index) => (
               <div
                 key={id}
-                className={`cursor-pointer p-5 border rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
-                  openedIndex === index ? "bg-[#2E2C27] gold-glow-animate" : ""
-                }`}
-                onClick={() => toggleDescription(index)}
+                className="cursor-pointer p-5 border-2 transition duration-300 border-[var(--secondary)]"
+
+                   onMouseEnter={() => setOpenedIndex(index)}
+                    onMouseLeave={() => setOpenedIndex(null)}
               >
-                <div className="flex justify-between items-center">
+                
+                <div className="flex justify-between items-center " >
                   <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
                     {title}
                   </h3>
-                  <div className="w-44 h-10 text-right text-xs italic text-[#DACA89]/70 select-none">
+                  
+                  <div className="w-44 h-10 text-right text-xs italic text-[#DACA89]/70 select-none ">
                     {image ? (
                       <img
                         src={image}
                         alt={title}
-                        className="w-16 h-10 object-cover rounded-md ml-auto"
+                        className="w-16 h-10 object-cover ml-auto "
                       />
                     ) : (
                       "INTET BILLEDE"
                     )}
                   </div>
+                  
                 </div>
+                
 
                 <div
                   className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
@@ -215,14 +236,14 @@ export default function NewCampaign() {
       </div>
 
       {/* CONFIRM button */}
-      {openedIndex !== null && !showNamePopup && (
+      {/* {openedIndex !== null && !showNamePopup && (
         <button
           onClick={handleConfirmClick}
           className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg"
         >
           CONFIRM
         </button>
-      )}
+      )} */}
 
       {/* LearnMore modal */}
       {showLearnMore && selectedTemplate && (
