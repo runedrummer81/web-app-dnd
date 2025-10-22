@@ -10,8 +10,7 @@ import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
 import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
-import { useEffect } from "react";
-import { useLocation } from "react-router";
+
 
 export default function App() {
 

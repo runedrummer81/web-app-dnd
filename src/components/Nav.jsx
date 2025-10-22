@@ -3,7 +3,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
-import { useEffect } from "react";
+
 
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
