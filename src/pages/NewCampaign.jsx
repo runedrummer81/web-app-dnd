@@ -40,9 +40,7 @@
       document.body.style.overflow = showLearnMore ? "hidden" : "";
     }, [showLearnMore]);
 
-    const toggleDescription = (index) => {
-      setOpenedIndex(openedIndex === index ? null : index);
-    };
+    
 
     // 🔹 Fetch LearnMore data dynamically
     const handleLearnMore = async (learnMoreId) => {
@@ -80,16 +78,7 @@
       setShowNamePopup(true);
     };
 
-    let hoverTimeout;
-
-    const handleMouseEnter = (index) => {
-      clearTimeout(hoverTimeout);
-      setOpenedIndex(index);
-    };
-
-    const handleMouseLeave = () => {
-      hoverTimeout = setTimeout(() => setOpenedIndex(null), 200);
-    };
+    
     
 
     // 🔹 Save new campaign to Firestore
@@ -137,6 +126,8 @@
 
     if (loading) return null; // wait until auth is loaded
 
+    
+
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
         
@@ -165,54 +156,60 @@
                 <div
   key={id}
   className="relative cursor-pointer p-5 border-2 transition duration-300 border-[var(--secondary)]"
-  onMouseEnter={() => setOpenedIndex(index)}
-  onMouseLeave={() => setOpenedIndex(null)}
+  onMouseEnter={() => setOpenedIndex(index)} // Opdaterer kun ved hover over ny template
 >
-  {/* Baggrundsbilledet */}
+  {/* Baggrundsbillede */}
   {image && (
     <img
-      src={image}
-      alt={title}
-      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none ${
-        openedIndex === index ? "opacity-50" : "opacity-20"
-      }`}
-    />
+  src={image}
+  alt={title}
+  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none`}
+  style={{
+    maskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+    WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+  }}
+/>
   )}
 
-  {/* Tekst */}
-  <div className="relative z-10 flex justify-between items-center">
-    <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
-      {title}
-    </h3>
-  </div>
+  {/* Gradient overlay kun til baggrund */}
+  <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1C1B18] pointer-events-none"></div>
 
-  {/* Beskrivelse */}
-  <div
-    className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
-      openedIndex === index ? "max-h-44 mt-4 opacity-100" : "max-h-0 opacity-0"
-    }`}
-  >
-    <p className="text-[#DACA89]/90 leading-relaxed">{description || "Ingen beskrivelse tilgængelig"}</p>
+  {/* Tekst og knapper ovenpå */}
+  <div className="relative z-10 flex flex-col justify-between h-full">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
+        {title}
+      </h3>
+    </div>
 
-    {openedIndex === index && (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleLearnMore(learnMoreId);
-        }}
-        className="cursor-pointer mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
-      >
-        Learn More
-      </button>
-    )}
-    {openedIndex !== null && !showNamePopup && (
-          <button
-            onClick={handleConfirmClick}
-            className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg"
-          >
-            CONFIRM
-          </button>
-        )}
+    <div
+      className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
+        openedIndex === index ? "max-h-44 mt-4 opacity-100" : "max-h-0 opacity-0"
+      }`}
+    >
+      <p className="text-[#DACA89]/90 leading-relaxed">{description || "Ingen beskrivelse tilgængelig"}</p>
+
+      {openedIndex === index && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleLearnMore(learnMoreId);
+          }}
+          className="cursor-pointer mt-4 text-sm border border-[#DACA89] text-[#DACA89] px-3 py-1 rounded hover:bg-[#DACA89]/10 transition"
+        >
+          Learn More
+        </button>
+      )}
+
+      {openedIndex !== null && !showNamePopup && (
+        <button
+          onClick={handleConfirmClick}
+          className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[#DACA89] text-[#DACA89] rounded hover:bg-[#DACA89] hover:text-[#1C1B18] transition-shadow shadow-lg mt-4"
+        >
+          CONFIRM
+        </button>
+      )}
+    </div>
   </div>
 </div>
               )
