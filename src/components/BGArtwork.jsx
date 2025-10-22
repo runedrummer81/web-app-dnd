@@ -18,7 +18,7 @@ export default function BGArtwork({ imageUrl }) {
   }, [imageUrl]);
 
   return (
-    <div className="absolute inset-0 -z-10 bg-[#1C1B18] overflow-hidden">
+    <div className="absolute inset-0 bg-[var(--dark-muted-bg)] overflow-hidden">
       <div
         className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ease-in-out ${
           fadeIn ? "opacity-100" : "opacity-0"
@@ -29,11 +29,15 @@ export default function BGArtwork({ imageUrl }) {
       ></div>
 
       <div
-        className="absolute inset-0
-          [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
-          [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
-          [background-position:left_center,right_center,center_bottom,center_top]
-          [background-repeat:no-repeat]"
+        className="absolute inset-0"
+        style={{
+          background: `
+      linear-gradient(to left, transparent 30%, var(--dark-muted-bg) 100%),
+      linear-gradient(to right, transparent 75%, var(--dark-muted-bg) 100%),
+      linear-gradient(to bottom, transparent 40%, var(--dark-muted-bg) 100%),
+      linear-gradient(to top, transparent 75%, var(--dark-muted-bg) 100%)
+    `,
+        }}
       ></div>
     </div>
   );
