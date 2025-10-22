@@ -171,11 +171,7 @@ export default function Session() {
     setSelectedSession((prev) => (prev?.id === session.id ? null : session));
   };
 
-  // Find hvor vi kom fra
-  const handleBack = () => {
-    const lastPage = localStorage.getItem("lastNonSessionPage") || "/home";
-    navigate(lastPage);
-  };
+  
 
   useEffect(() => {
     console.log("🧭 Session opened from:", fromPage);
@@ -222,17 +218,7 @@ export default function Session() {
         </div>
       </section>
 
-      {/* ⚙️ Bundnavigation */}
-      <section className="col-span-2 flex justify-between mt-8 items-center">
-        <div className="flex gap-4">
-          <button
-            onClick={handleBack}
-            className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
-          >
-            Back
-          </button>
-        </div>
-      </section>
+      
 
       {/* Højre side: detaljer */}
       {selectedSession && (
