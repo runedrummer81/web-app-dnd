@@ -8,27 +8,40 @@ import encountersImage from "/images/encounter.jpeg";
 import informationImage from "/images/information.jpg";
 
 export default function HomePage() {
-  const [active, setActive] = useState("Continue Campaign");
+  const [active, setActive] = useState(null); // Start with nothing
 
   const [lastCampaign, setLastCampaign] = useState(null);
+
+  const routes = {
+    "Continue Campaign": "/session",
+    "Load Campaign": "/load",
+    "New Campaign": "/newcampaign",
+    Encounters: "/encounters",
+    Information: "/info",
+  };
 
   useEffect(() => {
     const fetchLastCampaign = async () => {
       const campaignId = localStorage.getItem("selectedCampaignId");
-      if (!campaignId) return;
+      if (!campaignId) {
+        setActive("New Campaign"); // No last campaign, default to New Campaign
+        return;
+      }
 
       try {
-        const docRef = await import("firebase/firestore").then(
-          ({ doc, getDoc }) => {
-            const d = doc(db, "Campaigns", campaignId);
-            return getDoc(d);
-          }
-        );
+        const { doc, getDoc } = await import("firebase/firestore");
+        const docRef = await getDoc(doc(db, "Campaigns", campaignId));
+
         if (docRef.exists()) {
-          setLastCampaign({ id: docRef.id, ...docRef.data() });
+          const campaign = { id: docRef.id, ...docRef.data() };
+          setLastCampaign(campaign);
+          setActive("Continue Campaign"); // Last campaign exists
+        } else {
+          setActive("New Campaign"); // fallback
         }
       } catch (err) {
         console.error("🔥 Kunne ikke hente sidste campaign:", err);
+        setActive("New Campaign"); // fallback
       }
     };
 
@@ -60,76 +73,67 @@ export default function HomePage() {
       <section className="grid grid-cols-[auto_1fr] items-stretch min-w-screen min-h-screen px-30 gap-15 relative z-10">
         {/* Left column */}
         <div className="flex flex-col space-y-9 min-h-screen justify-center">
-          {[
-            "Continue Campaign",
-            "Load Campaign",
-            "New Campaign",
-            "Encounters",
-            "Information",
-          ].map((label) => (
-            <Link
-              key={label}
-              to={
-                label === "Continue Campaign" || label === "Load Campaign"
-                  ? label === "Continue Campaign"
-                    ? "/session"
-                    : "/load"
-                  : label === "New Campaign"
-                  ? "/newcampaign"
-                  : label === "Encounters"
-                  ? "/encounters"
-                  : "/info"
-              }
-              onMouseEnter={() => setActive(label)}
-              state={
-                label === "Continue Campaign" || label === "Load Campaign"
-                  ? { campaignId: lastCampaign?.id, from: "/home" }
-                  : undefined
-              }
-              className={`uppercase font-[var(--font)] text-2xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 relative
-    ${
-      active === label
-        ? "border-t-2 border-l-2 border-b-2 border-[var(--secondary)] p-1 text-4xl"
-        : ""
-    }
-  `}
-            >
-              <span
-                className={`block transition-all duration-200 py-2 px-4 relative z-10
-      ${
-        active === label
-          ? "bg-[var(--primary)] text-[var(--dark-muted-bg)] font-bold text-3xl"
-          : ""
-      }
-    `}
+          {active !== null && // only render when we know what to show
+            [
+              ...(lastCampaign ? ["Continue Campaign", "Load Campaign"] : []),
+              "New Campaign",
+              "Encounters",
+              "Information",
+            ].map((label) => (
+              <Link
+                key={label}
+                to={routes[label]}
+                onMouseEnter={() => setActive(label)}
+                state={
+                  label === "Continue Campaign" || label === "Load Campaign"
+                    ? { campaignId: lastCampaign?.id, from: "/home" }
+                    : undefined
+                }
+                className={`uppercase font-[var(--font)] text-2xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 relative
+          ${
+            active === label
+              ? "border-t-2 border-l-2 border-b-2 border-[var(--secondary)] p-1 text-4xl"
+              : ""
+          }
+        `}
               >
-                {label}
-              </span>
+                <span
+                  className={`block transition-all duration-200 py-2 px-4 relative z-10
+            ${
+              active === label
+                ? "bg-[var(--primary)] text-[var(--dark-muted-bg)] font-bold text-3xl"
+                : ""
+            }
+          `}
+                >
+                  {label}
+                </span>
 
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 35.9 67.5"
-                className={`absolute transform scale-105 -right-8 top-1/2 -translate-y-1/2 h-full transition-opacity duration-200 z-0
-      ${active === label ? "opacity-100" : "opacity-0"}
-    `}
-              >
-                <defs>
-                  <style>
-                    {`.st0 { fill: none; stroke: var(--secondary); stroke-miterlimit: 10; stroke-width: 2px; }`}
-                  </style>
-                </defs>
-                <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
-                <polyline
-                  className="st0"
-                  points="17.9 17.2 1.4 33.8 17.9 50.3"
-                />
-                <polyline
-                  className="st0"
-                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                />
-              </svg>
-            </Link>
-          ))}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 35.9 67.5"
+                  className={`absolute transform scale-105 -right-8 top-1/2 -translate-y-1/2 h-full transition-opacity duration-200 z-0
+            ${active === label ? "opacity-100" : "opacity-0"}
+          `}
+                >
+                  <defs>
+                    <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-miterlimit: 10; stroke-width: 2px; }`}</style>
+                  </defs>
+                  <polyline
+                    className="st0"
+                    points="1.4 66.8 34.5 33.8 1.4 .7"
+                  />
+                  <polyline
+                    className="st0"
+                    points="17.9 17.2 1.4 33.8 17.9 50.3"
+                  />
+                  <polyline
+                    className="st0"
+                    points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                  />
+                </svg>
+              </Link>
+            ))}
         </div>
 
         {/* Right column */}
