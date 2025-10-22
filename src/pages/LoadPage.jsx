@@ -1,24 +1,22 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import CampaignComp from "../components/CampaignComp";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
+import { useAuth } from "../hooks/useAuth";
 
 export default function LoadPage() {
-  const { user, loading } = useAuth(); // ✅ get current user
+  const { user, loading } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
-  const [activeImg, setActiveImg] = useState(null);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [centerIndex, setCenterIndex] = useState(0);
   const navigate = useNavigate();
+  const listRef = useRef(null);
 
   useEffect(() => {
-    if (!user) return; // wait until user is loaded
+    if (!user) return;
 
     async function getCampaigns() {
       try {
-        // ✅ Only fetch campaigns for this user
         const q = query(
           collection(db, "Campaigns"),
           where("ownerId", "==", user.uid)
@@ -28,7 +26,6 @@ export default function LoadPage() {
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("✅ User campaigns fetched:", fetched);
         setCampaigns(fetched);
       } catch (err) {
         console.error("🔥 Firestore error:", err);
@@ -38,19 +35,69 @@ export default function LoadPage() {
   }, [user]);
 
   const handleContinue = () => {
-    if (!selectedCampaign) return;
+    if (campaigns.length === 0) return;
+    const selectedCampaign = campaigns[centerIndex];
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
     navigate("/session", {
       state: { campaignId: selectedCampaign.id, from: "/load" },
     });
   };
 
-  if (loading) return null; // wait until auth is ready
+  const handleScroll = useCallback(
+    (direction) => {
+      if (direction === "up" && centerIndex > 0) {
+        setCenterIndex((prev) => prev - 1);
+      } else if (direction === "down" && centerIndex < campaigns.length - 1) {
+        setCenterIndex((prev) => prev + 1);
+      }
+    },
+    [centerIndex, campaigns.length]
+  );
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+
+    let lastAt = 0;
+    const THROTTLE_MS = 200;
+
+    const onWheel = (e) => {
+      const now = Date.now();
+      if (now - lastAt < THROTTLE_MS) {
+        e.preventDefault();
+        return;
+      }
+      lastAt = now;
+
+      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+      if (e.deltaY > 0) handleScroll("down");
+      else if (e.deltaY < 0) handleScroll("up");
+
+      e.preventDefault();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [handleScroll]);
+
+  if (loading) return null;
+
+  // Compute visible campaigns around center
+  const visibleCampaigns = [];
+  for (let offset = -1; offset <= 1; offset++) {
+    const idx = centerIndex + offset;
+    if (idx >= 0 && idx < campaigns.length) {
+      visibleCampaigns.push({ ...campaigns[idx], offset });
+    }
+  }
+
+  const selectedCampaign = campaigns[centerIndex];
+  const activeImg = selectedCampaign?.image || selectedCampaign?.img;
 
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
-      {/* 🔹 Left side — Campaign list */}
-      <div className="relative w-1/2 flex flex-col items-start justify-center px-12 py-16 z-10">
+      {/* Left side — Campaign list */}
+      <div className="relative w-1/2 flex flex-col items-center justify-center z-10">
         <button
           onClick={() => navigate("/home")}
           className="absolute top-6 left-6 flex items-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
@@ -58,75 +105,116 @@ export default function LoadPage() {
           <span>Back to Home</span>
         </button>
 
-        <section className="col-span-2 flex justify-between mt-8 items-center">
-          <div className="flex gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="border border-[#DACA89] rounded py-2 px-4 font-semibold text-[#DACA89] hover:bg-[#DACA89]/10 transition"
-            >
-              Back
-            </button>
-          </div>
-        </section>
-
-        <h2 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89] mb-6">
+        <h2 className="text-2xl uppercase tracking-widest font-semibold text-[#DACA89] mb-10">
           Choose Your Campaign
         </h2>
 
-        {/* Fade-top and bottom */}
-        <div className="absolute top-16 left-0 w-full h-12 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none"></div>
-        <div className="absolute bottom-16 left-0 w-full h-12 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none"></div>
+        {/* Fade top & bottom */}
+        <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
+        <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
 
-        {/* Scrollbar */}
-        <div className="overflow-y-auto max-h-[70vh] w-full pr-6 space-y-4 scrollbar-thin scrollbar-thumb-[#DACA89]/30 scrollbar-track-transparent">
-          {campaigns.map((camp) => (
-            <motion.div
-              key={camp.id}
-              onClick={() => setSelectedCampaign(camp)}
-              onMouseEnter={() => setActiveImg(camp.image || camp.img)}
-              onMouseLeave={() =>
-                setActiveImg(
-                  selectedCampaign?.image || selectedCampaign?.img || null
-                )
-              }
-              className={`cursor-pointer transition-all duration-300 border border-[#DACA89]/50 rounded-md p-4 bg-[#292621] hover:shadow-[0_0_10px_#DACA89] ${
-                selectedCampaign?.id === camp.id
-                  ? "bg-[#2E2C27] shadow-[0_0_15px_#DACA89]"
-                  : ""
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <CampaignComp {...camp} />
-            </motion.div>
-          ))}
+        <div
+          ref={listRef}
+          className="relative flex flex-col items-center justify-center space-y-6 h-[380px]"
+        >
+          <AnimatePresence mode="popLayout">
+            {visibleCampaigns.map((camp) => {
+              const isCenter = camp.offset === 0;
+              const yOffset = camp.offset * 60;
+              const scale = isCenter ? 1.1 : 0.85;
+              const opacity = isCenter ? 1 : 0.5;
+
+              return (
+                <motion.div
+                  key={camp.id}
+                  layout
+                  initial={{ opacity: 0, y: yOffset }}
+                  animate={{ opacity, scale, y: yOffset }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                  className="w-96 relative"
+                >
+                  {/* outer: border with padding, allow overflow for arrow */}
+                  <div
+                    className={`relative p-1 overflow-visible ${
+                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
+                    }`}
+                  >
+                    {/* inner: selected box has background/text, others only text */}
+                    <div
+                      className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden ${
+                        isCenter
+                          ? "bg-[#DACA89] text-[#1C1B18]"
+                          : "bg-transparent text-[#bf883c]"
+                      }`}
+                    >
+                      {camp.title || camp.name || "Untitled Campaign"}
+                    </div>
+
+                    {/* arrow extending the border only if selected */}
+                    {isCenter && (
+                      <div className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 35.9 67.5"
+                          className="h-[72px] w-auto"
+                        >
+                          <defs>
+                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                          </defs>
+                          <polyline
+                            className="st0"
+                            points="1.4 66.8 34.5 33.8 1.4 .7"
+                          />
+                          <polyline
+                            className="st0"
+                            points="17.9 17.2 1.4 33.8 17.9 50.3"
+                          />
+                          <polyline
+                            className="st0"
+                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* 🔹 Right side — Preview image */}
-      <div className="relative w-1/2 flex items-center justify-center bg-[#1C1B18] overflow-hidden">
+      {/* Right side — Background + gradient + LOAD button */}
+      <div className="relative w-3/4 flex items-center justify-center overflow-hidden">
         <AnimatePresence mode="wait">
-          {(activeImg || selectedCampaign?.image) && (
+          {activeImg && (
             <motion.div
-              key={
-                activeImg || selectedCampaign?.image || selectedCampaign?.img
-              }
-              className="absolute inset-0 bg-cover bg-center"
+              key={activeImg}
+              className="absolute inset-0"
               style={{
-                backgroundImage: `url(${
-                  activeImg || selectedCampaign?.image || selectedCampaign?.img
-                })`,
+                backgroundImage: `url(${activeImg})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
                 filter: "brightness(0.85)",
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            ></motion.div>
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            />
           )}
         </AnimatePresence>
 
-        {!activeImg && !selectedCampaign?.image && (
+        <div
+          className="absolute inset-0
+      [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
+      [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
+      [background-position:left_center,right_center,center_bottom,center_top]
+      [background-repeat:no-repeat]"
+        />
+
+        {!activeImg && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
@@ -137,52 +225,32 @@ export default function LoadPage() {
           </motion.div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-l from-[#1C1B18] via-transparent to-transparent"></div>
-
-        <AnimatePresence>
+        <div className="absolute bottom-10 right-10 z-20">
           {selectedCampaign && (
-            <motion.div
-              key="continue-btn"
-              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            <motion.button
+              onClick={handleContinue}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 0 20px rgba(218,202,137,0.6)",
+              }}
               animate={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                transition: { delay: 0.2, duration: 0.4, ease: "easeOut" },
+                boxShadow: [
+                  "0 0 10px rgba(218,202,137,0.4)",
+                  "0 0 20px rgba(218,202,137,0.7)",
+                  "0 0 10px rgba(218,202,137,0.4)",
+                ],
               }}
-              exit={{
-                opacity: 0,
-                y: 30,
-                scale: 0.95,
-                transition: { duration: 0.3, ease: "easeIn" },
+              transition={{
+                repeat: Infinity,
+                repeatType: "mirror",
+                duration: 2,
               }}
-              className="absolute bottom-10 right-10 z-20"
+              className="px-8 py-3 text-3xl uppercase tracking-widest font-bold border border-[#DACA89] text-[#DACA89] rounded-lg bg-transparent hover:bg-[#DACA89] hover:text-[#1C1B18] transition-all"
             >
-              <motion.button
-                onClick={handleContinue}
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 0 20px rgba(218,202,137,0.6)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 10px rgba(218,202,137,0.4)",
-                    "0 0 20px rgba(218,202,137,0.7)",
-                    "0 0 10px rgba(218,202,137,0.4)",
-                  ],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  repeatType: "mirror",
-                  duration: 2,
-                }}
-                className="px-8 py-3 uppercase tracking-widest font-bold border border-[#DACA89] text-[#DACA89] rounded-lg bg-transparent hover:bg-[#DACA89] hover:text-[#1C1B18] transition-all"
-              >
-                Continue
-              </motion.button>
-            </motion.div>
+              LOAD
+            </motion.button>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );
