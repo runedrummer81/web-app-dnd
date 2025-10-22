@@ -153,7 +153,7 @@ export default function HomePage() {
                     <div>Sessions: {lastCampaign?.sessionsCount}</div>
                   </div>
 
-                  <div className="flex gap-5 text-6xl font-black text-[var(--primary)] text-center mt-4">
+                  <div className="flex gap-5 text-4xl font-black text-[var(--primary)] text-center mt-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 257.6 130.8"
@@ -176,9 +176,9 @@ export default function HomePage() {
                       <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
                     </svg>
                   </div>
-                  <div className="text-2xl text-[var(--primary)] mt-4">
+                  {/* <div className="text-2xl text-[var(--primary)] w-100 mt-4">
                     {lastCampaign?.description || "No description available."}
-                  </div>
+                  </div> */}
                 </div>
               )}
               {active === "Load Campaign" && (
