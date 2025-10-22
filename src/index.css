@@ -145,3 +145,17 @@ body {
 .btn-glow:hover {
   animation-duration: 1.5s;
 }
+
+@keyframes shine {
+  0% {
+    transform: translateX(150%) skewX(12deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-150%) skewX(12deg);
+    opacity: 0;
+  }
+}

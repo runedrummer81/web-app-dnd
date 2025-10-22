@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 
 export default function LoadPage() {
@@ -11,20 +11,6 @@ export default function LoadPage() {
   const [centerIndex, setCenterIndex] = useState(0);
   const navigate = useNavigate();
   const listRef = useRef(null);
-
-  // Shared animation for both arrows
-  const arrowControls = useAnimation();
-
-  useEffect(() => {
-    arrowControls.start({
-      y: [0, -6, 0],
-      transition: {
-        repeat: Infinity,
-        duration: 1.5,
-        ease: "easeInOut",
-      },
-    });
-  }, [arrowControls]);
 
   useEffect(() => {
     if (!user) return;
@@ -48,14 +34,14 @@ export default function LoadPage() {
     getCampaigns();
   }, [user]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     if (campaigns.length === 0) return;
     const selectedCampaign = campaigns[centerIndex];
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
     navigate("/session", {
       state: { campaignId: selectedCampaign.id, from: "/load" },
     });
-  };
+  }, [campaigns, centerIndex, navigate]);
 
   const handleScroll = useCallback(
     (direction) => {
@@ -69,30 +55,45 @@ export default function LoadPage() {
   );
 
   useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-
-    let lastAt = 0;
-    const THROTTLE_MS = 200;
+    let scrollAccumulator = 0; // accumulate small deltaY values
+    const SCROLL_THRESHOLD = 50; // amount of deltaY required to trigger a campaign change
 
     const onWheel = (e) => {
-      const now = Date.now();
-      if (now - lastAt < THROTTLE_MS) {
+      scrollAccumulator += e.deltaY;
+
+      if (scrollAccumulator >= SCROLL_THRESHOLD) {
+        handleScroll("down");
+        scrollAccumulator = 0;
         e.preventDefault();
-        return;
+      } else if (scrollAccumulator <= -SCROLL_THRESHOLD) {
+        handleScroll("up");
+        scrollAccumulator = 0;
+        e.preventDefault();
       }
-      lastAt = now;
-
-      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-      if (e.deltaY > 0) handleScroll("down");
-      else if (e.deltaY < 0) handleScroll("up");
-
-      e.preventDefault();
     };
 
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [handleScroll]);
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowUp") {
+        handleScroll("up");
+        e.preventDefault();
+      } else if (e.key === "ArrowDown") {
+        handleScroll("down");
+        e.preventDefault();
+      } else if (e.key === "Enter") {
+        handleContinue(); // trigger load button
+        e.preventDefault();
+      }
+    };
+
+    // Listen globally
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handleScroll, handleContinue]);
 
   if (loading) return null;
 
@@ -111,12 +112,21 @@ export default function LoadPage() {
   return (
     <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
       {/* Left side — Campaign list */}
-      <div className="relative w-1/2 flex flex-col items-center justify-center z-10">
-        
-
-        <h2 className="text-2xl uppercase tracking-widest font-semibold text-[#DACA89] mb-10">
+      {/* Left side — Campaign list */}
+      <motion.div
+        className="relative w-1/2 flex flex-col items-center justify-center z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
+        <motion.h2
+          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[#DACA89] via-[#bf883c] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+        >
           Choose Your Campaign
-        </h2>
+        </motion.h2>
 
         {/* Fade top & bottom */}
         <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
@@ -137,10 +147,15 @@ export default function LoadPage() {
                 <motion.div
                   key={camp.id}
                   layout
-                  initial={{ opacity: 0, y: yOffset }}
-                  animate={{ opacity, scale, y: yOffset }}
+                  initial={{ opacity: 0, y: 20 }} // start slightly lower and invisible
+                  animate={{ opacity, y: yOffset, scale }} // fade + slide to correct spot
                   exit={{ opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 25,
+                    delay: Math.abs(camp.offset) * 0.1, // stagger surrounding items
+                  }}
                   className="w-96 relative"
                 >
                   {/* Outer border — subtle steady glow for selected */}
@@ -192,13 +207,17 @@ export default function LoadPage() {
                       <motion.div
                         key="arrow"
                         className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10"
-                        initial={{ opacity: 1 }}
+                        initial={{ opacity: 0 }}
                         animate={{
                           opacity: 1,
                           filter:
                             "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
                         }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        transition={{
+                          duration: 0.4,
+                          ease: "easeInOut",
+                          delay: 0.3,
+                        }}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -229,10 +248,15 @@ export default function LoadPage() {
             })}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right side — Background + gradient + buttons */}
-      <div className="relative w-3/4 flex items-center justify-center overflow-hidden">
+      <motion.div
+        className="relative w-3/4 flex items-center justify-center overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
         <AnimatePresence mode="wait">
           {activeImg && (
             <motion.div
@@ -247,17 +271,18 @@ export default function LoadPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
             />
           )}
         </AnimatePresence>
 
+        {/* Gradient overlay */}
         <div
           className="absolute inset-0
-    [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
-    [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
-    [background-position:left_center,right_center,center_bottom,center_top]
-    [background-repeat:no-repeat]"
+      [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
+      [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
+      [background-position:left_center,right_center,center_bottom,center_top]
+      [background-repeat:no-repeat]"
         />
 
         {!activeImg && (
@@ -265,31 +290,31 @@ export default function LoadPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="absolute inset-0 flex items-center justify-center text-[#DACA89]/40 italic"
           >
             No preview available
           </motion.div>
         )}
+
         {selectedCampaign && (
-          <>
-            {/* LOAD button — larger, centered vertically */}
+          <motion.div
+            className="absolute bottom-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 z-30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.1, ease: "easeInOut" }}
+          >
+            {/* LOAD button */}
             <motion.div
-              className="absolute right-1/2 translate-x-[130%] bottom-[10%] z-30 flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible"
-              transition={{
-                repeat: Infinity,
-                repeatType: "mirror",
-                duration: 2,
-                ease: "easeInOut",
-              }}
+              className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
               {/* Left arrow */}
               <motion.div
-                className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20"
+                className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
                 style={{ transform: "translateY(-0%) scale(0.97)" }}
-                animate={{
-                  filter:
-                    "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
-                }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +322,7 @@ export default function LoadPage() {
                   className="h-[70px] w-auto rotate-180"
                 >
                   <defs>
-                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
                   </defs>
                   <polyline
                     className="st0"
@@ -317,14 +342,24 @@ export default function LoadPage() {
               {/* LOAD button itself */}
               <motion.button
                 onClick={handleContinue}
-                className="cursor-pointer btn-glow px-14 py-3 text-4xl font-extrabold uppercase text-[#1C1B18] bg-gradient-to-br from-[#f0d382] to-[#bf883c]"
+                className="
+            relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
+            overflow-hidden
+            before:content-[''] before:absolute before:inset-0
+            before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
+            before:translate-x-[-100%] before:skew-x-12
+            hover:before:animate-[shine_1s_ease-in-out_forwards]
+          "
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
               >
                 LOAD
               </motion.button>
 
               {/* Right arrow */}
               <motion.div
-                className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20"
+                className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
                 style={{ transform: "translateY(-0%) scale(0.97)" }}
               >
                 <svg
@@ -351,25 +386,30 @@ export default function LoadPage() {
               </motion.div>
             </motion.div>
 
-            {/* DELETE button — smaller, bottom-right corner */}
-            <div className="absolute bottom-10 right-10 z-20">
-              <motion.button
-                onClick={() =>
-                  console.log("delete campaign", selectedCampaign.id)
-                }
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 0 15px rgba(255,90,90,0.6)",
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="cursor-pointer px-5 py-2 text-1xl uppercase tracking-widest font-bold border border-[#ff4c4c] text-[#ff4c4c] rounded-lg bg-transparent hover:bg-[#ff4c4c] hover:text-[#1C1B18] transition-all"
-              >
-                DELETE
-              </motion.button>
-            </div>
-          </>
+            {/* DELETE button — secondary */}
+            <motion.button
+              onClick={() =>
+                console.log("delete campaign", selectedCampaign.id)
+              }
+              whileHover={{
+                textShadow:
+                  "0 0 10px rgba(255,80,80,0.5), 0 0 20px rgba(255,80,80,0.3)",
+                color: "#ff6b6b",
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="
+          cursor-pointer px-5 py-1 text-lg uppercase tracking-widest font-semibold
+          text-[#a84b4b] opacity-80 hover:opacity-100 transition-all duration-300
+        "
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.1, delay: 0.1 }}
+            >
+              DELETE
+            </motion.button>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
