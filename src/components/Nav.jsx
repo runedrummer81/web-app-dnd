@@ -113,7 +113,7 @@ export default function Nav() {
 
             {/* Slide-down menu */}
             <div
-              className={`absolute right-0 mt-2 bg-[var(--bg-dark)] border border-[var(--primary)] rounded-xl shadow-lg overflow-hidden transform transition-all duration-200 origin-top ${
+              className={`absolute right-0 mt-2 bg-[var(--bg-dark)] border border-[var(--secondary)] shadow-lg overflow-hidden transform transition-all duration-200 origin-top ${
                 logoutMenuOpen
                   ? "opacity-100 scale-y-100"
                   : "opacity-0 scale-y-0 pointer-events-none"
@@ -121,9 +121,9 @@ export default function Nav() {
             >
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition"
+                className="block w-full font-semibold text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition flex whitespace-nowrap hover:cursor-pointer"
               >
-                Logout
+                Log out
               </button>
             </div>
           </div>
