@@ -228,10 +228,15 @@ export default function Session() {
   };
 
   return (
-    <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
+    <div
+      className="fixed inset-0 flex bg-[#1C1B18] font-serif select-none overflow-hidden 
+  px-[7vw] pt-[80px] pb-[5vh]
+  xl:px-[9vw] 2xl:px-[12vw]"
+    >
       {/* LEFT PANEL: Session list */}
       <motion.div
-        className="relative w-1/3 flex flex-col items-center justify-center z-10"
+        className="relative flex flex-col items-center justify-center z-10 
+  w-[28%] xl:w-[26%] 2xl:w-[22%] min-w-[300px] max-w-[400px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -247,7 +252,7 @@ export default function Session() {
 
         <div
           ref={listRef}
-          className="relative flex flex-col items-center justify-center space-y-0 h-[380px]"
+          className="relative flex flex-col items-center justify-center space-y-0 h-[35vh] min-h-[300px] max-h-[420px]"
         >
           <AnimatePresence mode="popLayout">
             {visibleSessions.map((sess) => {
@@ -366,7 +371,11 @@ export default function Session() {
       </motion.div>
 
       {/* RIGHT PANEL: Background + Details */}
-      <motion.div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
+      <motion.div
+        className="relative flex-1 flex flex-col items-center justify-center overflow-hidden 
+  max-w-[1600px] mx-auto 
+  translate-x-[3vw] xl:translate-x-[4vw]"
+      >
         {/* BACKGROUND IMAGE (blurred) */}
         {activeImg && (
           <motion.div
@@ -396,7 +405,8 @@ export default function Session() {
         {selectedSession && (
           <>
             <motion.div
-              className="relative flex flex-col w-full max-w-4xl bg-[#1F1E1A] p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10 space-y-5 overflow-hidden max-h-[70vh]"
+              className="relative flex flex-col w-full max-w-[65vw] xl:max-w-[60vw] 2xl:max-w-[55vw] bg-[#1F1E1A] 
+p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10 space-y-5 overflow-hidden max-h-[70vh]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -430,14 +440,14 @@ export default function Session() {
 
               {/* DM Notes */}
               <div className="bg-[#1F1E1A]">
-                <p className="text-[#bf883c] whitespace-pre-wrap h-[300px]">
+                <p className="text-[#bf883c] whitespace-pre-wrap h-[250px]">
                   {selectedSession.dmNotes || "Ingen noter endnu"}
                 </p>
               </div>
             </motion.div>
 
             {/* Row beneath DM Notes: Encounters + Maps */}
-            <div className="flex w-full max-w-4xl mt-6 z-10 gap-6">
+            <div className="flex w-full max-w-[65vw] xl:max-w-[60vw] 2xl:max-w-[55vw] mt-6 z-10 gap-6">
               {/* LEFT: Encounters box */}
               <div className="w-1/3 bg-[#1F1E1A]/50 p-4 rounded border border-[#bf883c] overflow-auto">
                 <h3 className="text-[#DACA89] font-semibold mb-2">
@@ -493,7 +503,11 @@ export default function Session() {
             </div>
 
             {/* Buttons beneath details box */}
-            <div className="flex justify-between items-center w-full max-w-4xl mt-6 z-20 space-x-6">
+            <div
+              className="flex justify-between items-center w-full 
+max-w-[65vw] xl:max-w-[60vw] 2xl:max-w-[55vw] 
+mt-8 z-20 space-x-6"
+            >
               {/* Left: EDIT + DELETE buttons stacked, centered */}
               <div className="flex flex-col items-center space-y-2">
                 {/* EDIT SESSION button */}
@@ -621,15 +635,22 @@ export default function Session() {
                 {deleteMessage}
               </motion.div>
             )}
-            <DeleteModal
-              open={deleteModalOpen}
-              onClose={() => setDeleteModalOpen(false)}
-              campaign={sessionToDelete} // still works even if named "campaign" in modal
-              onConfirm={handleDeleteConfirm}
-            />
           </>
         )}
       </motion.div>
+      {deleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center 
+      backdrop-blur-sm bg-black/60"
+        >
+          <DeleteModal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            campaign={sessionToDelete}
+            onConfirm={handleDeleteConfirm}
+          />
+        </div>
+      )}
     </div>
   );
 }
