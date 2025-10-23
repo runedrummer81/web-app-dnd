@@ -37,13 +37,13 @@ export default function SessionEdit() {
 
   const sessionId = location.state?.sessionId;
 
-  // 💬 Modal state for encounters
+  // Modal state for encounters
   const [showEncounterModal, setShowEncounterModal] = useState(false);
 
-  // 🧠 1. Hent session + world map
+  // Hent session + world map
   useEffect(() => {
     if (!sessionId) {
-      console.warn("⚠️ Ingen sessionId fundet — redirecter");
+      console.warn("No sessionId found — redirect ");
       navigate("/session");
       return;
     }
@@ -73,14 +73,14 @@ export default function SessionEdit() {
           }
         }
       } catch (err) {
-        console.error("🔥 Fejl ved hentning af session:", err);
+        console.error("couldn't find session:", err);
       }
     }
 
     fetchSession();
   }, [sessionId, navigate]);
 
-  // 🧩 2. Hent encounters
+  // Hent encounters
   useEffect(() => {
     async function fetchEncounters() {
       const auth = getAuth();
@@ -95,14 +95,14 @@ export default function SessionEdit() {
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         setAvailableEncounters(data);
       } catch (err) {
-        console.error("🔥 Fejl ved hentning af encounters:", err);
+        console.error("🔥 couldn't find encounters:", err);
       }
     }
 
     fetchEncounters();
   }, []);
 
-  // 🗺️ 3. Hent combat smaps
+  // Hent combat smaps
   useEffect(() => {
     async function fetchMaps() {
       const q = query(collection(db, "Maps"), where("type", "==", "combat"));
@@ -114,12 +114,12 @@ export default function SessionEdit() {
     fetchMaps();
   }, []);
 
-  // ✏️ 4. Ændr noter
+  // Ændr noter
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
   };
 
-  // ⚔️ 5. Tilføj encounter
+  // Tilføj encounter
   const handleAddEncounter = (e) => {
     const selectedId = e.target.value;
     if (!selectedId) return;
@@ -133,7 +133,7 @@ export default function SessionEdit() {
     setEncounters(encounters.filter((e) => e.id !== id));
   };
 
-  // 🧭 6. Filtrer maps
+  // Filtrer maps
   useEffect(() => {
     const activeFilters = Object.entries(filters)
       .filter(([_, val]) => val)
@@ -150,7 +150,7 @@ export default function SessionEdit() {
     }
   }, [filters, availableMaps]);
 
-  // ➕ 7. Tilføj/fjern maps
+  // Tilføj/fjern maps
   const handleAddMap = (map) => {
     if (!combatMaps.find((m) => m.id === map.id)) {
       setCombatMaps([...combatMaps, map]);
@@ -161,7 +161,7 @@ export default function SessionEdit() {
     setCombatMaps(combatMaps.filter((m) => m.id !== id));
   };
 
-  // 💾 8. Gem til Firebase
+  // Gem til Firebase
   const handleSave = async () => {
     try {
       const sessionRef = doc(db, "Sessions", sessionId);
@@ -172,25 +172,25 @@ export default function SessionEdit() {
         combatMaps,
         lastEdited: new Date(),
       });
-      console.log("✅ Session gemt!");
+      console.log("Session saved");
       navigate("/session");
     } catch (err) {
-      console.error("🔥 Fejl ved gem:", err);
+      console.error("error:", err);
     }
   };
 
   if (!sessionData)
     return (
-      <p className="text-center mt-20 text-[#DACA89]">Indlæser session...</p>
+      <p className="text-center mt-20 text-[var(--primary)]">Indlæser session...</p>
     );
 
   return (
-    <div className="min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none grid grid-cols-3 gap-8 px-20 pt-40 pb-20 items-stretch">
-      {/* 🧾 Venstre kolonne */}
+    <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none grid grid-cols-3 gap-8 px-20 pt-40 pb-13 items-stretch">
+      {/* Venstre kolonne */}
       <section className="flex flex-col min-h-full col-span-2">
         {/* Noter */}
         <div className="flex justify-between items-baseline py-3">
-          <h3 className="text-lg uppercase tracking-widest">Noter</h3>
+          <h3 className="text-lg uppercase tracking-widest">Notes</h3>
         </div>
         <div className="border-2 border-[var(--secondary)] p-4 focus-within:border-[var(--primary)]">
           <input
@@ -199,20 +199,20 @@ export default function SessionEdit() {
             onChange={(e) =>
               setSessionData({ ...sessionData, notesHeadline: e.target.value })
             }
-            placeholder="Headline..."
+            placeholder="Add Headline..."
             className="w-full text-2xl uppercase font-bold text-[var(--primary)] p-2 mb-4 focus:outline-none"
           />
 
           <textarea
             value={sessionData.dmNotes || ""}
             onChange={handleNotesChange}
-            placeholder="Skriv dine noter her..."
+            placeholder="Your journey starts..."
             className="w-full h-[40vh] font-light text-[var(--secondary)] p-5 focus:outline-none focus:text-[var(--primary)] resize-none"
           />
         </div>
       </section>
 
-      {/* 🗺️ Højre kolonne */}
+      {/* Højre kolonne */}
       <section className="flex flex-col  min-h-full">
         {/* Encounters */}
         <article>
@@ -256,7 +256,7 @@ export default function SessionEdit() {
               ))
             ) : (
               <p className="text-[var(-primary)]/60 italic">
-                Ingen encounters valgt
+                No encounters added yet.
               </p>
             )}
           </div>
@@ -311,27 +311,27 @@ export default function SessionEdit() {
                   </div>
                 ))
               ) : (
-                <p className="text-[#DACA89]/60 italic">Ingen maps valgt</p>
+                <p className="text-[var(--primary)]/60 italic">No maps added yet. </p>
               )}
             </div>
           </div>
         </article>
       </section>
 
-      {/* ⚙️ Bundnavigation */}
-      <section className="col-span-3 flex justify-between mt-8 items-center min-w-full">
+      {/* Bundnavigation */}
+      <section className="col-span-3 flex justify-between  items-center min-w-full">
         <DiceThrower />
         <div className="flex gap-4">
           <button
             onClick={handleSave}
-            className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+            className="border border-[var(--primary)] rounded py-2 px-4 hover:bg-[var(--primary)]/10 transition"
           >
             Save
           </button>
         </div>
       </section>
 
-      {/* 💬 ENCOUNTER MODAL */}
+      {/* ENCOUNTER MODAL */}
       <AnimatePresence>
         {showEncounterModal && (
           <motion.div
@@ -384,7 +384,7 @@ export default function SessionEdit() {
         )}
       </AnimatePresence>
 
-      {/* 💡 MAP MODAL */}
+      {/* MAP MODAL */}
       <AnimatePresence>
         {showMapModal && (
           <motion.div
