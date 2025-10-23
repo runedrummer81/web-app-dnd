@@ -242,7 +242,7 @@
   />
 
 
-      {/* {openedIndex === index && (
+       {openedIndex === index && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -254,7 +254,7 @@
         </button>
       )}
 
-      {openedIndex !== null && !showNamePopup && (
+      {/*{openedIndex !== null && !showNamePopup && (
         <button
           onClick={handleConfirmClick}
           className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[#1C1B18] transition-shadow shadow-lg mt-4"
