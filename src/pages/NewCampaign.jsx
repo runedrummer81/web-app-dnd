@@ -1,8 +1,8 @@
-  import { useState, useEffect } from "react";
+  import { useState, useEffect, useRef } from "react";
   import { getDocs, setDoc, collection, doc, getDoc } from "firebase/firestore";
   import { db } from "../firebase";
   import { useNavigate } from "react-router";
-  import { FaArrowLeft } from "react-icons/fa";
+  import { motion, AnimatePresence } from "framer-motion";
   import LearnMore from "../components/LearnMore";
   import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
 
@@ -16,6 +16,7 @@
     const [showNamePopup, setShowNamePopup] = useState(false);
     const [campaignName, setCampaignName] = useState("");
     const navigate = useNavigate();
+    const scrollRef = useRef(null);
 
     // 🔹 Fetch templates from Firestore
     useEffect(() => {
@@ -131,9 +132,11 @@
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
         
+        
 
         {/* Hovedlayout */}
         <div className="flex w-full  justify-center items-center gap-16 mb-6">
+          
           {/* Left side */}
           <div className="flex flex-col items-center justify-center  ">
             <button className="font-[var(--font)] block text-2xl cursor-pointer border-2 border-[var(--secondary)] w-[450px] p-2   ">
@@ -150,10 +153,22 @@
           </div>
 
           {/* Right side: templates */}
-          <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6  border-[#DACA89]/50 menu-scrollbar">
+          <div className="flex flex-col w-[480px] max-h-[85vh] overflow-y-scroll space-y-6  border-[#DACA89]/50 menu-scrollbar">
+            {/* <div
+  ref={scrollRef}
+  className="overflow-y-auto px-10 pt-10 pb-5 relative"
+  style={{
+  maxHeight: "calc(100vh - 720px)",
+  maskImage:
+    "linear-gradient(to bottom, transparent 0%, black 25%, black 95%, transparent 100%)",
+  WebkitMaskImage:
+    "linear-gradient(to bottom, transparent 0%, black 50%, black 95%, transparent 100%)",
+}}
+></div> */}
             {templates.map(
               ({ id, title, description, image, learnMoreId }, index) => (
                 <div
+                
   key={id}
   className="relative cursor-pointer p-5 border-2 transition duration-300 border-[var(--secondary)]"
   onMouseEnter={() => setOpenedIndex(index)} // Opdaterer kun ved hover over ny template
@@ -228,6 +243,8 @@
             onConfirm={handleConfirmClick}
           />
         )}
+
+        
 
         {/* 🧾 Campaign name popup */}
         {showNamePopup && (

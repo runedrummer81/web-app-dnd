@@ -181,14 +181,88 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           </div>
 
           {/* Confirm button */}
-          <div className="border-t border-[#DACA89]/40 py-5 flex justify-center">
+          {/* <div className="border-t border-[#DACA89]/40 py-5 flex justify-center">
             <button
               onClick={onConfirm}
-              className="cursor-pointer btn-glow hover:scale-110"
-            >
-              Confirm
+               className="cursor-pointer btn-glow hover:scale-110"
+              >
+             Confirm
             </button>
-          </div>
+          </div> */}
+
+          {/* Left arrow */}
+                            <motion.div
+                              className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+                              style={{ transform: "translateY(-0%) scale(0.97)" }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 35.9 67.5"
+                                className="h-[70px] w-auto rotate-180"
+                              >
+                                <defs>
+                                  <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                                </defs>
+                                <polyline
+                                  className="st0"
+                                  points="1.4 66.8 34.5 33.8 1.4 .7"
+                                />
+                                <polyline
+                                  className="st0"
+                                  points="17.9 17.2 1.4 33.8 17.9 50.3"
+                                />
+                                <polyline
+                                  className="st0"
+                                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                                />
+                              </svg>
+                            </motion.div>
+              
+                            {/* LOAD button itself */}
+                            <motion.button
+                              onClick={onConfirm}
+                              className="
+                          relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
+                          overflow-hidden
+                          before:content-[''] before:absolute before:inset-0
+                          before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
+                          before:translate-x-[-100%] before:skew-x-12
+                          hover:before:animate-[shine_1s_ease-in-out_forwards]
+                        "
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.5, delay: 0.35 }}
+                            >
+                              LOAD
+                            </motion.button>
+              
+                            {/* Right arrow */}
+                            <motion.div
+                              className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+                              style={{ transform: "translateY(-0%) scale(0.97)" }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 35.9 67.5"
+                                className="h-[70px] w-auto"
+                              >
+                                <defs>
+                                  <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                                </defs>
+                                <polyline
+                                  className="st0"
+                                  points="1.4 66.8 34.5 33.8 1.4 .7"
+                                />
+                                <polyline
+                                  className="st0"
+                                  points="17.9 17.2 1.4 33.8 17.9 50.3"
+                                />
+                                <polyline
+                                  className="st0"
+                                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
+                                />
+                              </svg>
+                            </motion.div>
 
           {/* Close button */}
           <button
