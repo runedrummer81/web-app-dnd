@@ -1,7 +1,7 @@
   import { useState, useEffect, useRef } from "react";
   import { getDocs, setDoc, collection, doc, getDoc } from "firebase/firestore";
   import { db } from "../firebase";
-  
+  import ArrowButton from "../components/ArrowButton";
   import { useNavigate, Link } from "react-router";
   import { motion, AnimatePresence } from "framer-motion";
   import LearnMore from "../components/LearnMore";
@@ -168,6 +168,7 @@
     </motion.div>
   </button>
 </div>
+
       
               
             
@@ -179,7 +180,7 @@
          
 
           {/* Right side: templates */}
-          <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6  border-[var(--primary)]/50 menu-scrollbar">
+          <div className="flex flex-col w-[480px] max-h-[74vh] mt-25 overflow-y-scroll space-y-6  border-[var(--primary)]/50 menu-scrollbar">
             {templates.map(
               ({ id, title, description, image, learnMoreId }, index) => (
                 <div
@@ -219,7 +220,29 @@
     >
       <p className="text-[var(--primary)]/90 leading-relaxed">{description || "No description available"}</p>
 
-      {openedIndex === index && (
+      <div><ArrowButton
+    label="Learn More"
+    onClick={() => setShowLearnMore(true)}
+    size="sm"
+    color="#DACA89"
+    glow="transparent"
+    hoverOffset={20}
+    gradient={false}
+  />
+</div>
+
+<div><ArrowButton
+    label="CONFRIM"
+    onClick={handleConfirmClick}
+    size="sm"
+    color="#DACA89"
+    glow="transparent"
+    hoverOffset={20}
+    gradient={false}
+  />
+</div>
+
+      {/* {openedIndex === index && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -238,7 +261,7 @@
         >
           CONFIRM
         </button>
-      )}
+      )} */}
     </div>
   </div>
 </div>
@@ -258,6 +281,7 @@
             onConfirm={handleConfirmClick}
           />
         )}
+        
 
         
 
