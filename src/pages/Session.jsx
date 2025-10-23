@@ -244,7 +244,7 @@ export default function Session() {
         <ArrowButton
           label="+ New Session"
           onClick={createNewSession}
-          color="#DACA89"
+          color="var(--primary)"
           size="lg"
           className="mb-6 overflow-visible" // ← allow arrows to move outside
           hoverOffset={50} // ← increase to a visible amount
@@ -278,7 +278,7 @@ export default function Session() {
                 >
                   <motion.div
                     className={`relative p-1 overflow-visible ${
-                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
+                      isCenter ? "border-2 border-[var(--secondary)] border-r-0" : ""
                     }`}
                     animate={
                       isCenter
@@ -290,8 +290,8 @@ export default function Session() {
                     <motion.div
                       className={`relative px-6 py-3.5 text-xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
                         isCenter
-                          ? "bg-[#DACA89] text-[#1C1B18]"
-                          : "bg-transparent text-[#bf883c]"
+                          ? "bg-[var(--primary)] text-[#1C1B18]"
+                          : "bg-transparent text-[var(--secondary)]"
                       }`}
                       animate={
                         isCenter
@@ -336,7 +336,7 @@ export default function Session() {
                           className="h-[72px] w-auto"
                         >
                           <defs>
-                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                            <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
                           </defs>
                           <polyline
                             className="st0"
@@ -434,7 +434,7 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
               />
 
               {/* Title */}
-              <h2 className="text-3xl uppercase tracking-widest font-semibold text-[#DACA89] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
+              <h2 className="text-3xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
                 {selectedSession.title}
               </h2>
 
@@ -449,19 +449,19 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
             {/* Row beneath DM Notes: Encounters + Maps */}
             <div className="flex w-full max-w-[65vw] xl:max-w-[60vw] 2xl:max-w-[55vw] mt-6 z-10 gap-6">
               {/* LEFT: Encounters box */}
-              <div className="w-1/3 bg-[#1F1E1A]/50 p-4 rounded border border-[#bf883c] overflow-auto">
-                <h3 className="text-[#DACA89] font-semibold mb-2">
+              <div className="w-1/3 bg-[#1F1E1A]/50 p-4 rounded border border-[var(--secondary)] overflow-auto">
+                <h3 className="text-[var(--primary)] font-semibold mb-2">
                   Encounters
                 </h3>
                 {selectedSession.encounters &&
                 selectedSession.encounters.length > 0 ? (
-                  <ul className="text-[#bf883c]/90 list-disc list-inside space-y-1">
+                  <ul className="text-[var(--secondary)]/90 list-disc list-inside space-y-1">
                     {selectedSession.encounters.map((enc, idx) => (
                       <li key={idx}>{enc.name || `Encounter ${idx + 1}`}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[#bf883c]/80 text-sm">No encounters yet</p>
+                  <p className="text-[var(--secondary)]/80 text-sm">No encounters yet</p>
                 )}
               </div>
 
@@ -472,7 +472,7 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
                   .map((map, idx) => (
                     <div
                       key={idx}
-                      className="w-1/3 h-32 bg-[#2A2A22] rounded border border-[#bf883c] overflow-hidden cursor-pointer flex items-center justify-center"
+                      className="w-1/3 h-32 bg-[#2A2A22] rounded border border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
                     >
                       {map.imageUrl ? (
                         <img
@@ -481,7 +481,7 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
                           className="object-cover w-full h-full hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
-                        <p className="text-[#bf883c]/80 text-sm text-center px-2">
+                        <p className="text-[var(--secondary)]/80 text-sm text-center px-2">
                           {map.name || `Map ${idx + 1}`}
                         </p>
                       )}
@@ -519,7 +519,7 @@ mt-8 z-20 space-x-6"
                     })
                   }
                   size="sm"
-                  color="#DACA89"
+                  color="var(--primary)"
                   glow="transparent" // no glow
                   hoverOffset={20}
                   gradient={false} // solid color text instead of gradient
@@ -545,7 +545,7 @@ mt-8 z-20 space-x-6"
 
               {/* Right: RUN SESSION button (unchanged) */}
               <motion.div
-                className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
+                className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[var(--secondary)] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -561,7 +561,7 @@ mt-8 z-20 space-x-6"
                     className="h-[70px] w-auto rotate-180"
                   >
                     <defs>
-                      <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                      <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
                     </defs>
                     <polyline
                       className="st0"
@@ -603,7 +603,7 @@ mt-8 z-20 space-x-6"
                     className="h-[70px] w-auto"
                   >
                     <defs>
-                      <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                      <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
                     </defs>
                     <polyline
                       className="st0"
@@ -630,7 +630,7 @@ mt-8 z-20 space-x-6"
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="text-[#bf883c] text-lg tracking-wide mt-4 font-medium drop-shadow-[0_0_10px_rgba(191,136,60,0.4)]"
+                className="text-[var(--secondary)] text-lg tracking-wide mt-4 font-medium drop-shadow-[0_0_10px_rgba(191,136,60,0.4)]"
               >
                 {deleteMessage}
               </motion.div>

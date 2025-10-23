@@ -15,18 +15,18 @@ const Border = () => {
             {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             <polyline
               points="1.5 115.38 1.5 80.46 21.24 60.72 21.24 21.24 60.72 21.24 80.46 1.5 115.38 1.5"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
-              className="stroke-[#d9c989]"
+              className="stroke-[var(--primary)]"
               strokeWidth="3"
             />
           </svg>
@@ -44,18 +44,18 @@ const Border = () => {
             {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             <polyline
               points="1.5 115.38 1.5 80.46 21.24 60.72 21.24 21.24 60.72 21.24 80.46 1.5 115.38 1.5"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
-              className="stroke-[#d9c989]"
+              className="stroke-[var(--primary)]"
               strokeWidth="3"
             />
           </svg>
@@ -73,18 +73,18 @@ const Border = () => {
             {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             <polyline
               points="1.5 115.38 1.5 80.46 21.24 60.72 21.24 21.24 60.72 21.24 80.46 1.5 115.38 1.5"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
-              className="stroke-[#d9c989]"
+              className="stroke-[var(--primary)]"
               strokeWidth="3"
             />
           </svg>
@@ -102,18 +102,18 @@ const Border = () => {
             {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             <polyline
               points="1.5 115.38 1.5 80.46 21.24 60.72 21.24 21.24 60.72 21.24 80.46 1.5 115.38 1.5"
-              className="stroke-[#bf883c]"
+              className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
             {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
-              className="stroke-[#d9c989]"
+              className="stroke-[var(--primary)]"
               strokeWidth="3"
             />
           </svg>
