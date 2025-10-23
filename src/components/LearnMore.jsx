@@ -54,7 +54,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.3 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-[#1C1B18] text-[#DACA89] border border-[#DACA89] shadow-[0_0_180px_rgba(218,202,137,0.3)] w-full max-w-2xl flex flex-col max-h-[80vh]"
+          className="relative bg-[#1C1B18] text-[var(--primary)] border border-[var(--primary)] shadow-[0_0_180px_rgba(218,202,137,0.3)] w-full max-w-2xl flex flex-col max-h-[80vh]"
         >
           <div
             ref={scrollRef}
@@ -181,7 +181,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           </div>
 
           {/* Confirm button */}
-          {/* <div className="border-t border-[#DACA89]/40 py-5 flex justify-center">
+          {/* <div className="border-t border-[var(--primary)]/40 py-5 flex justify-center">
             <button
               onClick={onConfirm}
                className="cursor-pointer btn-glow hover:scale-110"
@@ -202,7 +202,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
       className="h-[70px] w-auto rotate-180"
     >
       <defs>
-        <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+        <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
       </defs>
       <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
       <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
@@ -240,7 +240,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
       className="h-[70px] w-auto"
     >
       <defs>
-        <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+        <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
       </defs>
       <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
       <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
@@ -252,7 +252,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-4 text-[#DACA89]/70 hover:text-[#DACA89]"
+            className="absolute top-3 right-4 text-[var(--primary)]/70 hover:text-[var(--primary)]"
           >
             ✕
           </button>

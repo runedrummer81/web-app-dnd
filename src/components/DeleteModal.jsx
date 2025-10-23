@@ -31,9 +31,9 @@ export default function DeleteModal({ open, onClose, campaign, onConfirm }) {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
           >
-            <p className="text-[#DACA89] text-center text-lg font-semibold">
+            <p className="text-[var(--primary)] text-center text-lg font-semibold">
               Are you sure you want to delete <br />
-              <span className="text-[#bf883c]">
+              <span className="text-[var(--secondary)]">
                 {campaign?.title || campaign?.name || "this campaign"}
               </span>
               ?

@@ -153,7 +153,7 @@ export default function LoadPage() {
         transition={{ duration: 0.8, ease: "easeInOut" }}
       >
         <motion.h2
-          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[#DACA89] via-[#bf883c] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
+          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeInOut" }}
@@ -192,7 +192,7 @@ export default function LoadPage() {
                 >
                   <motion.div
                     className={`relative p-1 overflow-visible ${
-                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
+                      isCenter ? "border-2 border-[var(--secondary)] border-r-0" : ""
                     }`}
                     animate={
                       isCenter
@@ -204,8 +204,8 @@ export default function LoadPage() {
                     <motion.div
                       className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
                         isCenter
-                          ? "bg-[#DACA89] text-[#1C1B18]"
-                          : "bg-transparent text-[#bf883c]"
+                          ? "bg-[var(--primary)] text-[#1C1B18]"
+                          : "bg-transparent text-[var(--secondary)]"
                       }`}
                       animate={
                         isCenter
@@ -254,7 +254,7 @@ export default function LoadPage() {
                           className="h-[72px] w-auto"
                         >
                           <defs>
-                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
+                            <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
                           </defs>
                           <polyline
                             className="st0"
@@ -319,7 +319,7 @@ export default function LoadPage() {
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center text-[#DACA89]/40 italic"
+            className="absolute inset-0 flex items-center justify-center text-[var(--primary)]/40 italic"
           >
             No preview available
           </motion.div>
@@ -334,7 +334,7 @@ export default function LoadPage() {
           >
             {/* LOAD button */}
             <motion.div
-              className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
+              className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[var(--secondary)] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -350,7 +350,7 @@ export default function LoadPage() {
                   className="h-[70px] w-auto rotate-180"
                 >
                   <defs>
-                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                    <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
                   </defs>
                   <polyline
                     className="st0"
@@ -396,7 +396,7 @@ export default function LoadPage() {
                   className="h-[70px] w-auto"
                 >
                   <defs>
-                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+                    <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
                   </defs>
                   <polyline
                     className="st0"
