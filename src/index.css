@@ -159,3 +159,25 @@ body {
     opacity: 0;
   }
 }
+
+/* Custom rotation utilities for the DM Notes arrows */
+.rotate-45 {
+  transform: rotate(45deg);
+}
+
+.rotate-135 {
+  transform: rotate(135deg);
+}
+
+.rotate-225 {
+  transform: rotate(225deg);
+}
+
+.-rotate-45 {
+  transform: rotate(-45deg);
+  input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px var(--primary) inset !important;
+    -webkit-text-fill-color: var(--dark-muted-bg) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}

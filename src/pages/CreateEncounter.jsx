@@ -15,15 +15,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 
-const handleDeleteEncounter = async (id) => {
-  if (!confirm("Are you sure you want to delete this encounter?")) return;
-  try {
-    await deleteDoc(doc(db, "encounters", id));
-  } catch (err) {
-    console.error("Error deleting encounter:", err);
-  }
-};
-
 export default function CreateEncounters() {
   const [searchTerm, setSearchTerm] = useState("");
   const [creatures, setCreatures] = useState([]);
@@ -35,6 +26,28 @@ export default function CreateEncounters() {
   const [expandedEncounterId, setExpandedEncounterId] = useState(null);
   const navigate = useNavigate();
   const [currentEditingId, setCurrentEditingId] = useState(null);
+  const { spanRef, width } = useAutoWidthInput(encounterName);
+  const [nameError, setNameError] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    encounterId: null,
+  });
+
+  const handleDeleteEncounter = (id) => {
+    setDeleteConfirm({ open: true, encounterId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.encounterId) return;
+
+    try {
+      await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
+    } catch (err) {
+      console.error("Error deleting encounter:", err);
+    } finally {
+      setDeleteConfirm({ open: false, encounterId: null });
+    }
+  };
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -116,7 +129,13 @@ export default function CreateEncounters() {
   };
 
   const handleSaveEncounter = async () => {
-    if (!encounterName.trim() || selectedCreatures.length === 0) return;
+    if (!encounterName.trim()) {
+      setNameError(true);
+      setTimeout(() => setNameError(false), 500);
+      return;
+    }
+
+    if (selectedCreatures.length === 0) return;
 
     const auth = getAuth();
     const user = auth.currentUser;
@@ -156,29 +175,68 @@ export default function CreateEncounters() {
     window.scrollTo({ top: 0, behavior: "smooth" }); // optional: scroll up to editor
   };
 
+  function useAutoWidthInput(value, defaultWidth = 200) {
+    const spanRef = React.useRef();
+    const [width, setWidth] = React.useState(defaultWidth);
+
+    React.useEffect(() => {
+      if (spanRef.current) {
+        setWidth(spanRef.current.offsetWidth + 10); // +10 for padding
+      }
+    }, [value]);
+
+    return { spanRef, width };
+  }
+
   return (
     <div className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
       <div className="w-2/3 flex flex-col space-y-10">
         <div className="flex items-center gap-4 mb-4">
-          <img
-            src="images/ornament.svg"
-            alt="text ornament"
-            className=" stroke-[var(--secondary)] w-8 h-auto -scale-x-100 "
-          />
-          <input
-            type="text"
-            placeholder="Name your encounter..."
-            value={encounterName}
-            onChange={(e) => setEncounterName(e.target.value)}
-            className="p-3 text-[var(--primary)] outline-none text-lg w-auto"
-          />
-          <img
-            src="images/ornament.svg"
-            alt="text ornament"
-            className=" stroke-[var(--secondary)] w-8 h-auto"
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 257.6 130.8"
+            className="fill-[var(--secondary)] w-8 h-auto -scale-x-100"
+          >
+            <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
+            <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
+          </svg>
+          <div className="relative inline-block">
+            <span
+              ref={spanRef}
+              className="absolute invisible whitespace-pre text-3xl font-normal p-3"
+            >
+              {encounterName || "Name your encounter..."}
+            </span>
+            <motion.input
+              type="text"
+              value={encounterName}
+              onChange={(e) => setEncounterName(e.target.value)}
+              placeholder="Name your encounter..."
+              className={`p-3 text-[var(--primary)] outline-none text-3xl bg-transparent border-none ${
+                nameError ? "border-b-2 border-red-500" : ""
+              }`}
+              style={{ width }}
+              animate={
+                nameError
+                  ? {
+                      x: [-5, 5, -5, 5, 0],
+                      textShadow: "0 0 8px #bf883c",
+                    }
+                  : { x: 0, textShadow: "0 0 0px transparent" }
+              }
+              transition={{ duration: 0.4 }}
+            />
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 257.6 130.8"
+            className="fill-[var(--secondary)] w-8 h-auto "
+          >
+            <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
+            <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
+          </svg>
         </div>
         {/* Search bar */}
         <div className="relative w-full ">
@@ -293,7 +351,8 @@ export default function CreateEncounters() {
           Saved Encounters
         </h2>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-900 max-h-[55vh]">
+        <div
+          className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
           <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
@@ -538,6 +597,47 @@ export default function CreateEncounters() {
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {deleteConfirm.open && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-[var(--dark-muted-bg)] border border-[var(--secondary)] p-8 text-center shadow-xl max-w-sm mx-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h3 className="text-2xl text-[var(--primary)] font-bold mb-4">
+                Delete Encounter?
+              </h3>
+              <p className="text-[var(--secondary)] mb-6">
+                Are you sure you want to permanently delete this encounter?
+              </p>
+              <div className="flex justify-center gap-6">
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() =>
+                    setDeleteConfirm({ open: false, encounterId: null })
+                  }
+                  className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

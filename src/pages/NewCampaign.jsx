@@ -179,18 +179,7 @@
          
 
           {/* Right side: templates */}
-          <div className="flex flex-col w-[480px] max-h-[70vh] overflow-y-scroll space-y-6 mt-30  border-[#DACA89]/50 menu-scrollbar">
-            {/* <div
-  ref={scrollRef}
-  className="overflow-y-auto px-10 pt-10 pb-5 relative"
-  style={{
-  maxHeight: "calc(100vh - 720px)",
-  maskImage:
-    "linear-gradient(to bottom, transparent 0%, black 25%, black 95%, transparent 100%)",
-  WebkitMaskImage:
-    "linear-gradient(to bottom, transparent 0%, black 50%, black 95%, transparent 100%)",
-}}
-></div> */}
+          <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6  border-[var(--primary)]/50 menu-scrollbar">
             {templates.map(
               ({ id, title, description, image, learnMoreId }, index) => (
                 <div
@@ -218,7 +207,7 @@
   {/* Tekst og knapper ovenpå */}
   <div className="relative z-10 flex flex-col justify-between h-full">
     <div className="flex justify-between items-center">
-      <h3 className="text-lg uppercase tracking-widest font-semibold text-[#DACA89]">
+      <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
         {title}
       </h3>
     </div>
@@ -228,30 +217,28 @@
         openedIndex === index ? "max-h-44 mt-4 opacity-100" : "max-h-0 opacity-0"
       }`}
     >
-      <p className="text-[#DACA89]/90 leading-relaxed">{description || "Ingen beskrivelse tilgængelig"}</p>
-      
-      <SmallArrowBtn
-  onClick={(e) => {
-    e.stopPropagation();
-    handleLearnMore(learnMoreId);
-  }}
-  className="mt-4 text-sm text-[#DACA89] px-4 py-2 cursor-pointer"
->
-  Learn More
-</SmallArrowBtn>
+      <p className="text-[var(--primary)]/90 leading-relaxed">{description || "No description available"}</p>
+
+      {openedIndex === index && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleLearnMore(learnMoreId);
+          }}
+          className="cursor-pointer mt-4 text-sm border border-[var(--primary)] text-[var(--primary)] px-3 py-1 hover:bg-[var(--primary)]/10 transition"
+        >
+          Learn More
+        </button>
+      )}
 
       {openedIndex !== null && !showNamePopup && (
-  <SmallArrowBtn
-    onClick={handleConfirmClick}
-    className="px-4 py-2 uppercase font-bold tracking-widest bg-transparent text-sm text-[#DACA89] cursor-pointer"
-  >
-    Confirm
-  </SmallArrowBtn>
-)}
-
-
-      
-
+        <button
+          onClick={handleConfirmClick}
+          className="px-8 py-3 uppercase font-bold tracking-widest bg-transparent border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[#1C1B18] transition-shadow shadow-lg mt-4"
+        >
+          CONFIRM
+        </button>
+      )}
     </div>
   </div>
 </div>
@@ -277,27 +264,27 @@
         {/* 🧾 Campaign name popup */}
         {showNamePopup && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div className="bg-[#292621] border border-[#DACA89]/60 rounded-lg p-8 w-[400px] text-center">
-              <h2 className="text-xl uppercase tracking-widest font-bold text-[#DACA89] mb-4">
-                Navn på din Campaign
+            <div className="bg-[#292621] border border-[var(--secondary)]/60 p-8 w-[400px] text-center">
+              <h2 className="text-xl uppercase tracking-widest font-bold text-[var(--primary)] mb-4">
+                Name your campaign
               </h2>
               <input
                 type="text"
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
-                placeholder="Skriv campaign-navn..."
-                className="w-full p-2 mb-4 rounded bg-[#1F1E1A] border border-[#DACA89]/40 text-[#DACA89] placeholder-[#DACA89]/40"
+                placeholder="Your campaign Name..."
+                className="w-full p-2 mb-4 bg-[#1F1E1A] border border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[#DACA89]/40"
               />
               <div className="flex justify-between mt-4">
                 <button
                   onClick={() => setShowNamePopup(false)}
-                  className="border border-[#DACA89] text-[#DACA89] py-2 px-4 rounded hover:bg-[#DACA89]/10"
+                  className="border border-[var(--secondary)] text-[var(--primary)] py-2 px-4 hover:bg-[var(--primary)]/10 hover:cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveCampaign}
-                  className="bg-[#DACA89] text-[#1C1B18] font-bold py-2 px-4 rounded hover:bg-[#cabb6f]"
+                  className="bg-[var(--secondary)] border border-[var(--secondary)] text-[var(--primary)] hover:text-[var(--secondary)] font-bold py-2 px-4 hover:bg-[var(--primary)] hover:cursor-pointer"
                 >
                   Save
                 </button>

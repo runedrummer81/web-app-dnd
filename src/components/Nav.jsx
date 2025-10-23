@@ -50,7 +50,7 @@ export default function Nav() {
       {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden */}
       {!isHomePage && (
         <button
-          className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110"
+          className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
           onClick={handleBack}
         >
         <svg
@@ -71,7 +71,7 @@ export default function Nav() {
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
           {/* Button 1 */}
-          <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110">
+          <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer">
             <svg
               id="Layer_1"
               xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +83,7 @@ export default function Nav() {
           </button>
 
           {/* Button 2 */}
-          <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110">
+          <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer">
             <svg
               id="Layer_1"
               xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +99,7 @@ export default function Nav() {
             {/* Logout icon */}
             <button
               onClick={() => setLogoutMenuOpen((prev) => !prev)}
-              className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110"
+              className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer"
             >
               <svg
                 id="Layer_1"
