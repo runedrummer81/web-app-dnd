@@ -9,7 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import MistVideo from "../components/Mist";
-
+import { motion, useMotionValue, animate } from "framer-motion";
 // Friendly Firebase error messages
 function formatError(code) {
   switch (code) {
@@ -37,8 +37,26 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState("");
+  const scaleY = useMotionValue(1);
 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    let mounted = true;
+
+    const blink = async () => {
+      while (mounted) {
+        await new Promise((r) => setTimeout(r, 100)); // every 10s
+        await animate(scaleY, 0.1, { duration: 0.12 }); // close
+        await animate(scaleY, 1, { duration: 0.25 }); // open
+      }
+    };
+
+    blink();
+    return () => {
+      mounted = false;
+    };
+  }, [scaleY]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -98,12 +116,12 @@ export default function Login() {
 
       <div className="z-10">
         <div
-          className="relative w-40 mb-10 mx-auto transition-transform duration-200 ease-out"
+          className="relative w-full h-full mb-10 mx-auto transition-transform duration-200 ease-out"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px)`,
           }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 335 386.78">
+          {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 335 386.78">
             <g
               style={{
                 transform: `translate(${offset.x * 0.8}px, ${
@@ -132,7 +150,99 @@ export default function Login() {
               }}
               className="fill-[var(--primary)]"
             />
-          </svg>
+          </svg> */}
+
+          <div
+            className="relative w-full h-full mx-auto"
+            style={{
+              width: "auto",
+              height: "200px",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 87.06 86.11"
+              className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
+              style={{
+                transform: `translate(${offset.x * 0.5}px, ${
+                  offset.y * 0.2
+                }px)`,
+              }}
+            >
+              <path
+                className="fill-[var(--dark-muted-bg)]"
+                d="M29.56,74.66l-2.49-7.96-.25-.08c-4.24-1.33-8.22-3.63-11.51-6.67l-.19-.18-8.16,1.83L.62,50.63l5.66-6.14-.06-.26c-.49-2.2-.74-4.44-.74-6.65s.25-4.46.74-6.65l.06-.26L.62,24.53l6.34-10.97,8.16,1.83.19-.18c3.29-3.03,7.28-5.34,11.51-6.67l.25-.08L29.56.5h12.67l2.49,7.96.25.08c4.24,1.33,8.22,3.63,11.51,6.67l.19.18,8.16-1.83,6.34,10.97-5.66,6.14.06.26c.49,2.2.74,4.44.74,6.65s-.25,4.46-.74,6.65l-.06.26,5.66,6.14-6.34,10.98-8.16-1.83-.19.18c-3.3,3.03-7.28,5.34-11.51,6.67l-.25.08-2.49,7.96h-12.67Z"
+              />
+            </svg>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 87.06 86.11"
+              className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
+              style={{
+                transform: `translate(${offset.x * 0.5}px, ${
+                  offset.y * 0.2
+                }px)`,
+              }}
+            >
+              <path
+                className="fill-[var(--secondary)]"
+                d="M41.86,1l2.3,7.36.16.5.5.16c4.17,1.31,8.08,3.57,11.32,6.56l.39.35.51-.11,7.55-1.69,5.97,10.34-5.23,5.68-.35.39.11.51c.48,2.16.73,4.36.73,6.55s-.25,4.38-.73,6.55l-.11.51.35.39,5.23,5.68-5.97,10.34-7.55-1.7-.51-.11-.39.35c-3.24,2.98-7.16,5.25-11.32,6.56l-.5.16-.16.5-2.3,7.36h-11.94l-2.3-7.36-.16-.5-.5-.16c-4.17-1.31-8.08-3.57-11.32-6.56l-.39-.35-.51.11-7.55,1.7-5.97-10.34,5.23-5.68.35-.39-.11-.51c-.48-2.16-.73-4.36-.73-6.55s.25-4.38.73-6.54l.11-.51-.35-.39-5.23-5.68,5.97-10.34,7.55,1.69.51.11.39-.35c3.24-2.98,7.16-5.25,11.32-6.56l.5-.16.16-.5,2.3-7.36h11.94M42.6,0h-13.41l-2.52,8.06c-4.4,1.38-8.39,3.72-11.7,6.78l-8.27-1.86L0,24.6l5.73,6.22c-.49,2.18-.75,4.44-.75,6.76s.27,4.59.75,6.76l-5.73,6.22,6.7,11.61,8.27-1.86c3.32,3.05,7.3,5.4,11.7,6.78l2.52,8.06h13.41l2.52-8.06c4.4-1.38,8.39-3.72,11.7-6.78l8.27,1.86,6.7-11.61-5.73-6.22c.49-2.18.75-4.44.75-6.76s-.27-4.59-.75-6.76l5.73-6.22-6.7-11.61-8.27,1.86c-3.32-3.05-7.3-5.4-11.7-6.78l-2.52-8.06h0Z"
+              />
+            </svg>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 87.06 86.11"
+              className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
+              style={{
+                transform: `translate(${offset.x * 0.5}px, ${
+                  offset.y * 0.2
+                }px)`,
+              }}
+            >
+              <path
+                className="fill-[var(--primary)]"
+                d="M35.9,63.85c-14.48,0-26.27-11.78-26.27-26.27s11.78-26.27,26.27-26.27,26.27,11.78,26.27,26.27-11.78,26.27-26.27,26.27Z"
+              />
+            </svg>
+
+            <motion.svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 87.06 86.11"
+              className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
+              style={{
+                transformOrigin: "center center",
+              }}
+              styleMotion={{ scaleY }} // 👈 this keeps scaleY alive
+              transformTemplate={({ scaleY: sY = 1 }) =>
+                `translate(${offset.x * 1.2}px, ${
+                  offset.y * 0.2
+                }px) scaleY(${sY})`
+              }
+            >
+              <path
+                className="fill-[var(--dark-muted-bg)]"
+                d="M48.91,37.58c0,7.26-1.15,12.91-3.45,16.99-2.31,4.06-5.49,6.1-9.57,6.1s-7.27-2.04-9.57-6.1c-2.3-4.07-3.45-9.73-3.45-16.99s1.15-12.91,3.45-16.99c2.3-4.06,5.49-6.1,9.57-6.1s7.27,2.04,9.57,6.1c2.3,4.07,3.45,9.73,3.45,16.99Z"
+              />
+            </motion.svg>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 87.06 86.11"
+              className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
+              style={{
+                transform: `translate(${offset.x * 1.5}px, ${
+                  offset.y * 1.5
+                }px)`,
+              }}
+            >
+              <polygon
+                className="fill-[var(--primary)]"
+                points="38.07 37.58 35.9 23.54 33.72 37.58 35.9 51.62 38.07 37.58"
+              />
+            </svg>
+          </div>
         </div>
 
         <form
