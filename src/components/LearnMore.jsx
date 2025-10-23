@@ -54,7 +54,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.3 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-[#1C1B18] text-[#DACA89] border border-[#DACA89] shadow-[0_0_180px_rgba(218,202,137,0.3)] w-full max-w-2xl flex flex-col max-h-[80vh]"
+          className="relative bg-[#1C1B18] text-[#DACA89] border border-[#bf883c] shadow-[0_0_180px_rgba(191,136,60,0.8)] w-full max-w-2xl flex flex-col max-h-[80vh]"
         >
           <div
             ref={scrollRef}
