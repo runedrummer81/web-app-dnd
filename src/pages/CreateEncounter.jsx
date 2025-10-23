@@ -189,7 +189,7 @@ export default function CreateEncounters() {
   }
 
   return (
-    <div className="flex min-h-screen via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
+    <div className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
       <div className="w-2/3 flex flex-col space-y-10">
