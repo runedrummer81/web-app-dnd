@@ -72,7 +72,7 @@ export default function HomePage() {
 
       <section className="grid grid-cols-[auto_1fr] items-stretch min-w-screen min-h-screen px-30 gap-15 relative z-10">
         {/* Left column */}
-        <div className="flex flex-col space-y-9 min-h-screen justify-center">
+        <div className="flex flex-col space-y-9 min-h-screen justify-center ">
           {active !== null && // only render when we know what to show
             [
               ...(lastCampaign ? ["Continue Campaign", "Load Campaign"] : []),
@@ -92,7 +92,7 @@ export default function HomePage() {
                 className={`uppercase font-[var(--font)] text-2xl cursor-pointer text-[var(--secondary)] inline-block transition-all duration-200 relative
           ${
             active === label
-              ? "border-t-2 border-l-2 border-b-2 border-[var(--secondary)] p-1 text-4xl"
+              ? "border-t-2 border-l-2 border-b-2 border-[var(--secondary)] p-1 text-4xl shadow-[0_0_30px_rgba(191,136,60,0.6)]"
               : ""
           }
         `}
@@ -117,7 +117,7 @@ export default function HomePage() {
           `}
                 >
                   <defs>
-                    <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-miterlimit: 10; stroke-width: 2px; }`}</style>
+                    <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-miterlimit: 10; stroke-width: 2px;  }`}</style>
                   </defs>
                   <polyline
                     className="st0"
@@ -144,7 +144,7 @@ export default function HomePage() {
           ></div>
 
           {active ? (
-            <div className=" text-gray-700 text-center">
+            <div className=" text-gray-700 text-center ">
               {active === "Continue Campaign" && (
                 <div>
                   <div className="flex justify-between text-2xl  text-[var(--secondary)] text-center px-30 gap-5 uppercase">
