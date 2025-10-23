@@ -159,3 +159,8 @@ body {
     opacity: 0;
   }
 }
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px var(--primary) inset !important;
+  -webkit-text-fill-color: var(--dark-muted-bg) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
