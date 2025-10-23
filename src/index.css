@@ -181,3 +181,31 @@ body {
     transition: background-color 5000s ease-in-out 0s;
   }
 }
+
+@keyframes driftRight {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+}
+
+@keyframes driftLeft {
+  0% {
+    transform: translateX(200%);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+}
