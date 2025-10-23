@@ -193,10 +193,6 @@ export default function Session() {
     const onWheel = (e) => {
       // Only consider vertical scrolling
       scrollAccumulator += e.deltaY;
-  return (
-    <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none">
-      {/* Venstre side: sessionliste */}
-      
 
       if (scrollAccumulator >= SCROLL_THRESHOLD) {
         handleScroll("down");
@@ -242,8 +238,6 @@ export default function Session() {
       >
         <ArrowButton
           label="+ New Session"
-        <button
-          className="flex flex-row justify-center space-x-2 bg-transparent border border-[var(--primary)] text-[var(--primary)] font-semibold py-2 px-4 rounded hover:bg-[var(--primary)]/10 transition"
           onClick={createNewSession}
           color="#DACA89"
           size="lg"
