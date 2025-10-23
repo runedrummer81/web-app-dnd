@@ -11,6 +11,7 @@ import {
   onSnapshot,
   where,
   query,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -33,6 +34,7 @@ export default function CreateEncounters() {
   const [hoveredCreature, setHoveredCreature] = useState(null);
   const [expandedEncounterId, setExpandedEncounterId] = useState(null);
   const navigate = useNavigate();
+  const [currentEditingId, setCurrentEditingId] = useState(null);
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -119,18 +121,39 @@ export default function CreateEncounters() {
     const auth = getAuth();
     const user = auth.currentUser;
 
-    await addDoc(collection(db, "encounters"), {
-      name: encounterName,
-      creatures: selectedCreatures,
-      createdAt: new Date(),
-      ownerId: user.uid,
-    });
-    setEncounterName("");
-    setSelectedCreatures([]);
+    try {
+      if (currentEditingId) {
+        await updateDoc(doc(db, "encounters", currentEditingId), {
+          name: encounterName,
+          creatures: selectedCreatures,
+          updatedAt: new Date(),
+        });
+        setCurrentEditingId(null);
+      } else {
+        await addDoc(collection(db, "encounters"), {
+          name: encounterName,
+          creatures: selectedCreatures,
+          createdAt: new Date(),
+          ownerId: user.uid,
+        });
+      }
+
+      setEncounterName("");
+      setSelectedCreatures([]);
+    } catch (err) {
+      console.error("Error saving encounter:", err);
+    }
   };
 
   const toggleExpand = (id) => {
     setExpandedEncounterId((prev) => (prev === id ? null : id));
+  };
+
+  const handleEditEncounter = (encounter) => {
+    setEncounterName(encounter.name || "");
+    setSelectedCreatures(encounter.creatures || []);
+    setCurrentEditingId(encounter.id);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // optional: scroll up to editor
   };
 
   return (
@@ -159,21 +182,21 @@ export default function CreateEncounters() {
         </div>
         {/* Search bar */}
         <div className="relative w-full ">
-          <div className="border-2 border-[var(--secondary)] overflow-hidden ">
-          <input
-            type="text"
-            placeholder="Search for a creature..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black outline-none w-full"
-          />
+          <div className="border-2 border-[var(--secondary)] overflow-none flex items-center ">
+            <input
+              type="text"
+              placeholder="Search for a creature..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black outline-none w-full"
+            />
           </div>
 
           <div>
             {filteredCreatures.map((creature) => (
               <div
                 key={creature.id}
-                className="flex justify-between items-center p-2 hover:bg-yellow-700/30 rounded-lg cursor-pointer transition-colors"
+                className="flex justify-between items-center p-2 cursor-pointer transition-colors text-[var(--secondary)] "
                 onClick={() => handleAddCreature(creature)}
                 onMouseEnter={() => setHoveredCreature(creature)}
                 onMouseLeave={() => setHoveredCreature(null)}
@@ -195,7 +218,7 @@ export default function CreateEncounters() {
         </div>
 
         {/* Encounter creation */}
-        <div className="flex flex-col p-6 space-y-4 flex-1 overflow-y-auto text-[var(--secondary)] ">
+        <div className="flex flex-col p-6 space-y-4 flex-1 overflow-y-auto text-[var(--primary)] ">
           <div className="flex flex-col gap-3 text">
             {selectedCreatures.length === 0 && (
               <p className="italic text-center text-[var(--secondary)]">
@@ -217,14 +240,14 @@ export default function CreateEncounters() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleCountChange(c.id, -1)}
-                      className="px-2 bg-gray-700 hover:bg-gray-600 rounded transition"
+                      className="px-2"
                     >
                       -
                     </button>
                     <span>{c.count}</span>
                     <button
                       onClick={() => handleCountChange(c.id, 1)}
-                      className="px-2 bg-gray-700 hover:bg-gray-600 rounded transition"
+                      className="px-2"
                     >
                       +
                     </button>
@@ -249,14 +272,15 @@ export default function CreateEncounters() {
                 transition={{ duration: 0.2 }}
                 whileHover={{
                   scale: 1.05,
-                  boxShadow: "0 0 20px rgba(255, 140, 0, 0.9)",
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSaveEncounter}
-                className="relative cursor-pointer bg-gray-700 border-2 border-yellow-600 rounded-lg px-8 py-3 text-yellow-300 font-bold tracking-widest shadow-inner hover:text-yellow-100 transition-all duration-300 mx-auto block mt-4 overflow-hidden"
+                className="relative cursor-pointer text-[var(--primary)] px-8 py-3 font-bold mx-auto block mt-4 overflow-hidden"
               >
-                <span className="uppercase relative z-10">Save Encounter</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-30 rounded-lg animate-pulse"></span>
+                <span className="uppercase relative z-10">
+                  {currentEditingId ? "Update Encounter" : "Save Encounter"}
+                </span>
+                <span className="absolute inset-0 "></span>
               </motion.button>
             )}
           </AnimatePresence>
@@ -264,8 +288,8 @@ export default function CreateEncounters() {
       </div>
 
       {/* RIGHT PANEL — SAVED ENCOUNTERS */}
-      <div className="w-1/3 border-l border-gray-700 pl-6 flex flex-col">
-        <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex-shrink-0">
+      <div className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col">
+        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
           Saved Encounters
         </h2>
 
@@ -279,30 +303,20 @@ export default function CreateEncounters() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`relative border border-yellow-700 rounded-lg bg-gradient-to-b from-gray-800 via-gray-850 to-gray-900 shadow-md overflow-hidden transition-all duration-300 ${
-                  expandedEncounterId === enc.id
-                    ? "p-4"
-                    : "p-3 hover:bg-gray-700/40 cursor-pointer"
+                className={`relative border-2 border-[var(--secondary)] overflow-hidden transition-all border p-2 m2 ${
+                  expandedEncounterId === enc.id ? "p-4" : "p-3 cursor-pointer"
                 }`}
               >
-                {/* Glow accent when hovered or expanded */}
-                <div
-                  className={`absolute inset-0 pointer-events-none transition-opacity duration-500 rounded-lg ${
-                    expandedEncounterId === enc.id
-                      ? "opacity-40 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.15),transparent_70%)]"
-                      : "opacity-0 group-hover:opacity-40"
-                  }`}
-                ></div>
-
                 {/* Encounter header */}
                 <div
                   className="flex justify-between items-center relative z-10"
                   onClick={() => toggleExpand(enc.id)}
                 >
-                  <h3 className="text-lg font-bold text-yellow-300 tracking-wide">
+                  <h3 className="text-lg font-bold text-[var(--primary)] tracking-wide transition-colors duration-200 group-hover:text-black">
                     {enc.name || "Unnamed Encounter"}
                   </h3>
-                  <button className="text-yellow-400 hover:text-yellow-200 transition text-sm">
+
+                  <button className="text-[var(--primary)] transition text-sm">
                     {expandedEncounterId === enc.id ? "▲" : "▼"}
                   </button>
                 </div>
@@ -315,13 +329,13 @@ export default function CreateEncounters() {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="mt-3 overflow-hidden"
+                      className="mt-3 overflow-hidden flex justify-between "
                     >
-                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-900 pr-1">
+                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)]">
                         {(enc.creatures || []).map((c, i) => (
                           <li
                             key={i}
-                            className="hover:text-yellow-300 transition-colors cursor-pointer"
+                            className="transition-colors cursor-pointer"
                             onMouseEnter={(e) =>
                               setHoveredCreature({
                                 ...c,
@@ -351,12 +365,21 @@ export default function CreateEncounters() {
                         ))}
                       </ul>
 
-                      <button
-                        onClick={() => handleDeleteEncounter(enc.id)}
-                        className="mt-3 text-red-500 hover:text-red-400 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm transition"
-                      >
-                        Delete
-                      </button>
+                      {/* delete button */}
+                      <div className="flex flex-row text-[var(--primary)] space-x-4">
+                        <button
+                          onClick={() => handleDeleteEncounter(enc.id)}
+                          className=" text-red-500 hover:text-red-400  text-sm transition cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => handleEditEncounter(enc)}
+                          className=" text-[var(--primary)] hover:text-[var(--secondary)]  text-sm transition cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -374,7 +397,7 @@ export default function CreateEncounters() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed z-50 w-[900px] max-w-[90vw] bg-gray-900 text-gray-100 border border-yellow-700 rounded-xl shadow-2xl pointer-events-none overflow-hidden"
+            className="fixed z-50 w-[900px] max-w-[90vw] bg-black text-[var(--secondary)] border [var(--secondary)] shadow-2xl pointer-events-none overflow-hidden"
             style={{
               top: Math.min(
                 hoveredCreature.mousePos.y,
@@ -387,7 +410,7 @@ export default function CreateEncounters() {
             }}
           >
             {hoveredCreature.imageURL && (
-              <div className="absolute top-4 right-3 w-30 h-30 rounded-full border-2 border-yellow-600 overflow-hidden shadow-md">
+              <div className="absolute top-4 right-3 w-30 h-30 rounded-full border-2 border-[var(--secondary)] overflow-hidden shadow-md">
                 <img
                   src={hoveredCreature.imageURL}
                   alt={hoveredCreature.name}
@@ -396,42 +419,61 @@ export default function CreateEncounters() {
               </div>
             )}
             <div className="p-4 pr-28 relative">
-              <h2 className="text-2xl text-yellow-300 font-bold mb-1">
+              <h2 className="text-2xl text-[var(--primary)] font-bold mb-1">
                 {hoveredCreature.name}
               </h2>
-              <p className="italic text-sm text-gray-300 mb-2">
+              <p className="italic text-sm text-[var(--secondary)] mb-2">
                 {hoveredCreature.size} {hoveredCreature.type},{" "}
                 {hoveredCreature.alignment}
               </p>
               <div className="grid grid-cols-2 gap-1 text-sm mb-2">
-                <p>
-                  <strong>AC:</strong> {hoveredCreature.ac}
+                <p className="text-[var(--primary)] flex space-x-1">
+                  <strong>AC:</strong>{" "}
+                  <p className="text-[var(--secondary)] ">
+                    {hoveredCreature.ac}
+                  </p>
                 </p>
-                <p>
-                  <strong>HP:</strong> {hoveredCreature.hp}
+                <p className="text-[var(--primary)] flex space-x-1">
+                  <strong>HP:</strong>{" "}
+                  <p className="text-[var(--secondary)]">
+                    {" "}
+                    {hoveredCreature.hp}
+                  </p>
                 </p>
-                <p>
-                  <strong>Speed:</strong> {hoveredCreature.speed}
+                <p className="text-[var(--primary)] flex space-x-1">
+                  <strong>Speed:</strong>{" "}
+                  <p className="text-[var(--secondary)]">
+                    {" "}
+                    {hoveredCreature.speed}
+                  </p>
                 </p>
-                <p>
-                  <strong>CR:</strong> {hoveredCreature.cr}
+                <p className="text-[var(--primary)] flex space-x-1">
+                  <strong>CR:</strong>{" "}
+                  <p className="text-[var(--secondary)]">
+                    {" "}
+                    {hoveredCreature.cr}
+                  </p>
                 </p>
                 {hoveredCreature.initiative && (
-                  <p>
-                    <strong>Initiative:</strong> {hoveredCreature.initiative}
+                  <p className="text-[var(--primary)] flex space-x-1">
+                    <strong>Initiative:</strong>{" "}
+                    <p className="text-[var(--secondary)]">
+                      {" "}
+                      {hoveredCreature.initiative}
+                    </p>
                   </p>
                 )}
               </div>
               {hoveredCreature.stats && hoveredCreature.modifiers && (
-                <div className="grid grid-cols-6 gap-2 text-center text-xs border-t border-b border-gray-700 py-2 mb-2 bg-gray-900/60 rounded-md">
+                <div className="grid grid-cols-6 gap-2 text-center text-xs border-t border-b border-[var(--secondary)] py-2 mb-2">
                   {["str", "dex", "con", "int", "wis", "cha"].map((statKey) => (
                     <div key={statKey}>
-                      <p className="font-bold text-yellow-300">
+                      <p className="font-bold text-[var(--primary)]">
                         {statKey.toUpperCase()}
                       </p>
-                      <p className="text-gray-200 text-xs">
+                      <p className="text-[var(--secondary)] text-xs">
                         {hoveredCreature.stats[statKey]}{" "}
-                        <span className="text-gray-400">
+                        <span className="text-[var(--secondary)]">
                           (mod: {hoveredCreature.modifiers[statKey + "_mod"]},
                           save: {hoveredCreature.modifiers[statKey + "_save"]})
                         </span>
@@ -442,43 +484,48 @@ export default function CreateEncounters() {
               )}
               {hoveredCreature.traits?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Traits</h4>
+                  <h4 className="font-bold text-[var(--primary)]">Traits</h4>
                   {hoveredCreature.traits.map((t, i) => (
                     <p key={i} className="text-sm mb-1">
-                      <strong>{t.name}.</strong> {t.description}
+                      <strong className="italic">{t.name}.</strong>{" "}
+                      {t.description}
                     </p>
                   ))}
                 </div>
               )}
               {hoveredCreature.actions?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Actions</h4>
+                  <h4 className="font-bold text-[var(--primary)]">Actions</h4>
                   {hoveredCreature.actions.map((a, i) => (
                     <p key={i} className="text-sm mb-1">
-                      <strong>{a.name}.</strong> {a.description}
+                      <strong className="italic">{a.name}.</strong>{" "}
+                      {a.description}
                     </p>
                   ))}
                 </div>
               )}
               {hoveredCreature.bonus_actions?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Bonus Actions</h4>
+                  <h4 className="font-bold text-[var(--primary)]">
+                    Bonus Actions
+                  </h4>
                   {hoveredCreature.bonus_actions.map((b, i) => (
                     <p key={i} className="text-sm mb-1">
-                      <strong>{b.name}.</strong> {b.description}
+                      <strong className="italic">{b.name}.</strong>{" "}
+                      {b.description}
                     </p>
                   ))}
                 </div>
               )}
               {hoveredCreature.gear?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Gear</h4>
+                  <h4 className="font-bold text-[var(--primary)]">Gear</h4>
                   <p className="text-sm">{hoveredCreature.gear.join(", ")}</p>
                 </div>
               )}
               {hoveredCreature.languages?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Languages</h4>
+                  <h4 className="font-bold text-[var(--primary)]">Languages</h4>
                   <p className="text-sm">
                     {hoveredCreature.languages.join(", ")}
                   </p>
@@ -486,7 +533,7 @@ export default function CreateEncounters() {
               )}
               {hoveredCreature.senses?.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-yellow-400">Senses</h4>
+                  <h4 className="font-bold text-[var(--primary)]">Senses</h4>
                   <p className="text-sm">{hoveredCreature.senses.join(", ")}</p>
                 </div>
               )}
