@@ -1,10 +1,12 @@
   import { useState, useEffect, useRef } from "react";
   import { getDocs, setDoc, collection, doc, getDoc } from "firebase/firestore";
   import { db } from "../firebase";
-  import { useNavigate } from "react-router";
+  
+  import { useNavigate, Link } from "react-router";
   import { motion, AnimatePresence } from "framer-motion";
   import LearnMore from "../components/LearnMore";
   import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
+  
 
   export default function NewCampaign() {
     const { user, loading } = useAuth(); // ✅ get current user
@@ -17,6 +19,7 @@
     const [campaignName, setCampaignName] = useState("");
     const navigate = useNavigate();
     const scrollRef = useRef(null);
+    const [active, setActive] = useState(null);
 
     // 🔹 Fetch templates from Firestore
     useEffect(() => {
@@ -130,27 +133,50 @@
     
 
     return (
-      <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
+      <AnimatePresence>
+        <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
         
         
 
         {/* Hovedlayout */}
-        <div className="flex w-full  justify-center items-center gap-16 mb-6">
+        <div className="flex w-full  justify-center items-center gap-60 mb-6 ">
           
           {/* Left side */}
           <div className="flex flex-col items-center justify-center  ">
-            <button className="font-[var(--font)] block text-2xl cursor-pointer border-2 border-[var(--secondary)] w-[450px] p-2   ">
+            <div className="relative inline-block">
+  <button className="font-[var(--font)] block text-2xl font-semibold cursor-pointer border-l-2 border-t-2 border-b-2 border-[var(--secondary)] w-fit h-fit p-1 relative ">
+    <div className="text-[var(--dark-muted-bg)] bg-[var(--primary)] p-5">
+      NEW CAMPAIGN FROM TEMPLATE
+    </div>
 
-              <div className=" text-[var(--dark-muted-bg)] bg-[var(--primary)] ">
-                NEW CAMPAIGN FROM TEMPLATE
-              </div>
+    {/* Højre pil */}
+    <motion.div
+      className="absolute top-1/2 -translate-y-1/2 -right-10 pointer-events-none z-10 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 35.9 67.5"
+        className="h-[70px] w-auto"
+      >
+        <defs>
+          <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+        </defs>
+        <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
+        <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
+        <polyline className="st0" points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8" />
+      </svg>
+    </motion.div>
+  </button>
+</div>
+      
               
-            </button>
+            
             <p className="mt-6 text-lg uppercase tracking-widest opacity-60 text-[var(--secondary)]">
               MAKE YOUR OWN
             </p>
             {/* <img className="rotate-45 w-6"  src="/images/arrow-head.svg" alt="pilhoved" /> */}
           </div>
+         
 
           {/* Right side: templates */}
           <div className="flex flex-col w-[480px] max-h-[520px] overflow-y-scroll space-y-6  border-[var(--primary)]/50 menu-scrollbar">
@@ -159,7 +185,7 @@
                 <div
                 
   key={id}
-  className="relative cursor-pointer p-5 border-2 transition duration-300 border-[var(--secondary)]"
+  className="group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]"
   onMouseEnter={() => setOpenedIndex(index)} // Opdaterer kun ved hover over ny template
 >
   {/* Baggrundsbillede */}
@@ -266,6 +292,11 @@
             </div>
           </div>
         )}
+        
       </div>
+      </AnimatePresence>
     );
+      
+      
+    
   }
