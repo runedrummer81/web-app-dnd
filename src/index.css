@@ -3,7 +3,7 @@
 :root {
   --primary: #daca89;
   --secondary: #bf883c;
-  --dark-muted-bg: #22211c;
+  --dark-muted-bg: #141411;
   --dark-border: #403c29;
   --font: "EB Garamond", serif;
 }
@@ -175,4 +175,8 @@ body {
 
 .-rotate-45 {
   transform: rotate(-45deg);
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px var(--primary) inset !important;
+  -webkit-text-fill-color: var(--dark-muted-bg) !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
