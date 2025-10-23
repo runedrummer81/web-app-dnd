@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 // import EmberAnimation from "../components/EmberAnimation";
 import { useState, useEffect } from "react";
+import Clouds from "../components/Clouds";
 
 // Friendly Firebase error messages
 function formatError(code) {
@@ -98,6 +99,7 @@ export default function Login() {
       {/* <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
         <EmberAnimation count={30} />
       </div> */}
+      <Clouds />
       <div className="z-10">
         <div
           className="relative w-40 mb-10 mx-auto transition-transform duration-200 ease-out"
