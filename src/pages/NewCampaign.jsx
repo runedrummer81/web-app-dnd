@@ -220,8 +220,8 @@
     >
       <p className="text-[var(--primary)]/90 leading-relaxed">{description || "No description available"}</p>
 
-      <div><ArrowButton
-    label="Learn More"
+      <ArrowButton
+    label="Learn more"
     onClick={() => setShowLearnMore(true)}
     size="sm"
     color="#DACA89"
@@ -229,9 +229,9 @@
     hoverOffset={20}
     gradient={false}
   />
-</div>
 
-<div><ArrowButton
+
+<ArrowButton
     label="CONFRIM"
     onClick={handleConfirmClick}
     size="sm"
@@ -240,7 +240,7 @@
     hoverOffset={20}
     gradient={false}
   />
-</div>
+
 
       {/* {openedIndex === index && (
         <button
