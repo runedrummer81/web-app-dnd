@@ -159,7 +159,7 @@
         className="h-[70px] w-auto"
       >
         <defs>
-          <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+          <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
         </defs>
         <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
         <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
@@ -297,7 +297,7 @@
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
                 placeholder="Your campaign Name..."
-                className="w-full p-2 mb-4 bg-[#1F1E1A] border border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[#DACA89]/40"
+                className="w-full p-2 mb-4 bg-[#1F1E1A] border border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[var(--primary)]/40"
               />
               <div className="flex justify-between mt-4">
                 <button
