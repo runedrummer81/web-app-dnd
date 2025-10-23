@@ -54,7 +54,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.3 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-[#1C1B18] text-[#DACA89] rounded-xl border border-[#DACA89] shadow-[0_0_180px_rgba(218,202,137,0.3)] w-full max-w-2xl flex flex-col max-h-[80vh]"
+          className="relative bg-[#1C1B18] text-[#DACA89] border border-[#DACA89] shadow-[0_0_180px_rgba(218,202,137,0.3)] w-full max-w-2xl flex flex-col max-h-[80vh]"
         >
           <div
             ref={scrollRef}
@@ -83,7 +83,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
                 {...fadeInProps}
                 src={template.image}
                 alt={template.title}
-                className="w-full h-52 object-cover rounded mb-6"
+                className="w-full h-52 object-cover mb-6"
               />
             )}
 
@@ -115,7 +115,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
                     {...fadeInProps}
                     src={template.extraImage1}
                     alt="Secondary"
-                    className="w-full h-40 object-cover rounded"
+                    className="w-full h-40 object-cover "
                   />
                 </div>
               )}
@@ -127,7 +127,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
                 {...fadeInProps}
                 src={template.extraImage2}
                 alt="Footer"
-                className="w-full h-44 object-cover rounded mb-6"
+                className="w-full h-44 object-cover mb-6"
               />
             )}
 
@@ -147,7 +147,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
                     {...fadeInProps}
                     src={template.fourthImage}
                     alt="Chardalyn dragon attacking TenTowns"
-                    className="w-80 h-80 object-cover rounded mb-4 md:mb-0"
+                    className="w-80 h-80 object-cover mb-4 md:mb-0"
                   />
                 )}
                 {template.fourthText && (
@@ -166,7 +166,7 @@ export default function LearnMore({ template, onClose, onConfirm }) {
                 {...fadeInProps}
                 src={template.fifthImage}
                 alt="Auril"
-                className="w-full h-65 object-cover rounded mb-6"
+                className="w-full h-65 object-cover mb-6"
               />
             )}
 
@@ -190,79 +190,64 @@ export default function LearnMore({ template, onClose, onConfirm }) {
             </button>
           </div> */}
 
-          {/* Left arrow */}
-                            <motion.div
-                              className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                              style={{ transform: "translateY(-0%) scale(0.97)" }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 35.9 67.5"
-                                className="h-[70px] w-auto rotate-180"
-                              >
-                                <defs>
-                                  <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                                </defs>
-                                <polyline
-                                  className="st0"
-                                  points="1.4 66.8 34.5 33.8 1.4 .7"
-                                />
-                                <polyline
-                                  className="st0"
-                                  points="17.9 17.2 1.4 33.8 17.9 50.3"
-                                />
-                                <polyline
-                                  className="st0"
-                                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                                />
-                              </svg>
-                            </motion.div>
-              
-                            {/* LOAD button itself */}
-                            <motion.button
-                              onClick={onConfirm}
-                              className="
-                          relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
-                          overflow-hidden
-                          before:content-[''] before:absolute before:inset-0
-                          before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
-                          before:translate-x-[-100%] before:skew-x-12
-                          hover:before:animate-[shine_1s_ease-in-out_forwards]
-                        "
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.5, delay: 0.35 }}
-                            >
-                              LOAD
-                            </motion.button>
-              
-                            {/* Right arrow */}
-                            <motion.div
-                              className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                              style={{ transform: "translateY(-0%) scale(0.97)" }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 35.9 67.5"
-                                className="h-[70px] w-auto"
-                              >
-                                <defs>
-                                  <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                                </defs>
-                                <polyline
-                                  className="st0"
-                                  points="1.4 66.8 34.5 33.8 1.4 .7"
-                                />
-                                <polyline
-                                  className="st0"
-                                  points="17.9 17.2 1.4 33.8 17.9 50.3"
-                                />
-                                <polyline
-                                  className="st0"
-                                  points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                                />
-                              </svg>
-                            </motion.div>
+          {/* Confirm button with arrows */}
+<div className="relative flex justify-center items-center py-8 scale-50">
+  {/* Left arrow */}
+  <motion.div
+    className="absolute -left-[-142px] top-1/2 -translate-y-1/2 pointer-events-none z-10 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 35.9 67.5"
+      className="h-[70px] w-auto rotate-180"
+    >
+      <defs>
+        <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+      </defs>
+      <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
+      <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
+      <polyline className="st0" points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8" />
+    </svg>
+  </motion.div>
+
+  {/* Confirm button */}
+  <motion.button
+    onClick={onConfirm}
+    className="
+      relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase 
+      text-[#1C1B18] bg-[#f0d382] 
+      overflow-hidden
+      before:content-[''] before:absolute before:inset-0
+      before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
+      before:translate-x-[-100%] before:skew-x-12
+      hover:before:animate-[shine_1s_ease-in-out_forwards]
+      shadow-[0_0_30px_rgba(218,202,137,0.3)] border-[var(--secondary)] border-2 
+    "
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5, delay: 0.35 }}
+  >
+    CONFIRM
+  </motion.button>
+
+  {/* Right arrow */}
+  <motion.div
+    className="absolute -right-[-142px] top-1/2 -translate-y-1/2 pointer-events-none z-10 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 35.9 67.5"
+      className="h-[70px] w-auto"
+    >
+      <defs>
+        <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+      </defs>
+      <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
+      <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
+      <polyline className="st0" points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8" />
+    </svg>
+  </motion.div>
+</div>
 
           {/* Close button */}
           <button
