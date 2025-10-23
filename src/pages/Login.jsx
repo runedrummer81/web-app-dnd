@@ -7,9 +7,8 @@ import { auth } from "../firebase";
 import HomePage from "./HomePage";
 import { useAuth } from "../hooks/useAuth";
 import { HiEye, HiEyeOff } from "react-icons/hi";
-// import EmberAnimation from "../components/EmberAnimation";
 import { useState, useEffect } from "react";
-import Clouds from "../components/Clouds";
+import MistVideo from "../components/Mist";
 
 // Friendly Firebase error messages
 function formatError(code) {
@@ -95,11 +94,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--dark-muted-bg)] relative overflow-hidden p-4">
-      {/* Ember particles */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
-        <EmberAnimation count={30} />
-      </div> */}
-      <Clouds />
+      <MistVideo />
+
       <div className="z-10">
         <div
           className="relative w-40 mb-10 mx-auto transition-transform duration-200 ease-out"
