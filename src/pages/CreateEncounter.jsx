@@ -29,25 +29,25 @@ export default function CreateEncounters() {
   const { spanRef, width } = useAutoWidthInput(encounterName);
   const [nameError, setNameError] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({
-  open: false,
-  encounterId: null,
-});
+    open: false,
+    encounterId: null,
+  });
 
-const handleDeleteEncounter = (id) => {
-  setDeleteConfirm({ open: true, encounterId: id });
-};
+  const handleDeleteEncounter = (id) => {
+    setDeleteConfirm({ open: true, encounterId: id });
+  };
 
-const confirmDelete = async () => {
-  if (!deleteConfirm.encounterId) return;
+  const confirmDelete = async () => {
+    if (!deleteConfirm.encounterId) return;
 
-  try {
-    await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
-  } catch (err) {
-    console.error("Error deleting encounter:", err);
-  } finally {
-    setDeleteConfirm({ open: false, encounterId: null });
-  }
-};
+    try {
+      await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
+    } catch (err) {
+      console.error("Error deleting encounter:", err);
+    } finally {
+      setDeleteConfirm({ open: false, encounterId: null });
+    }
+  };
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -351,7 +351,8 @@ const confirmDelete = async () => {
           Saved Encounters
         </h2>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-900 max-h-[55vh]">
+        <div
+          className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
           <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
@@ -600,45 +601,46 @@ const confirmDelete = async () => {
         )}
       </AnimatePresence>
       <AnimatePresence>
-  {deleteConfirm.open && (
-    <motion.div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="bg-[var(--dark-muted-bg)] border border-[var(--secondary)] p-8 text-center shadow-xl max-w-sm mx-auto"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <h3 className="text-2xl text-[var(--primary)] font-bold mb-4">
-          Delete Encounter?
-        </h3>
-        <p className="text-[var(--secondary)] mb-6">
-          Are you sure you want to permanently delete this encounter?
-        </p>
-        <div className="flex justify-center gap-6">
-          <button
-            onClick={confirmDelete}
-            className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition"
+        {deleteConfirm.open && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            Delete
-          </button>
-          <button
-            onClick={() => setDeleteConfirm({ open: false, encounterId: null })}
-            className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
+            <motion.div
+              className="bg-[var(--dark-muted-bg)] border border-[var(--secondary)] p-8 text-center shadow-xl max-w-sm mx-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h3 className="text-2xl text-[var(--primary)] font-bold mb-4">
+                Delete Encounter?
+              </h3>
+              <p className="text-[var(--secondary)] mb-6">
+                Are you sure you want to permanently delete this encounter?
+              </p>
+              <div className="flex justify-center gap-6">
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() =>
+                    setDeleteConfirm({ open: false, encounterId: null })
+                  }
+                  className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
