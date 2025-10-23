@@ -1,7 +1,7 @@
   import { useState, useEffect, useRef } from "react";
   import { getDocs, setDoc, collection, doc, getDoc } from "firebase/firestore";
   import { db } from "../firebase";
-  import SmallArrowBtn from "../components/SmallArrowBtn";
+  
   import { useNavigate, Link } from "react-router";
   import { motion, AnimatePresence } from "framer-motion";
   import LearnMore from "../components/LearnMore";
