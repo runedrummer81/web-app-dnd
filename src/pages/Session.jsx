@@ -35,7 +35,7 @@ export default function Session() {
     const idFromStorage = localStorage.getItem("selectedCampaignId");
     const finalId = idFromNav || idFromStorage;
     if (!finalId) {
-      console.warn("⚠️ Ingen campaignId fundet — redirecter til Home");
+      console.warn("⚠️ No campaignId found — return to Home");
       navigate("/home");
       return;
     }
@@ -137,7 +137,7 @@ export default function Session() {
   }, [fromPage]);
 
   return (
-    <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[#DACA89] font-serif select-none">
+    <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none">
       {/* Venstre side: sessionliste */}
       
 
@@ -147,7 +147,7 @@ export default function Session() {
         </h2>
 
         <button
-          className="flex flex-row justify-center space-x-2 bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition"
+          className="flex flex-row justify-center space-x-2 bg-transparent border border-[var(--primary)] text-[var(--primary)] font-semibold py-2 px-4 rounded hover:bg-[var(--primary)]/10 transition"
           onClick={createNewSession}
         >
           + New Session
@@ -158,7 +158,7 @@ export default function Session() {
             <div
               key={session.id}
               onClick={() => handleSelectSession(session)}
-              className={`flex justify-center gap-x-2 items-center bg-transparent border border-[#DACA89] text-[#DACA89] font-semibold py-2 px-4 rounded hover:bg-[#DACA89]/10 transition cursor-pointer p-5 rounded-md shadow-inner transition-shadow duration-300 border-[#DACA89]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
+              className={`flex justify-center gap-x-2 items-center bg-transparent border border-[var(--primary)] text-[var(--primary)] font-semibold py-2 px-4 rounded hover:bg-[var(--primary)]/10 transition cursor-pointer p-5 rounded-md shadow-inner transition-shadow duration-300 border-[var(--primary)]/50 bg-[#292621] hover:shadow-[0_0_15px_#DACA89]/60 ${
                 selectedSession?.id === session.id ? "bg-[#2E2C27]" : ""
               }`}
             >
@@ -170,8 +170,8 @@ export default function Session() {
           ))}
 
           {sessions.length === 0 && (
-            <p className="italic text-[#DACA89]/60 mt-4">
-              Ingen sessions endnu.
+            <p className="italic text-[var(--primary)]/60 mt-4">
+              No existing sessions yet.
             </p>
           )}
         </div>
@@ -181,39 +181,39 @@ export default function Session() {
 
       {/* Højre side: detaljer */}
       {selectedSession && (
-        <section className="flex flex-col justify-start w-1/3 space-y-4 border-l border-[#DACA89]/50 pl-8">
+        <section className="flex flex-col justify-start w-1/3 space-y-4 border-l border-[var(--primary)]/50 pl-8">
           <h2 className="text-xl uppercase tracking-widest font-semibold">
             {selectedSession.title}
           </h2>
 
           {/* DM Notes */}
-          <div className="border border-[#DACA89]/50 rounded p-3">
+          <div className="border border-[var(--primary)]/50 rounded p-3">
             <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">
               DM Notes
             </h3>
-            <p className="text-[#DACA89]/90 whitespace-pre-wrap">
+            <p className="text-[var(--primary)]/90 whitespace-pre-wrap">
               {selectedSession.dmNotes || "Ingen noter endnu"}
             </p>
           </div>
 
           {/* Encounters */}
-          <div className="border border-[#DACA89]/50 rounded p-3">
+          <div className="border border-[var(--primary)]/50 rounded p-3">
             <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">
               Encounters
             </h3>
             {selectedSession.encounters?.length > 0 ? (
               selectedSession.encounters.map((enc) => (
-                <p key={enc.id} className="text-[#DACA89]/90">
+                <p key={enc.id} className="text-[var(--primary)]/90">
                   {enc.name}
                 </p>
               ))
             ) : (
-              <p className="text-[#DACA89]/70 italic">Ingen encounters endnu</p>
+              <p className="text-[var(--primary)]/70 italic">Ingen encounters endnu</p>
             )}
           </div>
 
           {/* Combat Maps */}
-          <div className="border border-[#DACA89]/50 rounded p-3">
+          <div className="border border-[var(--primary)]/50 rounded p-3">
             <h3 className="uppercase text-sm tracking-wide opacity-80 mb-1">
               Combat Maps
             </h3>
@@ -222,7 +222,7 @@ export default function Session() {
                 {selectedSession.combatMaps.map((map) => (
                   <div
                     key={map.id}
-                    className="flex flex-col items-center border border-[#DACA89]/40 rounded p-2 bg-[#1F1E1A]"
+                    className="flex flex-col items-center border border-[var(--primary)]/40 rounded p-2 bg-[#1F1E1A]"
                   >
                     <img
                       src={map.image}
@@ -234,13 +234,13 @@ export default function Session() {
                 ))}
               </div>
             ) : (
-              <p className="text-[#DACA89]/70 italic">Ingen maps endnu</p>
+              <p className="text-[var(--primary)]/70 italic">Ingen maps endnu</p>
             )}
           </div>
 
           <div className="flex justify-between mt-4">
             <button
-              className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+              className="border border-[var(--primary)] rounded py-2 px-4 hover:bg-[var(--primary)]/10 transition"
               onClick={() =>
                 navigate("/session-edit", {
                   state: { sessionId: selectedSession.id },
@@ -250,7 +250,7 @@ export default function Session() {
               Edit Session
             </button>
             <button
-              className="border border-[#DACA89] rounded py-2 px-4 hover:bg-[#DACA89]/10 transition"
+              className="border border-[var(--primary)] rounded py-2 px-4 hover:bg-[var(--primary)]/10 transition"
               onClick={() =>
                 navigate("/session-run", {
                   state: { sessionId: selectedSession.id },
