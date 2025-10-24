@@ -41,14 +41,16 @@ export default function Nav() {
     }
   };
 
-  const isHomePage = location.pathname === "/home"; // 👈 tjek om vi er på forsiden
+  const isHomePage = location.pathname === "/home" ; //  tjek om vi er på forsiden eller login
+  const isLogin = location.pathname ==="/login";
+  const banned = isHomePage || isLogin;
 
   return (
     <>
     <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)]">
 
-      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden */}
-      {!isHomePage && (
+      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
+      {!banned && (
         <button
           className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
           onClick={handleBack}
