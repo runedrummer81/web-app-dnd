@@ -529,16 +529,17 @@ export default function Session() {
             </motion.div>
 
             {/* Row beneath DM Notes: Encounters + Maps */}
-            <div className="flex w-full mt-6 z-10 gap-6">
+            <div className="flex h-50 w-full mt-6 z-10 gap-6">
               {/* LEFT: Encounters box */}
-              <div className="w-1/3 p-4  border-2 border-[var(--secondary)] overflow-auto">
+              <div className="w-1/5 p-4 border-2 border-[var(--secondary)] overflow-auto">
                 <h3 className="text-[var(--primary)] font-semibold mb-2">
                   Encounters
                 </h3>
+
                 {selectedSession.encounters &&
                 selectedSession.encounters.length > 0 ? (
                   <ul className="text-[var(--secondary)]/90 list-disc list-inside space-y-1">
-                    {selectedSession.encounters.map((enc, idx) => (
+                    {selectedSession.encounters.slice(0, 3).map((enc, idx) => (
                       <li key={idx}>{enc.name || `Encounter ${idx + 1}`}</li>
                     ))}
                   </ul>
@@ -547,16 +548,25 @@ export default function Session() {
                     No encounters yet
                   </p>
                 )}
+
+                {/* Show +X more indicator if more than 3 encounters */}
+                {selectedSession.encounters?.length > 3 && (
+                  <div className="w-full mt-2  flex items-center justify-center">
+                    <p className="text-[var(--primary)] text-center text-sm font-semibold ">
+                      +{selectedSession.encounters.length - 3} more
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* RIGHT: Maps */}
-              <div className="flex-1 flex gap-4 pointer-events-none">
+              <div className="h-50 w-4/5 flex gap-4 pointer-events-none">
                 {(selectedSession.combatMaps || [])
                   .slice(0, 3)
                   .map((map, idx) => (
                     <div
                       key={idx}
-                      className="h-32 p-2 border-2 border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
+                      className="h-fill p-2 border-2 border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
                     >
                       {map.image ? (
                         <img
@@ -578,7 +588,7 @@ export default function Session() {
                 }).map((_, idx) => (
                   <div
                     key={`placeholder-${idx}`}
-                    className="w-1/3 h-32 bg-[var(--dark-muted-bg)]/50 border-2 border-[var(--secondary)]/50 flex items-center justify-center text-[#555] text-sm"
+                    className="bg-[var(--dark-muted-bg)]/50 border-2 border-[var(--secondary)]/50 flex items-center justify-center text-[#555] text-sm"
                   >
                     Empty
                   </div>
@@ -586,11 +596,9 @@ export default function Session() {
 
                 {/* Show +X more indicator if more than 3 maps */}
                 {(selectedSession.combatMaps?.length || 0) > 3 && (
-                  <div className="w-1/3 h-32   border border-[var(--secondary)] flex items-center justify-center">
-                    <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
-                      +{(selectedSession.combatMaps?.length || 0) - 3}
-                      <br />
-                      more
+                  <div className="w-50 border-2 border-[var(--secondary)] flex items-center justify-center">
+                    <p className="text-[var(--primary)] text-center text-sm font-semibold">
+                      +{(selectedSession.combatMaps?.length || 0) - 3} more
                     </p>
                   </div>
                 )}
