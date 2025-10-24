@@ -5,10 +5,13 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
 
 
+
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
   const navigate = useNavigate();
+  const location = useLocation();
   const [logoutMenuOpen, setLogoutMenuOpen] = useState(false);
+  
 
   if (!user) return null;
 
