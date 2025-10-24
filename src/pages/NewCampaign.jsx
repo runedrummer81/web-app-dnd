@@ -222,7 +222,9 @@
 
       <ArrowButton
     label="Learn more"
-    onClick={() => setShowLearnMore(true)}
+    onClick={(e) => {e.stopPropagation(); // 🔒 forhindrer klik i at “boble op” og lukke feltet
+    handleLearnMore(learnMoreId); // ✅ henter og åbner korrekt template
+    }}
     size="sm"
     color="#DACA89"
     glow="transparent"
@@ -242,7 +244,7 @@
   />
 
 
-       {openedIndex === index && (
+       {/* {openedIndex === index && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -252,7 +254,7 @@
         >
           Learn More
         </button>
-      )}
+      )} */}
 
       {/*{openedIndex !== null && !showNamePopup && (
         <button
