@@ -181,263 +181,266 @@ export default function SessionEdit() {
     }
   };
 
-  if (!sessionData)
-    return (
-      <p className="text-center mt-20 text-[var(--primary)]">
-        Loading session...
-      </p>
-    );
-
   const displayedMaps = combatMaps.slice(0, 3);
   const extraMapsCount = combatMaps.length - 3;
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--dark-muted-bg)] text-[var(--primary)] font-serif p-20 pt-40 gap-8">
-      <div className="grid grid-cols-3 gap-8 flex-1">
-        {" "}
-        {/* Notes Section */}
-        <motion.section
-          className="col-span-2 flex flex-col flex-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg uppercase tracking-widest ">Notes</h3>
-          </div>
-
-          <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 overflow-hidden text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
+      {!sessionData ? (
+        <p className="text-center mt-20 text-[var(--primary)]">
+          Loading session...
+        </p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-8 flex-1">
             {" "}
-            {/* Corner Arrows */}
-            <>
-              <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-              <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-              <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-              <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-            </>
-            <input
-              type="text"
-              value={sessionData.notesHeadline || ""}
-              onChange={(e) =>
-                setSessionData({
-                  ...sessionData,
-                  notesHeadline: e.target.value,
-                })
-              }
-              placeholder="Add Headline..."
-              className="w-full text-2xl uppercase text-[var(--primary)] font-bold p-2 mb-4 focus:outline-none bg-transparent "
-            />
-            <textarea
-              value={sessionData.dmNotes || ""}
-              onChange={handleNotesChange}
-              placeholder="Your journey starts..."
-              className="w-full font-light focus:outline-none resize-none bg-transparent flex-1"
-            />
-          </div>
-        </motion.section>
-        {/* Right Column */}
-        <motion.section className="flex flex-col overflow-y-auto max-h-full">
-          {/* Encounters */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center ">
-              <h3 className="text-lg uppercase tracking-widest ">Encounters</h3>
-              <button
-                onClick={() => setShowEncounterModal(true)}
-                className="text-4xl leading-none transition hover:text-[var(--primary)] "
-              >
-                +
-              </button>
-            </div>
-            <div className="relative flex flex-col overflow-hidden ">
-              {/* Corner Arrows */}
-              {/* <>
-                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-              </> */}
-
-              <div className="space-y-3 overflow-y-auto flex-1">
-                {encounters.length > 0 ? (
-                  encounters.map((e) => {
-                    const firstCreature =
-                      e.creatures && e.creatures.length > 0
-                        ? e.creatures[0]
-                        : null;
-                    const creatureImageUrl = firstCreature
-                      ? creatureImages[firstCreature.name] ||
-                        "https://via.placeholder.com/400x200?text=No+Image"
-                      : "https://via.placeholder.com/400x200?text=No+Image";
-
-                    return (
-                      <motion.div
-                        key={e.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)]  transition-all duration-300 group"
-                        style={{ minHeight: "100px" }}
-                      >
-                        <div
-                          className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
-                          style={{
-                            backgroundImage: `url(${creatureImageUrl})`,
-                            backgroundPosition: "right center",
-                            clipPath:
-                              "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
-                          }}
-                        />
-                        <div
-                          className="absolute inset-2"
-                          style={{
-                            background:
-                              "linear-gradient(to right, var(--dark-muted-bg) 0%, var(--dark-muted-bg) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
-                          }}
-                        />
-
-                        <div className="relative z-10 p-4 flex justify-between items-start">
-                          <div className="flex-1">
-                            <p className="text-xl font-semibold text-[var(--primary)] mb-2  transition-all">
-                              {e.name}
-                            </p>
-                            <div className="text-[var(--secondary)] text-sm space-y-1">
-                              {e.creatures && e.creatures.length > 0 ? (
-                                e.creatures.map((c, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <span className="text-[var(--secondary)]/60">
-                                      •
-                                    </span>
-                                    <span>
-                                      {c.name} × {c.count}
-                                    </span>
-                                  </div>
-                                ))
-                              ) : (
-                                <span className="text-[var(--secondary)]/60 italic">
-                                  No creatures
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveEncounter(e.id)}
-                            className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                ) : (
-                  <p className="text-[var(--primary)]/60 italic text-center py-4">
-                    No encounters added yet
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Maps */}
-          <div>
-            <div
-              className="flex justify-between items-center mb-3"
-              style={{ height: "40px" }}
+            {/* Notes Section */}
+            <motion.section
+              className="col-span-2 flex flex-col flex-1"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              <h3 className="text-lg uppercase tracking-widest ">Maps</h3>
-            </div>
-            <div className="relative  p-4 ">
-              {/* Corner Arrows */}
-              {/* <>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg uppercase tracking-widest ">Notes</h3>
+              </div>
+
+              <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 overflow-hidden text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
+                {" "}
+                {/* Corner Arrows */}
+                <>
+                  <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+                  <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+                  <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+                  <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+                </>
+                <input
+                  type="text"
+                  value={sessionData.notesHeadline || ""}
+                  onChange={(e) =>
+                    setSessionData({
+                      ...sessionData,
+                      notesHeadline: e.target.value,
+                    })
+                  }
+                  placeholder="Add Headline..."
+                  className="w-full text-2xl uppercase text-[var(--primary)] font-bold p-2 mb-4 focus:outline-none bg-transparent "
+                />
+                <textarea
+                  value={sessionData.dmNotes || ""}
+                  onChange={handleNotesChange}
+                  placeholder="Your journey starts..."
+                  className="w-full font-light focus:outline-none resize-none bg-transparent flex-1"
+                />
+              </div>
+            </motion.section>
+            {/* Right Column */}
+            <motion.section className="flex flex-col overflow-y-auto max-h-full">
+              {/* Encounters */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center ">
+                  <h3 className="text-lg uppercase tracking-widest ">
+                    Encounters
+                  </h3>
+                  <button
+                    onClick={() => setShowEncounterModal(true)}
+                    className="text-4xl leading-none transition hover:text-[var(--primary)] "
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="relative flex flex-col overflow-hidden ">
+                  {/* Corner Arrows */}
+                  {/* <>
                 <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
                 <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
                 <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
                 <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
               </> */}
 
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => setShowMapModal(true)}
-                  className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] "
-                >
-                  +
-                </button>
-                {displayedMaps.length > 0 ? (
-                  <>
-                    {displayedMaps.map((map) => (
-                      <motion.div
-                        key={map.id}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.05 }}
-                        className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24 hover:border-[var(--primary)]  transition-all"
-                      >
-                        <img
-                          src={map.image}
-                          alt={map.title}
-                          className="object-cover w-full h-full"
-                        />
-                        <button
-                          onClick={() => handleRemoveMap(map.id)}
-                          className="cursor-pointer absolute top-1 right-1 text-red-400 hover:text-red-300 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
-                        >
-                          ✕
-                        </button>
-                      </motion.div>
-                    ))}
-                    {extraMapsCount > 0 && (
-                      <div className="flex items-center justify-center aspect-square w-24 border-2 border-[var(--secondary)]/50 bg-[#1C1B18]">
-                        <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
-                          +{extraMapsCount}
-                          <br />
-                          more
-                        </p>
-                      </div>
+                  <div className="space-y-3 overflow-y-auto flex-1">
+                    {encounters.length > 0 ? (
+                      encounters.map((e) => {
+                        const firstCreature =
+                          e.creatures && e.creatures.length > 0
+                            ? e.creatures[0]
+                            : null;
+                        const creatureImageUrl = firstCreature
+                          ? creatureImages[firstCreature.name] ||
+                            "https://via.placeholder.com/400x200?text=No+Image"
+                          : "https://via.placeholder.com/400x200?text=No+Image";
+
+                        return (
+                          <motion.div
+                            key={e.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)]  transition-all duration-300 group"
+                            style={{ minHeight: "100px" }}
+                          >
+                            <div
+                              className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                              style={{
+                                backgroundImage: `url(${creatureImageUrl})`,
+                                backgroundPosition: "right center",
+                                clipPath:
+                                  "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                              }}
+                            />
+                            <div
+                              className="absolute inset-2"
+                              style={{
+                                background:
+                                  "linear-gradient(to right, var(--dark-muted-bg) 0%, var(--dark-muted-bg) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
+                              }}
+                            />
+
+                            <div className="relative z-10 p-4 flex justify-between items-start">
+                              <div className="flex-1">
+                                <p className="text-xl font-semibold text-[var(--primary)] mb-2  transition-all">
+                                  {e.name}
+                                </p>
+                                <div className="text-[var(--secondary)] text-sm space-y-1">
+                                  {e.creatures && e.creatures.length > 0 ? (
+                                    e.creatures.map((c, i) => (
+                                      <div
+                                        key={i}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <span className="text-[var(--secondary)]/60">
+                                          •
+                                        </span>
+                                        <span>
+                                          {c.name} × {c.count}
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-[var(--secondary)]/60 italic">
+                                      No creatures
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveEncounter(e.id)}
+                                className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-[var(--primary)]/60 italic text-center py-4">
+                        No encounters added yet
+                      </p>
                     )}
-                  </>
-                ) : (
-                  <p className="text-[var(--primary)]/60 italic">
-                    No maps added yet
-                  </p>
-                )}
+                  </div>
+                </div>
               </div>
+
+              {/* Maps */}
+              <div>
+                <div
+                  className="flex justify-between items-center mb-3"
+                  style={{ height: "40px" }}
+                >
+                  <h3 className="text-lg uppercase tracking-widest ">Maps</h3>
+                </div>
+                <div className="relative  p-4 ">
+                  {/* Corner Arrows */}
+                  {/* <>
+                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+              </> */}
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setShowMapModal(true)}
+                      className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] "
+                    >
+                      +
+                    </button>
+                    {displayedMaps.length > 0 ? (
+                      <>
+                        {displayedMaps.map((map) => (
+                          <motion.div
+                            key={map.id}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.05 }}
+                            className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24 hover:border-[var(--primary)]  transition-all"
+                          >
+                            <img
+                              src={map.image}
+                              alt={map.title}
+                              className="object-cover w-full h-full"
+                            />
+                            <button
+                              onClick={() => handleRemoveMap(map.id)}
+                              className="cursor-pointer absolute top-1 right-1 text-red-400 hover:text-red-300 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                            >
+                              ✕
+                            </button>
+                          </motion.div>
+                        ))}
+                        {extraMapsCount > 0 && (
+                          <div className="flex items-center justify-center aspect-square w-24 border-2 border-[var(--secondary)]/50 bg-[#1C1B18]">
+                            <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
+                              +{extraMapsCount}
+                              <br />
+                              more
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[var(--primary)]/60 italic">
+                        No maps added yet
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          </div>
+
+          {/* Save Button with Arrows */}
+          <div className="grid grid-cols-3">
+            <div className="col-span-3 flex justify-between items-center">
+              <DiceThrower />
+
+              <ArrowButton
+                label="Save Session"
+                onClick={handleSave}
+                size="md"
+                color="var(--primary)"
+                glow="rgba(191,136,60,0.6)"
+                hoverOffset={20}
+                gradient={true}
+              />
             </div>
           </div>
-        </motion.section>
-      </div>
 
-      {/* Save Button with Arrows */}
-      <div className="grid grid-cols-3">
-        <div className="col-span-3 flex justify-between items-center">
-          <DiceThrower />
-
-          <ArrowButton
-            label="Save Session"
-            onClick={handleSave}
-            size="md"
-            color="var(--primary)"
-            glow="rgba(191,136,60,0.6)"
-            hoverOffset={20}
-            gradient={true}
+          <EncounterBrowserModal
+            isOpen={showEncounterModal}
+            onClose={() => setShowEncounterModal(false)}
+            onConfirm={handleEncounterConfirm}
+            alreadySelectedEncounters={encounters}
           />
-        </div>
-      </div>
 
-      <EncounterBrowserModal
-        isOpen={showEncounterModal}
-        onClose={() => setShowEncounterModal(false)}
-        onConfirm={handleEncounterConfirm}
-        alreadySelectedEncounters={encounters}
-      />
-
-      <MapBrowserModal
-        isOpen={showMapModal}
-        onClose={() => setShowMapModal(false)}
-        onConfirm={handleMapsConfirm}
-        alreadySelectedMaps={combatMaps}
-      />
+          <MapBrowserModal
+            isOpen={showMapModal}
+            onClose={() => setShowMapModal(false)}
+            onConfirm={handleMapsConfirm}
+            alreadySelectedMaps={combatMaps}
+          />
+        </>
+      )}
     </div>
   );
 }
