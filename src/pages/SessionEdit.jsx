@@ -32,6 +32,7 @@ export default function SessionEdit() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [originalSessionData, setOriginalSessionData] = useState(null);
 
   const sessionId = location.state?.sessionId;
   
@@ -49,7 +50,9 @@ export default function SessionEdit() {
         const sessionSnap = await getDoc(sessionRef);
         if (sessionSnap.exists()) {
           const data = sessionSnap.data();
+          
           setSessionData(data);
+          setOriginalSessionData(data); // gem originalen
           setEncounters(data.encounters || []);
           setCombatMaps(data.combatMaps || []);
 
@@ -73,6 +76,7 @@ export default function SessionEdit() {
 
     fetchSession();
   }, [sessionId, navigate]);
+  
 
   useEffect(() => {
     async function fetchCreatureImages() {
@@ -111,20 +115,31 @@ export default function SessionEdit() {
 
    // Track changes når data ændres
 useEffect(() => {
-  if (sessionData) {
-    setHasUnsavedChanges(true);
-  }
-}, [sessionData?.dmNotes, sessionData?.notesHeadline, encounters, combatMaps]);
+  if (!originalSessionData) return;
+
+  const notesChanged = sessionData?.dmNotes !== originalSessionData.dmNotes;
+  const headlineChanged = sessionData?.notesHeadline !== originalSessionData.notesHeadline;
+  const encountersChanged = JSON.stringify(encounters) !== JSON.stringify(originalSessionData.encounters || []);
+  const mapsChanged = JSON.stringify(combatMaps) !== JSON.stringify(originalSessionData.combatMaps || []);
+
+  const changed = notesChanged || headlineChanged || encountersChanged || mapsChanged;
+  setHasUnsavedChanges(changed);
+}, [sessionData, encounters, combatMaps, originalSessionData]);
 
   // Lyt efter navigation attempts fra Nav
 useEffect(() => {
   const handleNavigationEvent = () => {
-    handleNavigationAttempt("/session");
+    if (hasUnsavedChanges) {
+      setPendingNavigation("/session");
+      setShowUnsavedModal(true);
+    } else {
+      navigate("/session");
+    }
   };
   
   window.addEventListener("attemptNavigation", handleNavigationEvent);
   return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
-}, [hasUnsavedChanges]); // 👈 Vigtig dependency
+}, [hasUnsavedChanges, navigate]);
 
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
@@ -172,7 +187,7 @@ useEffect(() => {
 const handleSave = async () => {
   try {
     const sessionRef = doc(db, "Sessions", sessionId);
-    await updateDoc(sessionRef, {
+    await updateDoc, setOriginalSessionData(sessionRef, {
       dmNotes: sessionData.dmNotes,
       notesHeadline: sessionData.notesHeadline,
       encounters,
