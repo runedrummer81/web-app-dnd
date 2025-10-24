@@ -16,6 +16,7 @@ import MapBrowserModal from "../components/MapBrowserModal";
 import EncounterBrowserModal from "../components/EncounterBrowserModal";
 import { motion } from "framer-motion";
 import ArrowButton from "../components/ArrowButton";
+import UnsavedModal from "../components/UnsavedModal";
 
 export default function SessionEdit() {
   const navigate = useNavigate();
@@ -28,8 +29,12 @@ export default function SessionEdit() {
   const [showMapModal, setShowMapModal] = useState(false);
   const [showEncounterModal, setShowEncounterModal] = useState(false);
   const [creatureImages, setCreatureImages] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
 
   const sessionId = location.state?.sessionId;
+  
 
   useEffect(() => {
     if (!sessionId) {
@@ -133,27 +138,42 @@ export default function SessionEdit() {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const sessionRef = doc(db, "Sessions", sessionId);
-      await updateDoc(sessionRef, {
-        dmNotes: sessionData.dmNotes,
-        notesHeadline: sessionData.notesHeadline,
-        encounters,
-        combatMaps,
-        lastEdited: new Date(),
-      });
-      console.log("Session saved");
-      navigate("/session", {
-        state: {
-          campaignId: sessionData.campaignId,
-          refreshSessions: true,
-        },
-      });
-    } catch (err) {
-      console.error("error:", err);
-    }
-  };
+
+
+  const displayedMaps = combatMaps.slice(0, 3);
+  const extraMapsCount = combatMaps.length - 3;
+
+
+  // Track changes når data ændres
+useEffect(() => {
+  if (sessionData) {
+    setHasUnsavedChanges(true);
+  }
+}, [sessionData?.dmNotes, sessionData?.notesHeadline, encounters, combatMaps]);
+
+  // Opdater handleSave til at clear unsaved changes flag
+const handleSave = async () => {
+  try {
+    const sessionRef = doc(db, "Sessions", sessionId);
+    await updateDoc(sessionRef, {
+      dmNotes: sessionData.dmNotes,
+      notesHeadline: sessionData.notesHeadline,
+      encounters,
+      combatMaps,
+      lastEdited: new Date(),
+    });
+    console.log("Session saved");
+    setHasUnsavedChanges(false); // 👈 Clear flag efter save
+    navigate("/session", {
+      state: {
+        campaignId: sessionData.campaignId,
+        refreshSessions: true,
+      },
+    });
+  } catch (err) {
+    console.error("error:", err);
+  }
+};
 
   if (!sessionData)
     return (
@@ -162,8 +182,30 @@ export default function SessionEdit() {
       </p>
     );
 
-  const displayedMaps = combatMaps.slice(0, 3);
-  const extraMapsCount = combatMaps.length - 3;
+// Håndter navigation attempts
+const handleNavigationAttempt = (destination) => {
+  if (hasUnsavedChanges) {
+    setPendingNavigation(destination);
+    setShowUnsavedModal(true);
+  } else {
+    navigate(destination);
+  }
+};
+
+    // Modal handlers
+const handleSaveAndNavigate = async () => {
+  await handleSave();
+  setShowUnsavedModal(false);
+  // Navigate sker allerede i handleSave
+};
+
+const handleContinueWithoutSaving = () => {
+  setHasUnsavedChanges(false);
+  setShowUnsavedModal(false);
+  if (pendingNavigation) {
+    navigate(pendingNavigation);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none px-20 pt-[180px] pb-10">
@@ -473,6 +515,13 @@ export default function SessionEdit() {
         onConfirm={handleMapsConfirm}
         alreadySelectedMaps={combatMaps}
       />
+
+      <UnsavedModal
+      open={showUnsavedModal}
+      onClose={() => setShowUnsavedModal(false)}
+      onSave={handleSaveAndNavigate}
+      onContinue={handleContinueWithoutSaving}
+    />
     </div>
   );
 }

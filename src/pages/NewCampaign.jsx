@@ -21,6 +21,16 @@
     const scrollRef = useRef(null);
     const [active, setActive] = useState(null);
 
+    // Lyt efter navigation attempts fra Nav
+useEffect(() => {
+  const handleNavigationEvent = () => {
+    handleNavigationAttempt("/session");
+  };
+  
+  window.addEventListener("attemptNavigation", handleNavigationEvent);
+  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+}, [hasUnsavedChanges]);
+
     // 🔹 Fetch templates from Firestore
     useEffect(() => {
       async function getTemplates() {
