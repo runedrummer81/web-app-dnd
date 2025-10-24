@@ -186,22 +186,22 @@ export default function SessionEdit() {
           <div className="relative border-3 border-[var(--secondary)] bg-[#1F1E1A] p-6 focus-within:border-[var(--primary)] flex-1 overflow-hidden shadow-[0_0_30px_rgba(191,136,60,0.2)]">
             {/* Corner Arrows */}
             <img
-              src="/images/arrow-head.svg"
+              src="images/arrow-head.svg"
               alt="corner"
               className="absolute top-1 left-1 w-8 h-8 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
             />
             <img
-              src="/images/arrow-head.svg"
+              src="images/arrow-head.svg"
               alt="corner"
               className="absolute top-1 right-1 w-8 h-8 scale-125 translate-x-[1px] -translate-y-[1px]"
             />
             <img
-              src="/images/arrow-head.svg"
+              src="images/arrow-head.svg"
               alt="corner"
               className="absolute bottom-6 left-1 w-8 h-8 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[21px]"
             />
             <img
-              src="/images/arrow-head.svg"
+              src="images/arrow-head.svg"
               alt="corner"
               className="absolute bottom-6 right-1 w-8 h-8 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[21px]"
             />
@@ -257,22 +257,22 @@ export default function SessionEdit() {
             >
               {/* Corner Arrows */}
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
               />
@@ -372,22 +372,22 @@ export default function SessionEdit() {
             <div className="relative bg-[#1F1E1A] border-3 border-[var(--secondary)] p-4 shadow-[0_0_30px_rgba(191,136,60,0.2)]">
               {/* Corner Arrows */}
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
               />
               <img
-                src="/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner"
                 className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
               />
