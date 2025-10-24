@@ -220,7 +220,8 @@
     >
       <p className="text-[var(--primary)]/90 leading-relaxed">{description || "No description available"}</p>
 
-      <ArrowButton
+<div>
+<ArrowButton
     label="Learn more"
     onClick={(e) => {e.stopPropagation(); // 🔒 forhindrer klik i at “boble op” og lukke feltet
     handleLearnMore(learnMoreId); // ✅ henter og åbner korrekt template
@@ -242,6 +243,8 @@
     hoverOffset={20}
     gradient={false}
   />
+</div>
+      
 
 
        {/* {openedIndex === index && (
