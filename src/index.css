@@ -252,3 +252,36 @@ input:-webkit-autofill:active {
   scrollbar-width: thin;
   scrollbar-color: rgba(191, 136, 60, 0.4) #1c1b18;
 }
+
+/* Remove autofill styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--primary);
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px transparent;
+  background-color: transparent !important;
+}
+
+/* For when the input is focused with autofill */
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--dark-muted-bg);
+  background-color: var(--primary) !important;
+  box-shadow: inset 0 0 20px 20px var(--primary);
+}
+
+/* Firefox autofill */
+input:-moz-autofill,
+input:-moz-autofill-preview {
+  filter: none;
+  background-color: transparent !important;
+  color: var(--primary) !important;
+}
+
+input:-moz-autofill:focus,
+input:-moz-autofill-preview:focus {
+  background-color: var(--primary) !important;
+  color: var(--dark-muted-bg) !important;
+}
