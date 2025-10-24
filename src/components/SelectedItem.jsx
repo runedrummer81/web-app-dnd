@@ -77,24 +77,48 @@ export default function SelectedItem({
           }
         >
           {children}
+
+          {/* Shiny sweep animation */}
+          {isSelected && (
+            <motion.div
+              key={`shine-${isSelected}`}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `linear-gradient(90deg, 
+                  transparent 0%, 
+                  rgba(255, 255, 255, 0) 20%,
+                  rgba(255, 255, 255, 0.8) 50%,
+                  rgba(255, 255, 255, 0) 80%,
+                  transparent 100%)`,
+              }}
+              initial={{ x: "-100%" }}
+              animate={{ x: "200%" }}
+              transition={{
+                duration: 0.8,
+                ease: "easeInOut",
+              }}
+            />
+          )}
         </motion.div>
 
-        {isSelected && showArrow && (
+        {/* Arrow - now always visible when selected, no delay */}
+        {showArrow && (
           <motion.div
-            key="arrow"
             className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10"
             initial={{ opacity: 0 }}
             animate={{
-              opacity: 1,
-              filter: `drop-shadow(0 0 25px ${arrowGlow}) drop-shadow(0 0 40px ${arrowGlow.replace(
-                "0.9",
-                "0.7"
-              )})`,
+              opacity: isSelected ? 1 : 0,
+              filter: isSelected
+                ? `drop-shadow(0 0 25px ${arrowGlow}) drop-shadow(0 0 40px ${arrowGlow.replace(
+                    "0.9",
+                    "0.7"
+                  )})`
+                : "drop-shadow(0 0 0px transparent)",
             }}
             transition={{
               duration: 0.4,
               ease: "easeInOut",
-              delay: 0.3,
+              // NO MORE DELAY!
             }}
           >
             <svg
