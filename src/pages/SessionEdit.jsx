@@ -29,6 +29,31 @@ export default function SessionEdit() {
   const [showEncounterModal, setShowEncounterModal] = useState(false);
   const [creatureImages, setCreatureImages] = useState({});
 
+  const cornerArrowPaths = [
+    "M35.178,1.558l0,32.25",
+    "M35.178,1.558l-33.179,-0",
+    "M26.941,9.558l0,16.06",
+    "M26.941,25.571l8.237,8.237",
+    "M1.999,1.558l8,8",
+    "M18.911,1.558l0,16.06",
+    "M26.941,9.558l-16.705,-0",
+    "M34.971,17.588l-16.06,-0",
+  ];
+
+  const CornerArrow = ({ className }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 37 36"
+      className={className}
+      fill="none"
+      strokeWidth="2"
+    >
+      {cornerArrowPaths.map((d, i) => (
+        <path key={i} d={d} stroke="currentColor" />
+      ))}
+    </svg>
+  );
+
   const sessionId = location.state?.sessionId;
 
   useEffect(() => {
@@ -143,6 +168,7 @@ export default function SessionEdit() {
         combatMaps,
         lastEdited: new Date(),
       });
+
       console.log("Session saved");
       navigate("/session", {
         state: {
@@ -166,46 +192,29 @@ export default function SessionEdit() {
   const extraMapsCount = combatMaps.length - 3;
 
   return (
-    <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none px-20 pt-[180px] pb-10">
-      <div className="grid grid-cols-3 gap-8 max-h-[calc(100vh-350px)]">
+    <div className="min-h-screen flex flex-col bg-[var(--dark-muted-bg)] text-[var(--primary)] font-serif p-20 pt-40 gap-8">
+      <div className="grid grid-cols-3 gap-8 flex-1">
+        {" "}
         {/* Notes Section */}
         <motion.section
-          className="col-span-2 flex flex-col h-full"
+          className="col-span-2 flex flex-col flex-1"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div
-            className="flex justify-between items-center mb-3"
-            style={{ height: "40px" }}
-          >
-            <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
-              Notes
-            </h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg uppercase tracking-widest ">Notes</h3>
           </div>
-          <div className="relative border-3 border-[var(--secondary)] bg-[#1F1E1A] p-6 focus-within:border-[var(--primary)] flex-1 overflow-hidden shadow-[0_0_30px_rgba(191,136,60,0.2)]">
-            {/* Corner Arrows */}
-            <img
-              src="images/arrow-head.svg"
-              alt="corner"
-              className="absolute top-1 left-1 w-8 h-8 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
-            />
-            <img
-              src="images/arrow-head.svg"
-              alt="corner"
-              className="absolute top-1 right-1 w-8 h-8 scale-125 translate-x-[1px] -translate-y-[1px]"
-            />
-            <img
-              src="images/arrow-head.svg"
-              alt="corner"
-              className="absolute bottom-6 left-1 w-8 h-8 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[21px]"
-            />
-            <img
-              src="images/arrow-head.svg"
-              alt="corner"
-              className="absolute bottom-6 right-1 w-8 h-8 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[21px]"
-            />
 
+          <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 overflow-hidden text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
+            {" "}
+            {/* Corner Arrows */}
+            <>
+              <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+              <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+              <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+              <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+            </>
             <input
               type="text"
               value={sessionData.notesHeadline || ""}
@@ -216,66 +225,37 @@ export default function SessionEdit() {
                 })
               }
               placeholder="Add Headline..."
-              className="w-full text-2xl uppercase font-bold text-[var(--primary)] p-2 mb-4 focus:outline-none bg-transparent drop-shadow-[0_0_8px_rgba(191,136,60,0.3)]"
+              className="w-full text-2xl uppercase text-[var(--primary)] font-bold p-2 mb-4 focus:outline-none bg-transparent "
             />
             <textarea
               value={sessionData.dmNotes || ""}
               onChange={handleNotesChange}
               placeholder="Your journey starts..."
-              className="w-full font-light text-[var(--secondary)] p-5 focus:outline-none focus:text-[var(--primary)] resize-none bg-transparent"
-              style={{ height: "calc(100% - 80px)" }}
+              className="w-full font-light focus:outline-none resize-none bg-transparent flex-1"
             />
           </div>
         </motion.section>
-
         {/* Right Column */}
-        <motion.section
-          className="flex flex-col h-full overflow-y-auto pr-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
+        <motion.section className="flex flex-col overflow-y-auto max-h-full">
           {/* Encounters */}
           <div className="mb-6">
-            <div
-              className="flex justify-between items-center mb-3"
-              style={{ height: "40px" }}
-            >
-              <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
-                Encounters
-              </h3>
+            <div className="flex justify-between items-center ">
+              <h3 className="text-lg uppercase tracking-widest ">Encounters</h3>
               <button
                 onClick={() => setShowEncounterModal(true)}
-                className="text-4xl leading-none transition hover:text-[var(--primary)] hover:drop-shadow-[0_0_15px_rgba(191,136,60,0.8)]"
+                className="text-4xl leading-none transition hover:text-[var(--primary)] "
               >
                 +
               </button>
             </div>
-            <div
-              className="relative bg-[#1F1E1A] border-3 border-[var(--secondary)] p-4 flex flex-col overflow-hidden shadow-[0_0_30px_rgba(191,136,60,0.2)]"
-              style={{ height: "350px" }}
-            >
+            <div className="relative flex flex-col overflow-hidden ">
               {/* Corner Arrows */}
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
-              />
+              {/* <>
+                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+              </> */}
 
               <div className="space-y-3 overflow-y-auto flex-1">
                 {encounters.length > 0 ? (
@@ -294,11 +274,11 @@ export default function SessionEdit() {
                         key={e.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="relative overflow-hidden border-2 border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:shadow-[0_0_20px_rgba(191,136,60,0.3)] transition-all duration-300 group"
+                        className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)]  transition-all duration-300 group"
                         style={{ minHeight: "100px" }}
                       >
                         <div
-                          className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                          className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
                           style={{
                             backgroundImage: `url(${creatureImageUrl})`,
                             backgroundPosition: "right center",
@@ -307,15 +287,16 @@ export default function SessionEdit() {
                           }}
                         />
                         <div
-                          className="absolute inset-0"
+                          className="absolute inset-2"
                           style={{
                             background:
-                              "linear-gradient(to right, rgba(28, 27, 24, 1) 0%, rgba(28, 27, 24, 0.95) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
+                              "linear-gradient(to right, var(--dark-muted-bg) 0%, var(--dark-muted-bg) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
                           }}
                         />
+
                         <div className="relative z-10 p-4 flex justify-between items-start">
                           <div className="flex-1">
-                            <p className="text-xl font-semibold text-[var(--primary)] mb-2 group-hover:drop-shadow-[0_0_12px_rgba(191,136,60,0.8)] transition-all">
+                            <p className="text-xl font-semibold text-[var(--primary)] mb-2  transition-all">
                               {e.name}
                             </p>
                             <div className="text-[var(--secondary)] text-sm space-y-1">
@@ -365,37 +346,21 @@ export default function SessionEdit() {
               className="flex justify-between items-center mb-3"
               style={{ height: "40px" }}
             >
-              <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
-                Maps
-              </h3>
+              <h3 className="text-lg uppercase tracking-widest ">Maps</h3>
             </div>
-            <div className="relative bg-[#1F1E1A] border-3 border-[var(--secondary)] p-4 shadow-[0_0_30px_rgba(191,136,60,0.2)]">
+            <div className="relative  p-4 ">
               {/* Corner Arrows */}
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
-              />
-              <img
-                src="images/arrow-head.svg"
-                alt="corner"
-                className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
-              />
+              {/* <>
+                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+              </> */}
 
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setShowMapModal(true)}
-                  className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] hover:drop-shadow-[0_0_15px_rgba(191,136,60,0.8)]"
+                  className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] "
                 >
                   +
                 </button>
@@ -407,7 +372,7 @@ export default function SessionEdit() {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.05 }}
-                        className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24 hover:border-[var(--primary)] hover:shadow-[0_0_15px_rgba(191,136,60,0.4)] transition-all"
+                        className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24 hover:border-[var(--primary)]  transition-all"
                       >
                         <img
                           src={map.image}
@@ -444,7 +409,7 @@ export default function SessionEdit() {
       </div>
 
       {/* Save Button with Arrows */}
-      <div className="grid grid-cols-3 gap-8 mt-6">
+      <div className="grid grid-cols-3">
         <div className="col-span-3 flex justify-between items-center">
           <DiceThrower />
 
