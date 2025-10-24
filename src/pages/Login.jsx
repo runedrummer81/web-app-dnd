@@ -40,15 +40,24 @@ export default function Login() {
   const scaleY = useMotionValue(1);
 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     const blink = async () => {
       while (mounted) {
-        await new Promise((r) => setTimeout(r, 100)); // every 10s
-        await animate(scaleY, 0.1, { duration: 0.12 }); // close
-        await animate(scaleY, 1, { duration: 0.25 }); // open
+        // Only blink if the password field is NOT focused
+        if (!isPasswordFocused) {
+          await new Promise((r) => setTimeout(r, 5000 + Math.random() * 3000));
+          await animate(scaleY, 0.1, { duration: 0.15, ease: "easeInOut" });
+          await new Promise((r) => setTimeout(r, 800 + Math.random() * 300));
+          await animate(scaleY, 1, { duration: 0.25, ease: "easeOut" });
+        } else {
+          // If focused, keep eyes closed
+          await animate(scaleY, 0.01, { duration: 0.2 });
+          await new Promise((r) => setTimeout(r, 200));
+        }
       }
     };
 
@@ -56,7 +65,7 @@ export default function Login() {
     return () => {
       mounted = false;
     };
-  }, [scaleY]);
+  }, [scaleY, isPasswordFocused]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -211,10 +220,7 @@ export default function Login() {
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 87.06 86.11"
               className="absolute inset-0 w-full h-full transition-transform duration-200 ease-out"
-              style={{
-                transformOrigin: "center center",
-              }}
-              styleMotion={{ scaleY }} // 👈 this keeps scaleY alive
+              style={{ scaleY }} // ✅ correct way to bind MotionValue
               transformTemplate={({ scaleY: sY = 1 }) =>
                 `translate(${offset.x * 1.2}px, ${
                   offset.y * 0.2
@@ -305,18 +311,24 @@ export default function Login() {
               placeholder="Secret Key"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => {
+                setIsPasswordFocused(false);
+                animate(scaleY, 1, { duration: 0.3, ease: "easeOut" });
+              }}
               className="
-      w-full p-3 text-[var(--primary)] 
-      placeholder-[var(--secondary)] 
-      bg-transparent
-      focus:outline-none 
-      focus:bg-[var(--primary)]
-      focus:placeholder-[var(--dark-muted-bg)]
-      focus:text-[var(--dark-muted-bg)]
-      transition duration-200
-    "
+    w-full p-3 text-[var(--primary)] 
+    placeholder-[var(--secondary)] 
+    bg-transparent
+    focus:outline-none 
+    focus:bg-[var(--primary)]
+    focus:placeholder-[var(--dark-muted-bg)]
+    focus:text-[var(--dark-muted-bg)]
+    transition duration-200
+  "
               required
             />
+
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
