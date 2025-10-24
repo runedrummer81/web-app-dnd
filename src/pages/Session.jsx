@@ -14,6 +14,7 @@ import { useNavigate, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import DeleteModal from "../components/DeleteModal";
 import ArrowButton from "../components/ArrowButton";
+import SelectedItem from "../components/SelectedItem";
 
 export default function Session() {
   const [sessions, setSessions] = useState([]);
@@ -310,84 +311,27 @@ export default function Session() {
                   className="w-80 relative"
                 >
                   <motion.div
-                    className={`relative p-1 overflow-visible ${
-                      isCenter
-                        ? "border-2 border-[var(--secondary)] border-r-0"
-                        : ""
-                    }`}
-                    animate={
-                      isCenter
-                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" }
-                        : { boxShadow: "0 0 0px transparent" }
-                    }
-                    transition={{ duration: 0.4 }}
+                    key={sess.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity, y: yOffset, scale }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25,
+                      delay: Math.abs(sess.offset) * 0.1,
+                    }}
+                    className="w-80 relative"
                   >
-                    <motion.div
-                      className={`relative px-6 py-3.5 text-xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
-                        isCenter
-                          ? "bg-[var(--primary)] text-[#1C1B18]"
-                          : "bg-transparent text-[var(--secondary)]"
-                      }`}
-                      animate={
-                        isCenter
-                          ? {
-                              boxShadow: [
-                                "0 0 20px rgba(191,136,60,0.6)",
-                                "0 0 35px rgba(191,136,60,0.9)",
-                                "0 0 20px rgba(191,136,60,0.6)",
-                              ],
-                            }
-                          : { boxShadow: "none" }
-                      }
-                      transition={
-                        isCenter
-                          ? {
-                              repeat: Infinity,
-                              repeatType: "mirror",
-                              duration: 2,
-                            }
-                          : { duration: 0.2 }
-                      }
+                    <SelectedItem
+                      isSelected={isCenter}
+                      showArrow={true}
+                      animate={false} // The outer motion.div handles animation
+                      className="[&>div>div>div]:text-xl" // Override text size to xl
                     >
                       {sess.title || `Session ${sess.sessNr}`}
-                    </motion.div>
-
-                    {/* SVG Arrow for selected session */}
-                    {isCenter && (
-                      <motion.div
-                        key="arrow"
-                        className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10 drop-shadow-[0_0_25px_rgba(191,136,60,0.9)]"
-                        initial={{ opacity: 0 }}
-                        animate={{
-                          opacity: 1,
-                          filter:
-                            "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
-                        }}
-                        transition={{ duration: 0.4, delay: 0.3 }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 35.9 67.5"
-                          className="h-[72px] w-auto"
-                        >
-                          <defs>
-                            <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
-                          </defs>
-                          <polyline
-                            className="st0"
-                            points="1.4 66.8 34.5 33.8 1.4 .7"
-                          />
-                          <polyline
-                            className="st0"
-                            points="17.9 17.2 1.4 33.8 17.9 50.3"
-                          />
-                          <polyline
-                            className="st0"
-                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                          />
-                        </svg>
-                      </motion.div>
-                    )}
+                    </SelectedItem>
                   </motion.div>
 
                   {/* Click handler to select session */}
