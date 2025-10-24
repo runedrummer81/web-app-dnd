@@ -121,6 +121,41 @@ export default function Session() {
     fetchSessions();
   }, [campaignId]);
 
+  // Refresh when returning from edit
+  useEffect(() => {
+    if (location.state?.refreshSessions && campaignId) {
+      const fetchSessions = async () => {
+        try {
+          const q = query(
+            collection(db, "Sessions"),
+            where("campaignId", "==", campaignId)
+          );
+          const snapshot = await getDocs(q);
+          const fetched = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const sorted = fetched.sort((a, b) => b.sessNr - a.sessNr);
+          setSessions(sorted);
+          if (selectedSession) {
+            const updated = sorted.find((s) => s.id === selectedSession.id);
+            if (updated) setSelectedSession(updated);
+          }
+        } catch (err) {
+          console.error("🔥 Firestore fejl:", err);
+        }
+      };
+      fetchSessions();
+      navigate(location.pathname, {
+        state: { campaignId, refreshSessions: false },
+        replace: true,
+      });
+    }
+  }, [
+    location.state?.refreshSessions,
+    campaignId,
+    selectedSession,
+    navigate,
+    location.pathname,
+  ]);
+
   // Create a new session (keeps your existing behavior)
   const createNewSession = async () => {
     if (!campaignId) return;
@@ -278,7 +313,9 @@ export default function Session() {
                 >
                   <motion.div
                     className={`relative p-1 overflow-visible ${
-                      isCenter ? "border-2 border-[var(--secondary)] border-r-0" : ""
+                      isCenter
+                        ? "border-2 border-[var(--secondary)] border-r-0"
+                        : ""
                     }`}
                     animate={
                       isCenter
@@ -461,7 +498,9 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[var(--secondary)]/80 text-sm">No encounters yet</p>
+                  <p className="text-[var(--secondary)]/80 text-sm">
+                    No encounters yet
+                  </p>
                 )}
               </div>
 
@@ -474,15 +513,15 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
                       key={idx}
                       className="w-1/3 h-32 bg-[#2A2A22] rounded border border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
                     >
-                      {map.imageUrl ? (
+                      {map.image ? (
                         <img
-                          src={map.imageUrl}
-                          alt={map.name || `Map ${idx + 1}`}
+                          src={map.image}
+                          alt={map.title || `Map ${idx + 1}`}
                           className="object-cover w-full h-full hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
                         <p className="text-[var(--secondary)]/80 text-sm text-center px-2">
-                          {map.name || `Map ${idx + 1}`}
+                          {map.title || `Map ${idx + 1}`}
                         </p>
                       )}
                     </div>
@@ -499,6 +538,17 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
                     Empty
                   </div>
                 ))}
+
+                {/* Show +X more indicator if more than 3 maps */}
+                {(selectedSession.combatMaps?.length || 0) > 3 && (
+                  <div className="w-1/3 h-32 bg-[#2A2A22] rounded border border-[var(--secondary)] flex items-center justify-center">
+                    <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
+                      +{(selectedSession.combatMaps?.length || 0) - 3}
+                      <br />
+                      more
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
