@@ -146,7 +146,7 @@ export default function HomePage() {
           {active ? (
             <div className=" text-gray-700 text-center">
               {active === "Continue Campaign" && (
-                <div>
+                <div className=" flex flex-col items-center">
                   <div className="flex justify-between text-2xl  text-[var(--secondary)] text-center px-30 gap-5 uppercase">
                     <div>
                       {lastCampaign?.lastOpened
