@@ -403,8 +403,8 @@ export default function Login() {
       <div className="absolute flex justify-between w-full bottom-4 pointer-events-none  inset-0">
         <div className="relative w-full h-full">
           <img
-            src="/images/login.jpg"
-            alt="Test"
+            src="images/login.jpg"
+            alt="Billede af en mystisk skov med tåge"
             className="w-full h-full object-cover"
           />
           <div

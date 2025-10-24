@@ -28,7 +28,7 @@ export default function MistVideo() {
     <video
       ref={videoRef}
       className="absolute z-10 pointer-events-none mix-blend-screen opacity-70"
-      src="/video/mist.webm"
+      src="video/mist.webm"
       autoPlay
       loop
       playsInline
