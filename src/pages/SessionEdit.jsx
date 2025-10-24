@@ -1,3 +1,5 @@
+// SessionEdit.jsx - D&D STYLED VERSION
+
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { getAuth } from "firebase/auth";
@@ -7,12 +9,13 @@ import {
   updateDoc,
   collection,
   getDocs,
-  query,
-  where,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import DiceThrower from "../components/DiceThrower";
-import { motion, AnimatePresence } from "framer-motion";
+import MapBrowserModal from "../components/MapBrowserModal";
+import EncounterBrowserModal from "../components/EncounterBrowserModal";
+import { motion } from "framer-motion";
+import ArrowButton from "../components/ArrowButton";
 
 export default function SessionEdit() {
   const navigate = useNavigate();
@@ -20,27 +23,14 @@ export default function SessionEdit() {
 
   const [sessionData, setSessionData] = useState(null);
   const [encounters, setEncounters] = useState([]);
-  const [availableEncounters, setAvailableEncounters] = useState([]);
-  const [availableMaps, setAvailableMaps] = useState([]);
-  const [filteredMaps, setFilteredMaps] = useState([]);
   const [combatMaps, setCombatMaps] = useState([]);
   const [worldMap, setWorldMap] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [filters, setFilters] = useState({
-    forest: false,
-    cave: false,
-    castle: false,
-  });
-
-  // Tilføj en midlertidig state til valgte maps i modal
-  const [tempSelectedMaps, setTempSelectedMaps] = useState([]);
+  const [showEncounterModal, setShowEncounterModal] = useState(false);
+  const [creatureImages, setCreatureImages] = useState({});
 
   const sessionId = location.state?.sessionId;
 
-  // Modal state for encounters
-  const [showEncounterModal, setShowEncounterModal] = useState(false);
-
-  // Hent session + world map
   useEffect(() => {
     if (!sessionId) {
       console.warn("No sessionId found — redirect ");
@@ -58,7 +48,6 @@ export default function SessionEdit() {
           setEncounters(data.encounters || []);
           setCombatMaps(data.combatMaps || []);
 
-          // Hent world map via template
           if (data.campaignId) {
             const campaignRef = doc(db, "Campaigns", data.campaignId);
             const campaignSnap = await getDoc(campaignRef);
@@ -80,100 +69,87 @@ export default function SessionEdit() {
     fetchSession();
   }, [sessionId, navigate]);
 
-  // Hent encounters
   useEffect(() => {
-    async function fetchEncounters() {
-      const auth = getAuth();
-      const user = auth.currentUser;
+    async function fetchCreatureImages() {
+      const creatureNames = new Set();
+      encounters.forEach((encounter) => {
+        if (encounter.creatures) {
+          encounter.creatures.forEach((creature) => {
+            creatureNames.add(creature.name);
+          });
+        }
+      });
 
       try {
-        const q = query(
-          collection(db, "encounters"),
-          where("ownerId", "==", user.uid)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setAvailableEncounters(data);
+        const creaturesSnapshot = await getDocs(collection(db, "Creatures"));
+        const images = {};
+
+        creaturesSnapshot.docs.forEach((doc) => {
+          const creatureData = doc.data();
+          const creatureName = doc.id;
+
+          if (creatureNames.has(creatureName)) {
+            images[creatureName] = creatureData.imageURL || null;
+          }
+        });
+
+        setCreatureImages(images);
       } catch (err) {
-        console.error("🔥 couldn't find encounters:", err);
+        console.error("Error fetching creature images:", err);
       }
     }
 
-    fetchEncounters();
-  }, []);
-
-  // Hent combat smaps
-  useEffect(() => {
-    async function fetchMaps() {
-      const q = query(collection(db, "Maps"), where("type", "==", "combat"));
-      const snapshot = await getDocs(q);
-      const maps = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setAvailableMaps(maps);
-      setFilteredMaps(maps);
+    if (encounters.length > 0) {
+      fetchCreatureImages();
     }
-    fetchMaps();
-  }, []);
+  }, [encounters]);
 
-  // Ændr noter
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
-  };
-
-  // Tilføj encounter
-  const handleAddEncounter = (e) => {
-    const selectedId = e.target.value;
-    if (!selectedId) return;
-    const selected = availableEncounters.find((enc) => enc.id === selectedId);
-    if (selected && !encounters.find((e) => e.id === selectedId)) {
-      setEncounters([...encounters, selected]);
-    }
   };
 
   const handleRemoveEncounter = (id) => {
     setEncounters(encounters.filter((e) => e.id !== id));
   };
 
-  // Filtrer maps
-  useEffect(() => {
-    const activeFilters = Object.entries(filters)
-      .filter(([_, val]) => val)
-      .map(([key]) => key);
-
-    if (activeFilters.length === 0) {
-      setFilteredMaps(availableMaps);
-    } else {
-      setFilteredMaps(
-        availableMaps.filter((map) =>
-          map.tags?.some((tag) => activeFilters.includes(tag.toLowerCase()))
-        )
-      );
-    }
-  }, [filters, availableMaps]);
-
-  // Tilføj/fjern maps
-  const handleAddMap = (map) => {
-    if (!combatMaps.find((m) => m.id === map.id)) {
-      setCombatMaps([...combatMaps, map]);
-    }
-  };
-
   const handleRemoveMap = (id) => {
     setCombatMaps(combatMaps.filter((m) => m.id !== id));
   };
 
-  // Gem til Firebase
+  const handleMapsConfirm = (newMaps) => {
+    setCombatMaps([...combatMaps, ...newMaps]);
+  };
+
+  const handleEncounterConfirm = (newEncounters) => {
+    if (Array.isArray(newEncounters)) {
+      const encountersToAdd = newEncounters.filter(
+        (enc) => !encounters.find((e) => e.id === enc.id)
+      );
+      setEncounters([...encounters, ...encountersToAdd]);
+    } else {
+      if (!encounters.find((e) => e.id === newEncounters.id)) {
+        setEncounters([...encounters, newEncounters]);
+      }
+    }
+  };
+
   const handleSave = async () => {
     try {
       const sessionRef = doc(db, "Sessions", sessionId);
       await updateDoc(sessionRef, {
         dmNotes: sessionData.dmNotes,
-        notesHeadline: sessionData.notesHeadline, // Add this line
+        notesHeadline: sessionData.notesHeadline,
         encounters,
         combatMaps,
         lastEdited: new Date(),
       });
       console.log("Session saved");
-      navigate("/session");
+      navigate("/session", {
+        state: {
+          campaignId: sessionData.campaignId,
+          refreshSessions: true,
+        },
+      });
     } catch (err) {
       console.error("error:", err);
     }
@@ -181,324 +157,322 @@ export default function SessionEdit() {
 
   if (!sessionData)
     return (
-      <p className="text-center mt-20 text-[var(--primary)]">Indlæser session...</p>
+      <p className="text-center mt-20 text-[var(--primary)]">
+        Indlæser session...
+      </p>
     );
 
+  const displayedMaps = combatMaps.slice(0, 3);
+  const extraMapsCount = combatMaps.length - 3;
+
   return (
-    <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none grid grid-cols-3 gap-8 px-20 pt-40 pb-13 items-stretch">
-      {/* Venstre kolonne */}
-      <section className="flex flex-col min-h-full col-span-2">
-        {/* Noter */}
-        <div className="flex justify-between items-baseline py-3">
-          <h3 className="text-lg uppercase tracking-widest">Notes</h3>
-        </div>
-        <div className="border-2 border-[var(--secondary)] p-4 focus-within:border-[var(--primary)]">
-          <input
-            type="text"
-            value={sessionData.notesHeadline || ""}
-            onChange={(e) =>
-              setSessionData({ ...sessionData, notesHeadline: e.target.value })
-            }
-            placeholder="Add Headline..."
-            className="w-full text-2xl uppercase font-bold text-[var(--primary)] p-2 mb-4 focus:outline-none"
-          />
-
-          <textarea
-            value={sessionData.dmNotes || ""}
-            onChange={handleNotesChange}
-            placeholder="Your journey starts..."
-            className="w-full h-[40vh] font-light text-[var(--secondary)] p-5 focus:outline-none focus:text-[var(--primary)] resize-none"
-          />
-        </div>
-      </section>
-
-      {/* Højre kolonne */}
-      <section className="flex flex-col  min-h-full">
-        {/* Encounters */}
-        <article>
-          <div className="flex justify-between items-baseline py-3">
-            <h3 className="text-lg uppercase tracking-widest">Encounters</h3>
-            <button
-              onClick={() => setShowEncounterModal(true)}
-              className=" text-4xl transition "
-            >
-              +
-            </button>
-          </div>
-
-          <div className="space-y-2 border-2 border-[var(--secondary)] p-2">
-            {encounters.length > 0 ? (
-              encounters.map((e) => (
-                <div key={e.id} className=" px-3 py-2 items-center">
-                  <div className="flex justify-between">
-                    <p className="text-1xl">{e.name}</p>
-                    <button
-                      onClick={() => handleRemoveEncounter(e.id)}
-                      className="text-red-400 hover:text-red-300 transition"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <div>
-                    <p className="font-light text-[var(--secondary)]">
-                      {e.creatures && e.creatures.length > 0
-                        ? e.creatures.map((c, i) => (
-                            <span key={i}>
-                              {c.name} × {c.count}
-                              <br />
-                            </span>
-                          ))
-                        : "No creatures"}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-[var(-primary)]/60 italic">
-                No encounters added yet.
-              </p>
-            )}
-          </div>
-        </article>
-
-        {/* World Map */}
-        {/* {worldMap && (
-          <article className="border-2 border-[var(--secondary)]/50 p-4 ">
-            <h3 className="text-lg uppercase tracking-widest mb-2">
-              World Map
+    <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none px-20 pt-[180px] pb-10">
+      <div className="grid grid-cols-3 gap-8 max-h-[calc(100vh-350px)]">
+        {/* Notes Section */}
+        <motion.section
+          className="col-span-2 flex flex-col h-full"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div
+            className="flex justify-between items-center mb-3"
+            style={{ height: "40px" }}
+          >
+            <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
+              Notes
             </h3>
-            <img
-              src={worldMap}
-              alt="World Map"
-              className="w-full object-cover max-h-[250px]"
-            />
-          </article>
-        )} */}
-
-        {/* Combat Maps */}
-        <article>
-          <div className="flex justify-between items-center mb-3 pt-5">
-            <h3 className="text-lg uppercase tracking-widest">Maps</h3>
           </div>
+          <div className="relative border-3 border-[var(--secondary)] bg-[#1F1E1A] p-6 focus-within:border-[var(--primary)] flex-1 overflow-hidden shadow-[0_0_30px_rgba(191,136,60,0.2)]">
+            {/* Corner Arrows */}
+            <img
+              src="/images/arrow-head.svg"
+              alt="corner"
+              className="absolute top-1 left-1 w-8 h-8 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
+            />
+            <img
+              src="/images/arrow-head.svg"
+              alt="corner"
+              className="absolute top-1 right-1 w-8 h-8 scale-125 translate-x-[1px] -translate-y-[1px]"
+            />
+            <img
+              src="/images/arrow-head.svg"
+              alt="corner"
+              className="absolute bottom-6 left-1 w-8 h-8 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[21px]"
+            />
+            <img
+              src="/images/arrow-head.svg"
+              alt="corner"
+              className="absolute bottom-6 right-1 w-8 h-8 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[21px]"
+            />
 
-          {/* Valgte maps */}
-          <div className="mt-4">
-            <div className="flex flex-wrap gap-3">
+            <input
+              type="text"
+              value={sessionData.notesHeadline || ""}
+              onChange={(e) =>
+                setSessionData({
+                  ...sessionData,
+                  notesHeadline: e.target.value,
+                })
+              }
+              placeholder="Add Headline..."
+              className="w-full text-2xl uppercase font-bold text-[var(--primary)] p-2 mb-4 focus:outline-none bg-transparent drop-shadow-[0_0_8px_rgba(191,136,60,0.3)]"
+            />
+            <textarea
+              value={sessionData.dmNotes || ""}
+              onChange={handleNotesChange}
+              placeholder="Your journey starts..."
+              className="w-full font-light text-[var(--secondary)] p-5 focus:outline-none focus:text-[var(--primary)] resize-none bg-transparent"
+              style={{ height: "calc(100% - 80px)" }}
+            />
+          </div>
+        </motion.section>
+
+        {/* Right Column */}
+        <motion.section
+          className="flex flex-col h-full overflow-y-auto pr-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          {/* Encounters */}
+          <div className="mb-6">
+            <div
+              className="flex justify-between items-center mb-3"
+              style={{ height: "40px" }}
+            >
+              <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
+                Encounters
+              </h3>
               <button
-                onClick={() => setShowMapModal(true)}
-                className="right-0 py-1 text-4xl px-3 transition"
+                onClick={() => setShowEncounterModal(true)}
+                className="text-4xl leading-none transition hover:text-[var(--primary)] hover:drop-shadow-[0_0_15px_rgba(191,136,60,0.8)]"
               >
                 +
               </button>
-              {combatMaps.length > 0 ? (
-                combatMaps.map((map) => (
-                  <div
-                    key={map.id}
-                    className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24"
-                  >
-                    <img
-                      src={map.image}
-                      alt={map.title}
-                      className="object-cover w-full h-full"
-                    />
-                    <button
-                      onClick={() => handleRemoveMap(map.id)}
-                      className="absolute top-1 right-1 text-red-400 hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p className="text-[var(--primary)]/60 italic">No maps added yet. </p>
-              )}
             </div>
-          </div>
-        </article>
-      </section>
-
-      {/* Bundnavigation */}
-      <section className="col-span-3 flex justify-between  items-center min-w-full">
-        <DiceThrower />
-        <div className="flex gap-4">
-          <button
-            onClick={handleSave}
-            className="border border-[var(--primary)] rounded py-2 px-4 hover:bg-[var(--primary)]/10 transition"
-          >
-            Save
-          </button>
-        </div>
-      </section>
-
-      {/* ENCOUNTER MODAL */}
-      <AnimatePresence>
-        {showEncounterModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6  shadow-xl w-[80%] max-w-md max-h-[70vh] overflow-y-auto"
+            <div
+              className="relative bg-[#1F1E1A] border-3 border-[var(--secondary)] p-4 flex flex-col overflow-hidden shadow-[0_0_30px_rgba(191,136,60,0.2)]"
+              style={{ height: "350px" }}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg uppercase tracking-widest font-semibold">
-                  Vælg Encounter
-                </h3>
-                <button
-                  onClick={() => setShowEncounterModal(false)}
-                  className="text-[var(--primary)] hover:text-white transition text-lg"
-                >
-                  ✕
-                </button>
-              </div>
+              {/* Corner Arrows */}
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
+              />
 
-              <ul className="space-y-2">
-                {availableEncounters.length > 0 ? (
-                  availableEncounters.map((enc) => (
-                    <li key={enc.id}>
-                      <button
-                        onClick={() => {
-                          handleAddEncounter({ target: { value: enc.id } });
-                          setShowEncounterModal(false);
-                        }}
-                        className="w-full text-[var(--secondary)] text-left p-2 hover:text-[var(--primary)] transition"
+              <div className="space-y-3 overflow-y-auto flex-1">
+                {encounters.length > 0 ? (
+                  encounters.map((e) => {
+                    const firstCreature =
+                      e.creatures && e.creatures.length > 0
+                        ? e.creatures[0]
+                        : null;
+                    const creatureImageUrl = firstCreature
+                      ? creatureImages[firstCreature.name] ||
+                        "https://via.placeholder.com/400x200?text=No+Image"
+                      : "https://via.placeholder.com/400x200?text=No+Image";
+
+                    return (
+                      <motion.div
+                        key={e.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative overflow-hidden border-2 border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:shadow-[0_0_20px_rgba(191,136,60,0.3)] transition-all duration-300 group"
+                        style={{ minHeight: "100px" }}
                       >
-                        {enc.name}
-                      </button>
-                    </li>
-                  ))
+                        <div
+                          className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                          style={{
+                            backgroundImage: `url(${creatureImageUrl})`,
+                            backgroundPosition: "right center",
+                            clipPath:
+                              "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                          }}
+                        />
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background:
+                              "linear-gradient(to right, rgba(28, 27, 24, 1) 0%, rgba(28, 27, 24, 0.95) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
+                          }}
+                        />
+                        <div className="relative z-10 p-4 flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-xl font-semibold text-[var(--primary)] mb-2 group-hover:drop-shadow-[0_0_12px_rgba(191,136,60,0.8)] transition-all">
+                              {e.name}
+                            </p>
+                            <div className="text-[var(--secondary)] text-sm space-y-1">
+                              {e.creatures && e.creatures.length > 0 ? (
+                                e.creatures.map((c, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <span className="text-[var(--secondary)]/60">
+                                      •
+                                    </span>
+                                    <span>
+                                      {c.name} × {c.count}
+                                    </span>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-[var(--secondary)]/60 italic">
+                                  No creatures
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveEncounter(e.id)}
+                            className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })
                 ) : (
-                  <p className="text-[var(--primary)] italic">
-                    Ingen encounters fundet
+                  <p className="text-[var(--primary)]/60 italic text-center py-4">
+                    No encounters added yet.
                   </p>
                 )}
-              </ul>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+            </div>
+          </div>
 
-      {/* MAP MODAL */}
-      <AnimatePresence>
-        {showMapModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6 shadow-xl w-[80%] max-w-4xl max-h-[80vh] overflow-y-auto"
+          {/* Maps */}
+          <div>
+            <div
+              className="flex justify-between items-center mb-3"
+              style={{ height: "40px" }}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg uppercase tracking-widest font-semibold">
-                  Vælg Combat Maps
-                </h3>
-                <button
-                  onClick={() => {
-                    setTempSelectedMaps([]);
-                    setShowMapModal(false);
-                  }}
-                  className="text-[var(--primary)] hover:text-white transition text-lg"
-                >
-                  ✕
-                </button>
-              </div>
+              <h3 className="text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
+                Maps
+              </h3>
+            </div>
+            <div className="relative bg-[#1F1E1A] border-3 border-[var(--secondary)] p-4 shadow-[0_0_30px_rgba(191,136,60,0.2)]">
+              {/* Corner Arrows */}
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute top-0 left-0 w-6 h-6 rotate-[270deg] scale-125 -translate-x-[1px] -translate-y-[1px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute top-0 right-0 w-6 h-6 scale-125 translate-x-[1px] -translate-y-[1px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute bottom-4 left-0 w-6 h-6 rotate-[180deg] scale-125 -translate-x-[1px] translate-y-[16px]"
+              />
+              <img
+                src="/images/arrow-head.svg"
+                alt="corner"
+                className="absolute bottom-4 right-0 w-6 h-6 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[16px]"
+              />
 
-              {/* Filtre */}
-              <div className="mb-4 flex gap-4">
-                {["forest", "cave", "castle"].map((type) => (
-                  <label
-                    key={type}
-                    className="flex items-center gap-2 cursor-pointer text-[var(--secondary)]"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters[type]}
-                      onChange={(e) =>
-                        setFilters({ ...filters, [type]: e.target.checked })
-                      }
-                    />
-                    <span className="capitalize">{type}</span>
-                  </label>
-                ))}
-              </div>
-
-              {/* Map-liste */}
-              <div className="grid grid-cols-3 gap-4">
-                {filteredMaps.map((map) => {
-                  const isSelected = tempSelectedMaps.find(
-                    (m) => m.id === map.id
-                  );
-                  return (
-                    <div
-                      key={map.id}
-                      onClick={() => {
-                        if (isSelected) {
-                          setTempSelectedMaps(
-                            tempSelectedMaps.filter((m) => m.id !== map.id)
-                          );
-                        } else {
-                          setTempSelectedMaps([...tempSelectedMaps, map]);
-                        }
-                      }}
-                      className={`cursor-pointer border-2 p-2 hover:border-[var(--primary)] transition ${
-                        isSelected
-                          ? "border-[var(--primary)]"
-                          : "border-[var(--secondary)]"
-                      }`}
-                    >
-                      <img
-                        src={map.image}
-                        alt={map.title}
-                        className="w-full h-32 object-cover mb-2"
-                      />
-                      <p className="text-center text-sm text-[var(--secondary)]">
-                        {map.title}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Confirm-knap */}
-              <div className="flex justify-end mt-6 gap-2">
+              <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => {
-                    const newMaps = tempSelectedMaps.filter(
-                      (map) => !combatMaps.find((m) => m.id === map.id)
-                    );
-                    setCombatMaps([...combatMaps, ...newMaps]);
-                    setTempSelectedMaps([]);
-                    setShowMapModal(false);
-                  }}
-                  className="border-2 border-[var(--secondary)] py-2 px-4 hover:bg-[var(--secondary)]/10 transition text-[var(--secondary)]"
+                  onClick={() => setShowMapModal(true)}
+                  className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] hover:drop-shadow-[0_0_15px_rgba(191,136,60,0.8)]"
                 >
-                  Confirm
+                  +
                 </button>
-                <button
-                  onClick={() => {
-                    setTempSelectedMaps([]);
-                    setShowMapModal(false);
-                  }}
-                  className="border-2 border-[var(--secondary)] py-2 px-4 hover:bg-[var(--secondary)]/10 transition text-[var(--secondary)]"
-                >
-                  Cancel
-                </button>
+                {displayedMaps.length > 0 ? (
+                  <>
+                    {displayedMaps.map((map) => (
+                      <motion.div
+                        key={map.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ scale: 1.05 }}
+                        className="relative flex flex-col items-center p-2 border-2 border-[var(--secondary)] aspect-square w-24 hover:border-[var(--primary)] hover:shadow-[0_0_15px_rgba(191,136,60,0.4)] transition-all"
+                      >
+                        <img
+                          src={map.image}
+                          alt={map.title}
+                          className="object-cover w-full h-full"
+                        />
+                        <button
+                          onClick={() => handleRemoveMap(map.id)}
+                          className="cursor-pointer absolute top-1 right-1 text-red-400 hover:text-red-300 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                        >
+                          ✕
+                        </button>
+                      </motion.div>
+                    ))}
+                    {extraMapsCount > 0 && (
+                      <div className="flex items-center justify-center aspect-square w-24 border-2 border-[var(--secondary)]/50 bg-[#1C1B18]">
+                        <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
+                          +{extraMapsCount}
+                          <br />
+                          more
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-[var(--primary)]/60 italic">
+                    No maps added yet.
+                  </p>
+                )}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </motion.section>
+      </div>
+
+      {/* Save Button with Arrows */}
+      <div className="grid grid-cols-3 gap-8 mt-6">
+        <div className="col-span-3 flex justify-between items-center">
+          <DiceThrower />
+
+          <ArrowButton
+            label="Save Session"
+            onClick={handleSave}
+            size="md"
+            color="var(--primary)"
+            glow="rgba(191,136,60,0.6)"
+            hoverOffset={20}
+            gradient={true}
+          />
+        </div>
+      </div>
+
+      <EncounterBrowserModal
+        isOpen={showEncounterModal}
+        onClose={() => setShowEncounterModal(false)}
+        onConfirm={handleEncounterConfirm}
+        alreadySelectedEncounters={encounters}
+      />
+
+      <MapBrowserModal
+        isOpen={showMapModal}
+        onClose={() => setShowMapModal(false)}
+        onConfirm={handleMapsConfirm}
+        alreadySelectedMaps={combatMaps}
+      />
     </div>
   );
 }
