@@ -188,6 +188,55 @@ export default function CreateEncounters() {
     return { spanRef, width };
   }
 
+  function getTooltipPosition(
+    mouseX,
+    mouseY,
+    panelWidth = 900,
+    panelHeight = 600
+  ) {
+    try {
+      const offset = 25;
+      const winW = typeof window !== "undefined" ? window.innerWidth : 1024;
+      const winH = typeof window !== "undefined" ? window.innerHeight : 768;
+
+      if (typeof mouseX !== "number" || typeof mouseY !== "number") {
+        return { left: offset, top: offset };
+      }
+
+      let left = mouseX + offset;
+      let top = mouseY + offset;
+
+      // Flip horizontally if too close to right edge
+      if (left + panelWidth > winW - 10) {
+        left = mouseX - panelWidth - offset;
+      }
+
+      // Flip vertically if too close to bottom
+      if (top + panelHeight > winH - 10) {
+        top = mouseY - panelHeight - offset;
+      }
+
+      // Clamp to viewport
+      left = Math.max(8, Math.min(left, winW - 8 - Math.min(panelWidth, winW)));
+      top = Math.max(8, Math.min(top, winH - 8 - Math.min(panelHeight, winH)));
+
+      return { left, top };
+    } catch (err) {
+      console.error("getTooltipPosition error:", err);
+      return { left: 8, top: 8 };
+    }
+  }
+
+  const tooltipPos =
+    hoveredCreature && hoveredCreature.mousePos
+      ? getTooltipPosition(
+          hoveredCreature.mousePos.x,
+          hoveredCreature.mousePos.y,
+          900,
+          600
+        )
+      : null;
+
   return (
     <div className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
@@ -256,18 +305,19 @@ export default function CreateEncounters() {
                 key={creature.id}
                 className="flex justify-between items-center p-2 cursor-pointer transition-colors text-[var(--secondary)] "
                 onClick={() => handleAddCreature(creature)}
-                onMouseEnter={() => setHoveredCreature(creature)}
+                onMouseEnter={(e) =>
+                  setHoveredCreature({
+                    ...creature,
+                    mousePos: { x: e.clientX + 15, y: e.clientY + 15 },
+                  })
+                }
+                onMouseMove={(e) =>
+                  setHoveredCreature((prev) => ({
+                    ...(creature || prev || {}),
+                    mousePos: { x: e.clientX + 15, y: e.clientY + 15 },
+                  }))
+                }
                 onMouseLeave={() => setHoveredCreature(null)}
-                onMouseMove={(e) => {
-                  setHoveredCreature((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          mousePos: { x: e.clientX + 15, y: e.clientY + 15 },
-                        }
-                      : null
-                  );
-                }}
               >
                 <span className="text-">{creature.name}</span>
               </div>
@@ -348,20 +398,18 @@ export default function CreateEncounters() {
       {/* RIGHT PANEL — SAVED ENCOUNTERS */}
 
       <div className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col">
-  <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
-    Saved Encounters
-  </h2>
+        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
+          Saved Encounters
+        </h2>
 
-  {savedEncounters.length === 0 && (
-    <p className="italic text-center text-[var(--secondary)] mb-4">
-      No saved encounters
-    </p>
-  )}
+        {savedEncounters.length === 0 && (
+          <p className="italic text-center text-[var(--secondary)] mb-4">
+            No saved encounters
+          </p>
+        )}
 
-  <div
-    className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-  >
-    <AnimatePresence>
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+          <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
                 key={enc.id}
@@ -453,8 +501,8 @@ export default function CreateEncounters() {
               </motion.div>
             ))}
           </AnimatePresence>
-  </div>
-</div>
+        </div>
+      </div>
 
       {/* Hover preview panel (animated) */}
       <AnimatePresence>
@@ -466,14 +514,8 @@ export default function CreateEncounters() {
             transition={{ duration: 0.15 }}
             className="fixed z-50 w-[900px] max-w-[90vw] bg-black text-[var(--secondary)] border [var(--secondary)] shadow-2xl pointer-events-none overflow-hidden"
             style={{
-              top: Math.min(
-                hoveredCreature.mousePos.y,
-                window.innerHeight - 20 - 600
-              ),
-              left: Math.min(
-                hoveredCreature.mousePos.x,
-                window.innerWidth - 20 - 900 
-              ),
+              top: `${tooltipPos.top}px`,
+              left: `${tooltipPos.left}px`,
             }}
           >
             {hoveredCreature.imageURL && (
