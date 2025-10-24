@@ -109,6 +109,23 @@ export default function SessionEdit() {
     }
   }, [encounters]);
 
+   // Track changes når data ændres
+useEffect(() => {
+  if (sessionData) {
+    setHasUnsavedChanges(true);
+  }
+}, [sessionData?.dmNotes, sessionData?.notesHeadline, encounters, combatMaps]);
+
+  // Lyt efter navigation attempts fra Nav
+useEffect(() => {
+  const handleNavigationEvent = () => {
+    handleNavigationAttempt("/session");
+  };
+  
+  window.addEventListener("attemptNavigation", handleNavigationEvent);
+  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+}, [hasUnsavedChanges]); // 👈 Vigtig dependency
+
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
   };
@@ -140,16 +157,16 @@ export default function SessionEdit() {
 
 
 
-  const displayedMaps = combatMaps.slice(0, 3);
-  const extraMapsCount = combatMaps.length - 3;
+  
 
 
-  // Track changes når data ændres
-useEffect(() => {
-  if (sessionData) {
-    setHasUnsavedChanges(true);
-  }
-}, [sessionData?.dmNotes, sessionData?.notesHeadline, encounters, combatMaps]);
+
+
+
+
+ 
+
+ 
 
   // Opdater handleSave til at clear unsaved changes flag
 const handleSave = async () => {
@@ -175,13 +192,6 @@ const handleSave = async () => {
   }
 };
 
-  if (!sessionData)
-    return (
-      <p className="text-center mt-20 text-[var(--primary)]">
-        Loading session...
-      </p>
-    );
-
 // Håndter navigation attempts
 const handleNavigationAttempt = (destination) => {
   if (hasUnsavedChanges) {
@@ -192,7 +202,7 @@ const handleNavigationAttempt = (destination) => {
   }
 };
 
-    // Modal handlers
+   // Modal handlers
 const handleSaveAndNavigate = async () => {
   await handleSave();
   setShowUnsavedModal(false);
@@ -206,6 +216,17 @@ const handleContinueWithoutSaving = () => {
     navigate(pendingNavigation);
   }
 };
+
+  if (!sessionData)
+    return (
+      <p className="text-center mt-20 text-[var(--primary)]">
+        Loading session...
+      </p>
+    );
+
+  const displayedMaps = combatMaps.slice(0, 3);
+  const extraMapsCount = combatMaps.length - 3;
+
 
   return (
     <div className="min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none px-20 pt-[180px] pb-10">
