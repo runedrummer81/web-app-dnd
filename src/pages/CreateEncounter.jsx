@@ -346,14 +346,22 @@ export default function CreateEncounters() {
       </div>
 
       {/* RIGHT PANEL — SAVED ENCOUNTERS */}
-      <div className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col">
-        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
-          Saved Encounters
-        </h2>
 
-        <div
-          className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
-          <AnimatePresence>
+      <div className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col">
+  <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
+    Saved Encounters
+  </h2>
+
+  {savedEncounters.length === 0 && (
+    <p className="italic text-center text-[var(--secondary)] mb-4">
+      No saved encounters
+    </p>
+  )}
+
+  <div
+    className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+  >
+    <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
                 key={enc.id}
@@ -445,8 +453,8 @@ export default function CreateEncounters() {
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
-      </div>
+  </div>
+</div>
 
       {/* Hover preview panel (animated) */}
       <AnimatePresence>
@@ -460,11 +468,11 @@ export default function CreateEncounters() {
             style={{
               top: Math.min(
                 hoveredCreature.mousePos.y,
-                window.innerHeight - 20 - 600 // max height clamp (adjust 600 if panel is taller)
+                window.innerHeight - 20 - 600
               ),
               left: Math.min(
                 hoveredCreature.mousePos.x,
-                window.innerWidth - 20 - 900 // max width clamp (matches w-[900px])
+                window.innerWidth - 20 - 900 
               ),
             }}
           >
