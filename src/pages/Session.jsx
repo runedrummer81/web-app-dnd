@@ -478,7 +478,7 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
               {/* DM Notes */}
               <div className="bg-[#1F1E1A]">
                 <p className="text-[#bf883c] whitespace-pre-wrap h-[250px]">
-                  {selectedSession.dmNotes || "Ingen noter endnu"}
+                  {selectedSession.dmNotes || "No notes yet"}
                 </p>
               </div>
             </motion.div>

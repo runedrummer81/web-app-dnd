@@ -158,7 +158,7 @@ export default function SessionEdit() {
   if (!sessionData)
     return (
       <p className="text-center mt-20 text-[var(--primary)]">
-        Indlæser session...
+        Loading session...
       </p>
     );
 
@@ -352,7 +352,7 @@ export default function SessionEdit() {
                   })
                 ) : (
                   <p className="text-[var(--primary)]/60 italic text-center py-4">
-                    No encounters added yet.
+                    No encounters added yet
                   </p>
                 )}
               </div>
@@ -434,7 +434,7 @@ export default function SessionEdit() {
                   </>
                 ) : (
                   <p className="text-[var(--primary)]/60 italic">
-                    No maps added yet.
+                    No maps added yet
                   </p>
                 )}
               </div>
