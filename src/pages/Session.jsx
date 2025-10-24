@@ -450,22 +450,22 @@ p-6 xl:p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10
             >
               {/* Corner Arrows */}
               <img
-                src="public/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner arrow"
                 className="absolute top-1 left-1 w-8 h-8 rotate-[270deg] scale-125 translate-x-[-1px] translate-y-[-1px]"
               />
               <img
-                src="public/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner arrow"
                 className="absolute top-1 right-1 w-8 h-8 scale-125 translate-x-[1px] translate-y-[-1px]"
               />
               <img
-                src="public/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner arrow"
                 className="absolute bottom-1 left-1 w-8 h-8 rotate-[180deg] scale-125 translate-x-[-1px] translate-y-[21px]"
               />
               <img
-                src="public/images/arrow-head.svg"
+                src="images/arrow-head.svg"
                 alt="corner arrow"
                 className="absolute bottom-1 right-1 w-8 h-8 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[21px]"
               />
