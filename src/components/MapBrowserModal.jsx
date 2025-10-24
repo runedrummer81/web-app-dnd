@@ -239,7 +239,7 @@ export default function MapBrowserModal({
               </div>
             ) : (
               // Update the grid div to include a key
-              <div className="grid grid-cols-3 gap-8" key={selectedFilter}>
+              <div className="grid grid-cols-4 gap-8" key={selectedFilter}>
                 {filteredMaps.map((map, index) => {
                   const isSelected = tempSelectedMaps.find(
                     (m) => m.id === map.id
