@@ -252,3 +252,11 @@ input:-webkit-autofill:active {
   scrollbar-width: thin;
   scrollbar-color: rgba(191, 136, 60, 0.4) #1c1b18;
 }
+
+html,
+body,
+#root {
+  background-color: #1c1b18;
+  margin: 0;
+  padding: 0;
+}

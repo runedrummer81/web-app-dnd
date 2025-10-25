@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DeleteModal from "../components/DeleteModal";
 import ArrowButton from "../components/ArrowButton";
 import SelectedItem from "../components/SelectedItem";
+import ActionButton from "../components/ActionButton";
 
 export default function Session() {
   const [sessions, setSessions] = useState([]);
@@ -591,79 +592,16 @@ mt-8 z-20"
 
               {/* Right: RUN SESSION button (unchanged) */}
               <div className="pr-10">
-                <motion.div
-                  className=" flex items-center justify-center border-2 border-[var(--secondary)] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  {/* Left arrow */}
-                  <motion.div className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 35.9 67.5"
-                      className="h-[70px] w-auto rotate-180 "
-                    >
-                      <defs>
-                        <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 2px; }`}</style>
-                      </defs>
-                      <polyline
-                        className="st0"
-                        points="1.4 66.8 34.5 33.8 1.4 .7"
-                      />
-                      <polyline
-                        className="st0"
-                        points="17.9 17.2 1.4 33.8 17.9 50.3"
-                      />
-                      <polyline
-                        className="st0"
-                        points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                      />
-                    </svg>
-                  </motion.div>
-
-                  <motion.button
-                    onClick={() => runSession(selectedSession.id)}
-                    className="
-        relative cursor-pointer px-5 py-2 text-1xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
-        overflow-hidden
-        before:content-[''] before:absolute before:inset-0
-        before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
-        before:translate-x-[-100%] before:skew-x-12
-        hover:before:animate-[shine_1s_ease-in-out_forwards]
-      "
-                  >
-                    RUN SESSION
-                  </motion.button>
-
-                  {/* Right arrow */}
-                  <motion.div
-                    className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                    style={{ transform: "translateY(-0%) scale(0.97)" }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 35.9 67.5"
-                      className="h-[70px] w-auto"
-                    >
-                      <defs>
-                        <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                      </defs>
-                      <polyline
-                        className="st0"
-                        points="1.4 66.8 34.5 33.8 1.4 .7"
-                      />
-                      <polyline
-                        className="st0"
-                        points="17.9 17.2 1.4 33.8 17.9 50.3"
-                      />
-                      <polyline
-                        className="st0"
-                        points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                      />
-                    </svg>
-                  </motion.div>
-                </motion.div>
+                <ActionButton
+                  label="RUN SESSION"
+                  onClick={() => runSession(selectedSession.id)}
+                  size="lg"
+                  showLeftArrow={true}
+                  showRightArrow={true}
+                  showGlow={true}
+                  animate={true}
+                  animationDelay={0.2}
+                />
               </div>
             </div>
 
