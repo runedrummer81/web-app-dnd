@@ -179,6 +179,15 @@ export default function HomePage() {
             <div className=" text-gray-700 text-center">
               {active === "Continue Campaign" && (
                 <div>
+                  <div className="flex justify-between text-2xl  text-[var(--secondary)] text-center px-30 gap-5 uppercase">
+                    <div>
+                      {lastCampaign?.lastOpened
+                        ? lastCampaign.lastOpened.toDate().toLocaleDateString()
+                        : "No last opened date"}
+                    </div>
+
+                    <div>Sessions: {lastCampaign?.sessionsCount}</div>
+                  </div>
                   <div className="flex gap-5 text-4xl font-black text-[var(--primary)] text-center mt-4 uppercase">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
