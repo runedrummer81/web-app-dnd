@@ -175,8 +175,88 @@ body {
 
 .-rotate-45 {
   transform: rotate(-45deg);
-input:-webkit-autofill {
+  input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px var(--primary) inset !important;
+    -webkit-text-fill-color: var(--dark-muted-bg) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+@keyframes driftRight {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+}
+
+@keyframes driftLeft {
+  0% {
+    transform: translateX(200%);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px var(--primary) inset !important;
   -webkit-text-fill-color: var(--dark-muted-bg) !important;
-  transition: background-color 5000s ease-in-out 0s;
+  transition: background-color 5000s ease-in-out 0s; /* Chrome hack */
+}
+
+/* SCROLLBAR STYLING */
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1c1b18;
+  border-left: 1px solid rgba(191, 136, 60, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(191, 136, 60, 0.4);
+  border-radius: 2px;
+  border: 1px solid rgba(191, 136, 60, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(191, 136, 60, 0.6);
+  box-shadow: 0 0 10px rgba(191, 136, 60, 0.4);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--primary);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(191, 136, 60, 0.4) #1c1b18;
+}
+
+html,
+body,
+#root {
+  background-color: #1c1b18;
+  margin: 0;
+  padding: 0;
 }

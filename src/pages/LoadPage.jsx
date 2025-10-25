@@ -12,6 +12,8 @@ import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import DeleteModal from "../components/DeleteModal";
+import SelectedItem from "../components/SelectedItem";
+import ActionButton from "../components/ActionButton";
 
 export default function LoadPage() {
   const { user, loading } = useAuth();
@@ -153,7 +155,7 @@ export default function LoadPage() {
         transition={{ duration: 0.8, ease: "easeInOut" }}
       >
         <motion.h2
-          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[#DACA89] via-[#bf883c] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
+          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeInOut" }}
@@ -179,7 +181,6 @@ export default function LoadPage() {
                 <motion.div
                   key={camp.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity, y: yOffset, scale }}
                   exit={{ opacity: 0 }}
                   transition={{
@@ -188,90 +189,15 @@ export default function LoadPage() {
                     damping: 25,
                     delay: Math.abs(camp.offset) * 0.1,
                   }}
-                  className="w-96 relative"
+                  className="w-96"
                 >
-                  <motion.div
-                    className={`relative p-1 overflow-visible ${
-                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
-                    }`}
-                    animate={
-                      isCenter
-                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" }
-                        : { boxShadow: "0 0 0px transparent" }
-                    }
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  <SelectedItem
+                    isSelected={isCenter}
+                    showArrow={isCenter}
+                    animate={false} // we're handling animation in the parent
                   >
-                    <motion.div
-                      className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
-                        isCenter
-                          ? "bg-[#DACA89] text-[#1C1B18]"
-                          : "bg-transparent text-[#bf883c]"
-                      }`}
-                      animate={
-                        isCenter
-                          ? {
-                              boxShadow: [
-                                "0 0 20px rgba(191,136,60,0.6)",
-                                "0 0 35px rgba(191,136,60,0.9)",
-                                "0 0 20px rgba(191,136,60,0.6)",
-                              ],
-                            }
-                          : { boxShadow: "none" }
-                      }
-                      transition={
-                        isCenter
-                          ? {
-                              repeat: Infinity,
-                              repeatType: "mirror",
-                              duration: 2,
-                              ease: "easeInOut",
-                            }
-                          : { duration: 0.2 }
-                      }
-                    >
-                      {camp.title || camp.name || "Untitled Campaign"}
-                    </motion.div>
-
-                    {isCenter && (
-                      <motion.div
-                        key="arrow"
-                        className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10"
-                        initial={{ opacity: 0 }}
-                        animate={{
-                          opacity: 1,
-                          filter:
-                            "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
-                        }}
-                        transition={{
-                          duration: 0.4,
-                          ease: "easeInOut",
-                          delay: 0.3,
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 35.9 67.5"
-                          className="h-[72px] w-auto"
-                        >
-                          <defs>
-                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
-                          </defs>
-                          <polyline
-                            className="st0"
-                            points="1.4 66.8 34.5 33.8 1.4 .7"
-                          />
-                          <polyline
-                            className="st0"
-                            points="17.9 17.2 1.4 33.8 17.9 50.3"
-                          />
-                          <polyline
-                            className="st0"
-                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                          />
-                        </svg>
-                      </motion.div>
-                    )}
-                  </motion.div>
+                    {camp.title || camp.name || "Untitled Campaign"}
+                  </SelectedItem>
                 </motion.div>
               );
             })}
@@ -319,7 +245,7 @@ export default function LoadPage() {
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center text-[#DACA89]/40 italic"
+            className="absolute inset-0 flex items-center justify-center text-[var(--primary)]/40 italic"
           >
             No preview available
           </motion.div>
@@ -333,86 +259,21 @@ export default function LoadPage() {
             transition={{ duration: 0.1, ease: "easeInOut" }}
           >
             {/* LOAD button */}
-            <motion.div
-              className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              {/* Left arrow */}
-              <motion.div
-                className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                style={{ transform: "translateY(-0%) scale(0.97)" }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 35.9 67.5"
-                  className="h-[70px] w-auto rotate-180"
-                >
-                  <defs>
-                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                  </defs>
-                  <polyline
-                    className="st0"
-                    points="1.4 66.8 34.5 33.8 1.4 .7"
-                  />
-                  <polyline
-                    className="st0"
-                    points="17.9 17.2 1.4 33.8 17.9 50.3"
-                  />
-                  <polyline
-                    className="st0"
-                    points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                  />
-                </svg>
-              </motion.div>
-
-              {/* LOAD button itself */}
-              <motion.button
-                onClick={handleContinue}
-                className="
-            relative cursor-pointer px-14 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
-            overflow-hidden
-            before:content-[''] before:absolute before:inset-0
-            before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
-            before:translate-x-[-100%] before:skew-x-12
-            hover:before:animate-[shine_1s_ease-in-out_forwards]
-          "
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-              >
-                LOAD
-              </motion.button>
-
-              {/* Right arrow */}
-              <motion.div
-                className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                style={{ transform: "translateY(-0%) scale(0.97)" }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 35.9 67.5"
-                  className="h-[70px] w-auto"
-                >
-                  <defs>
-                    <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                  </defs>
-                  <polyline
-                    className="st0"
-                    points="1.4 66.8 34.5 33.8 1.4 .7"
-                  />
-                  <polyline
-                    className="st0"
-                    points="17.9 17.2 1.4 33.8 17.9 50.3"
-                  />
-                  <polyline
-                    className="st0"
-                    points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                  />
-                </svg>
-              </motion.div>
-            </motion.div>
+            <ActionButton
+              label="LOAD"
+              onClick={handleContinue}
+              color="var(--secondary)"
+              bgColor="#f0d382"
+              textColor="#1C1B18"
+              size="lg"
+              showGlow={true}
+              showLeftArrow={true}
+              showRightArrow={true}
+              animate={true}
+              animationDelay={0.3}
+              shadowColor="rgba(191,136,60,0.6)"
+              arrowDropShadow="rgba(191,136,60,0.8)"
+            />
 
             {/* DELETE button */}
             <motion.button

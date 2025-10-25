@@ -14,6 +14,8 @@ import { useNavigate, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import DeleteModal from "../components/DeleteModal";
 import ArrowButton from "../components/ArrowButton";
+import SelectedItem from "../components/SelectedItem";
+import ActionButton from "../components/ActionButton";
 
 export default function Session() {
   const [sessions, setSessions] = useState([]);
@@ -121,6 +123,41 @@ export default function Session() {
     fetchSessions();
   }, [campaignId]);
 
+  // Refresh when returning from edit
+  useEffect(() => {
+    if (location.state?.refreshSessions && campaignId) {
+      const fetchSessions = async () => {
+        try {
+          const q = query(
+            collection(db, "Sessions"),
+            where("campaignId", "==", campaignId)
+          );
+          const snapshot = await getDocs(q);
+          const fetched = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const sorted = fetched.sort((a, b) => b.sessNr - a.sessNr);
+          setSessions(sorted);
+          if (selectedSession) {
+            const updated = sorted.find((s) => s.id === selectedSession.id);
+            if (updated) setSelectedSession(updated);
+          }
+        } catch (err) {
+          console.error("🔥 Firestore fejl:", err);
+        }
+      };
+      fetchSessions();
+      navigate(location.pathname, {
+        state: { campaignId, refreshSessions: false },
+        replace: true,
+      });
+    }
+  }, [
+    location.state?.refreshSessions,
+    campaignId,
+    selectedSession,
+    navigate,
+    location.pathname,
+  ]);
+
   // Create a new session (keeps your existing behavior)
   const createNewSession = async () => {
     if (!campaignId) return;
@@ -193,10 +230,6 @@ export default function Session() {
     const onWheel = (e) => {
       // Only consider vertical scrolling
       scrollAccumulator += e.deltaY;
-  return (
-    <div className="flex justify-center space-x-8 p-8 min-h-screen bg-[#1C1B18] text-[var(--primary)] font-serif select-none">
-      {/* Venstre side: sessionliste */}
-      
 
       if (scrollAccumulator >= SCROLL_THRESHOLD) {
         handleScroll("down");
@@ -232,28 +265,29 @@ export default function Session() {
   };
 
   return (
-    <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
+    <div
+      className="fixed inset-0 flex bg-[var(--dark-muted-bg)] font-serif select-none overflow-hidden 
+  p-20 pt-40 gap-30"
+    >
       {/* LEFT PANEL: Session list */}
       <motion.div
-        className="relative w-1/3 flex flex-col items-center justify-center z-10"
+        className="relative flex flex-col items-center justify-center z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         <ArrowButton
           label="+ New Session"
-        <button
-          className="flex flex-row justify-center space-x-2 bg-transparent border border-[var(--primary)] text-[var(--primary)] font-semibold py-2 px-4 rounded hover:bg-[var(--primary)]/10 transition"
           onClick={createNewSession}
-          color="#DACA89"
+          color="var(--primary)"
           size="lg"
-          className="mb-6 overflow-visible" // ← allow arrows to move outside
+          className="mb-6 overflow-visible scale-80" // ← allow arrows to move outside
           hoverOffset={50} // ← increase to a visible amount
         />
 
         <div
           ref={listRef}
-          className="relative flex flex-col items-center justify-center space-y-0 h-[380px]"
+          className="relative flex flex-col items-center justify-center space-y-0 h-[35vh] min-h-[300px] max-h-[420px]"
         >
           <AnimatePresence mode="popLayout">
             {visibleSessions.map((sess) => {
@@ -278,82 +312,27 @@ export default function Session() {
                   className="w-80 relative"
                 >
                   <motion.div
-                    className={`relative p-1 overflow-visible ${
-                      isCenter ? "border-2 border-[#bf883c] border-r-0" : ""
-                    }`}
-                    animate={
-                      isCenter
-                        ? { boxShadow: "0 0 25px rgba(191,136,60,0.6)" }
-                        : { boxShadow: "0 0 0px transparent" }
-                    }
-                    transition={{ duration: 0.4 }}
+                    key={sess.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity, y: yOffset, scale }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25,
+                      delay: Math.abs(sess.offset) * 0.1,
+                    }}
+                    className="w-80 relative"
                   >
-                    <motion.div
-                      className={`relative px-6 py-3.5 text-xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
-                        isCenter
-                          ? "bg-[#DACA89] text-[#1C1B18]"
-                          : "bg-transparent text-[#bf883c]"
-                      }`}
-                      animate={
-                        isCenter
-                          ? {
-                              boxShadow: [
-                                "0 0 20px rgba(191,136,60,0.6)",
-                                "0 0 35px rgba(191,136,60,0.9)",
-                                "0 0 20px rgba(191,136,60,0.6)",
-                              ],
-                            }
-                          : { boxShadow: "none" }
-                      }
-                      transition={
-                        isCenter
-                          ? {
-                              repeat: Infinity,
-                              repeatType: "mirror",
-                              duration: 2,
-                            }
-                          : { duration: 0.2 }
-                      }
+                    <SelectedItem
+                      isSelected={isCenter}
+                      showArrow={true}
+                      animate={false} // The outer motion.div handles animation
+                      className="[&>div>div>div]:text-xl" // Override text size to xl
                     >
                       {sess.title || `Session ${sess.sessNr}`}
-                    </motion.div>
-
-                    {/* SVG Arrow for selected session */}
-                    {isCenter && (
-                      <motion.div
-                        key="arrow"
-                        className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-10 drop-shadow-[0_0_25px_rgba(191,136,60,0.9)]"
-                        initial={{ opacity: 0 }}
-                        animate={{
-                          opacity: 1,
-                          filter:
-                            "drop-shadow(0 0 25px rgba(191,136,60,0.9)) drop-shadow(0 0 40px rgba(191,136,60,0.7))",
-                        }}
-                        transition={{ duration: 0.4, delay: 0.3 }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 35.9 67.5"
-                          className="h-[72px] w-auto"
-                        >
-                          <defs>
-                            <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
-                          </defs>
-                          <polyline
-                            className="st0"
-                            points="1.4 66.8 34.5 33.8 1.4 .7"
-                          />
-                          <polyline
-                            className="st0"
-                            points="17.9 17.2 1.4 33.8 17.9 50.3"
-                          />
-                          <polyline
-                            className="st0"
-                            points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                          />
-                        </svg>
-                      </motion.div>
-                    )}
+                    </SelectedItem>
                   </motion.div>
 
                   {/* Click handler to select session */}
@@ -372,7 +351,7 @@ export default function Session() {
       </motion.div>
 
       {/* RIGHT PANEL: Background + Details */}
-      <motion.div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
+      <motion.div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden mx-auto ">
         {/* BACKGROUND IMAGE (blurred) */}
         {activeImg && (
           <motion.div
@@ -391,94 +370,158 @@ export default function Session() {
 
         {/* Gradient overlays (matching LoadPage) */}
         <div
-          className="absolute inset-0
-            [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
-            [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
-            [background-position:left_center,right_center,center_bottom,center_top]
-            [background-repeat:no-repeat]"
+          className="absolute inset-0"
+          style={{
+            background: `
+        linear-gradient(to left, transparent 30%, var(--dark-muted-bg) 80%),
+        linear-gradient(to right, transparent 75%, var(--dark-muted-bg) 100%),
+        linear-gradient(to bottom, transparent 40%, var(--dark-muted-bg) 100%),
+        linear-gradient(to top, transparent 75%, var(--dark-muted-bg) 100%)
+      `,
+          }}
         />
 
         {/* Details box */}
         {selectedSession && (
           <>
             <motion.div
-              className="relative flex flex-col w-full max-w-4xl bg-[#1F1E1A] p-8 shadow-[0_0_30px_rgba(191,136,60,0.2)] border-3 border-[#bf883c] z-10 space-y-5 overflow-hidden max-h-[70vh]"
+              className="relative flex flex-col w-full p-6 xl:p-8  border-2 border-[#bf883c] z-10 space-y-5 overflow-hidden max-h-[70vh] bg-[var(--dark-muted-bg)]/90"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
               {/* Corner Arrows */}
-              <img
-                src="public/images/arrow-head.svg"
-                alt="corner arrow"
-                className="absolute top-1 left-1 w-8 h-8 rotate-[270deg] scale-125 translate-x-[-1px] translate-y-[-1px]"
-              />
-              <img
-                src="public/images/arrow-head.svg"
-                alt="corner arrow"
-                className="absolute top-1 right-1 w-8 h-8 scale-125 translate-x-[1px] translate-y-[-1px]"
-              />
-              <img
-                src="public/images/arrow-head.svg"
-                alt="corner arrow"
-                className="absolute bottom-1 left-1 w-8 h-8 rotate-[180deg] scale-125 translate-x-[-1px] translate-y-[21px]"
-              />
-              <img
-                src="public/images/arrow-head.svg"
-                alt="corner arrow"
-                className="absolute bottom-1 right-1 w-8 h-8 rotate-[90deg] scale-125 translate-x-[1px] translate-y-[21px]"
-              />
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 37 36"
+                className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125"
+                fill="none"
+                strokeWidth="2"
+              >
+                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+              </svg>
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 37 36"
+                className="absolute top-0 right-0 w-8 h-8 scale-125 "
+                fill="none"
+                strokeWidth="2"
+              >
+                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+              </svg>
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 37 36"
+                className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125  translate-y-[21px]"
+                fill="none"
+                strokeWidth="2"
+              >
+                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+              </svg>
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 37 36"
+                className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125 translate-y-[21px]"
+                fill="none"
+                strokeWidth="2"
+              >
+                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+              </svg>
 
               {/* Title */}
-              <h2 className="text-3xl uppercase tracking-widest font-semibold text-[#DACA89] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
-                {selectedSession.title}
+              <h2 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
+                {selectedSession.notesHeadline}
               </h2>
 
               {/* DM Notes */}
-              <div className="bg-[#1F1E1A]">
-                <p className="text-[#bf883c] whitespace-pre-wrap h-[300px]">
-                  {selectedSession.dmNotes || "Ingen noter endnu"}
+              <div className="h-[250px] overflow-auto">
+                <p className="text-[#bf883c] whitespace-pre-wrap">
+                  {selectedSession.dmNotes || "No notes yet"}
                 </p>
               </div>
             </motion.div>
 
             {/* Row beneath DM Notes: Encounters + Maps */}
-            <div className="flex w-full max-w-4xl mt-6 z-10 gap-6">
+            <div className="flex h-50 w-full mt-6 z-10 gap-6">
               {/* LEFT: Encounters box */}
-              <div className="w-1/3 bg-[#1F1E1A]/50 p-4 rounded border border-[#bf883c] overflow-auto">
-                <h3 className="text-[#DACA89] font-semibold mb-2">
+              <div className="w-1/5 p-4 border-2 border-[var(--secondary)] overflow-auto">
+                <h3 className="text-[var(--primary)] font-semibold mb-2">
                   Encounters
                 </h3>
+
                 {selectedSession.encounters &&
                 selectedSession.encounters.length > 0 ? (
-                  <ul className="text-[#bf883c]/90 list-disc list-inside space-y-1">
-                    {selectedSession.encounters.map((enc, idx) => (
+                  <ul className="text-[var(--secondary)]/90 list-disc list-inside space-y-1">
+                    {selectedSession.encounters.slice(0, 3).map((enc, idx) => (
                       <li key={idx}>{enc.name || `Encounter ${idx + 1}`}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[#bf883c]/80 text-sm">No encounters yet</p>
+                  <p className="text-[var(--secondary)]/80 text-sm">
+                    No encounters yet
+                  </p>
+                )}
+
+                {/* Show +X more indicator if more than 3 encounters */}
+                {selectedSession.encounters?.length > 3 && (
+                  <div className="w-full mt-2  flex items-center justify-center">
+                    <p className="text-[var(--primary)] text-center text-sm font-semibold ">
+                      +{selectedSession.encounters.length - 3} more
+                    </p>
+                  </div>
                 )}
               </div>
 
               {/* RIGHT: Maps */}
-              <div className="flex-1 flex gap-4">
+              <div className="h-50 w-4/5 flex gap-4 pointer-events-none">
                 {(selectedSession.combatMaps || [])
                   .slice(0, 3)
                   .map((map, idx) => (
                     <div
                       key={idx}
-                      className="w-1/3 h-32 bg-[#2A2A22] rounded border border-[#bf883c] overflow-hidden cursor-pointer flex items-center justify-center"
+                      className="h-fill p-2 border-2 border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
                     >
-                      {map.imageUrl ? (
+                      {map.image ? (
                         <img
-                          src={map.imageUrl}
-                          alt={map.name || `Map ${idx + 1}`}
-                          className="object-cover w-full h-full hover:scale-105 transition-transform duration-200"
+                          src={map.image}
+                          alt={map.title || `Map ${idx + 1}`}
+                          className="object-cover w-full h-full transition-transform duration-200"
                         />
                       ) : (
-                        <p className="text-[#bf883c]/80 text-sm text-center px-2">
-                          {map.name || `Map ${idx + 1}`}
+                        <p className="text-[var(--secondary)]/80 text-sm text-center px-2">
+                          {map.title || `Map ${idx + 1}`}
                         </p>
                       )}
                     </div>
@@ -486,22 +529,34 @@ export default function Session() {
 
                 {/* Fill remaining slots with placeholders */}
                 {Array.from({
-                  length: 3 - (selectedSession.combatMaps?.length || 0),
+                  length: 1 - (selectedSession.combatMaps?.length || 0),
                 }).map((_, idx) => (
                   <div
                     key={`placeholder-${idx}`}
-                    className="w-1/3 h-32 bg-[#2A2A22]/50 rounded border border-[#555] flex items-center justify-center text-[#555] text-sm"
+                    className="bg-[var(--dark-muted-bg)]/50 border-2 border-[var(--secondary)]/50 flex items-center justify-center text-[#555] text-sm"
                   >
                     Empty
                   </div>
                 ))}
+
+                {/* Show +X more indicator if more than 3 maps */}
+                {(selectedSession.combatMaps?.length || 0) > 3 && (
+                  <div className="w-50 border-2 border-[var(--secondary)] flex items-center justify-center">
+                    <p className="text-[var(--primary)] text-center text-sm font-semibold">
+                      +{(selectedSession.combatMaps?.length || 0) - 3} more
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Buttons beneath details box */}
-            <div className="flex justify-between items-center w-full max-w-4xl mt-6 z-20 space-x-6">
+            <div
+              className="flex justify-between items-center w-full
+mt-8 z-20"
+            >
               {/* Left: EDIT + DELETE buttons stacked, centered */}
-              <div className="flex flex-col items-center space-y-2">
+              <div className="flex flex-col items-center pl-10">
                 {/* EDIT SESSION button */}
                 <ArrowButton
                   label="Edit Session"
@@ -511,7 +566,7 @@ export default function Session() {
                     })
                   }
                   size="sm"
-                  color="#DACA89"
+                  color="var(--primary)"
                   glow="transparent" // no glow
                   hoverOffset={20}
                   gradient={false} // solid color text instead of gradient
@@ -536,82 +591,18 @@ export default function Session() {
               </div>
 
               {/* Right: RUN SESSION button (unchanged) */}
-              <motion.div
-                className="shadow-[0_0_30px_rgba(191,136,60,0.6)] flex items-center justify-center border-2 border-[#bf883c] border-r-0 border-l-0 overflow-visible px-1 py-1 relative"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                {/* Left arrow */}
-                <motion.div
-                  className="absolute -left-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                  style={{ transform: "translateY(-0%) scale(0.97)" }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 35.9 67.5"
-                    className="h-[70px] w-auto rotate-180"
-                  >
-                    <defs>
-                      <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                    </defs>
-                    <polyline
-                      className="st0"
-                      points="1.4 66.8 34.5 33.8 1.4 .7"
-                    />
-                    <polyline
-                      className="st0"
-                      points="17.9 17.2 1.4 33.8 17.9 50.3"
-                    />
-                    <polyline
-                      className="st0"
-                      points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                    />
-                  </svg>
-                </motion.div>
-
-                <motion.button
+              <div className="pr-10">
+                <ActionButton
+                  label="RUN SESSION"
                   onClick={() => runSession(selectedSession.id)}
-                  className="
-        relative cursor-pointer px-5 py-2 text-4xl font-extrabold uppercase text-[#1C1B18] bg-[#f0d382]
-        overflow-hidden
-        before:content-[''] before:absolute before:inset-0
-        before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
-        before:translate-x-[-100%] before:skew-x-12
-        hover:before:animate-[shine_1s_ease-in-out_forwards]
-      "
-                >
-                  RUN SESSION
-                </motion.button>
-
-                {/* Right arrow */}
-                <motion.div
-                  className="absolute -right-[36px] top-1/2 -translate-y-1/2 pointer-events-none z-20 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]"
-                  style={{ transform: "translateY(-0%) scale(0.97)" }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 35.9 67.5"
-                    className="h-[70px] w-auto"
-                  >
-                    <defs>
-                      <style>{`.st0 { fill: none; stroke: #bf883c; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                    </defs>
-                    <polyline
-                      className="st0"
-                      points="1.4 66.8 34.5 33.8 1.4 .7"
-                    />
-                    <polyline
-                      className="st0"
-                      points="17.9 17.2 1.4 33.8 17.9 50.3"
-                    />
-                    <polyline
-                      className="st0"
-                      points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                    />
-                  </svg>
-                </motion.div>
-              </motion.div>
+                  size="lg"
+                  showLeftArrow={true}
+                  showRightArrow={true}
+                  showGlow={true}
+                  animate={true}
+                  animationDelay={0.2}
+                />
+              </div>
             </div>
 
             {/* Deletion success message */}
@@ -622,20 +613,27 @@ export default function Session() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="text-[#bf883c] text-lg tracking-wide mt-4 font-medium drop-shadow-[0_0_10px_rgba(191,136,60,0.4)]"
+                className="text-[var(--secondary)] text-lg tracking-wide mt-4 font-medium drop-shadow-[0_0_10px_rgba(191,136,60,0.4)]"
               >
                 {deleteMessage}
               </motion.div>
             )}
-            <DeleteModal
-              open={deleteModalOpen}
-              onClose={() => setDeleteModalOpen(false)}
-              campaign={sessionToDelete} // still works even if named "campaign" in modal
-              onConfirm={handleDeleteConfirm}
-            />
           </>
         )}
       </motion.div>
+      {deleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center 
+      backdrop-blur-sm bg-black/60"
+        >
+          <DeleteModal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            campaign={sessionToDelete}
+            onConfirm={handleDeleteConfirm}
+          />
+        </div>
+      )}
     </div>
   );
 }

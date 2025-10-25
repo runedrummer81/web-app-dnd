@@ -5,10 +5,13 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
 
 
+
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
   const navigate = useNavigate();
+  const location = useLocation();
   const [logoutMenuOpen, setLogoutMenuOpen] = useState(false);
+  
 
   if (!user) return null;
 
@@ -41,14 +44,16 @@ export default function Nav() {
     }
   };
 
-  const isHomePage = location.pathname === "/home"; // 👈 tjek om vi er på forsiden
+  const isHomePage = location.pathname === "/home" ; //  tjek om vi er på forsiden eller login
+  const isLogin = location.pathname ==="/login";
+  const banned = isHomePage || isLogin;
 
   return (
     <>
     <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)]">
 
-      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden */}
-      {!isHomePage && (
+      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
+      {!banned && (
         <button
           className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
           onClick={handleBack}
@@ -113,7 +118,7 @@ export default function Nav() {
 
             {/* Slide-down menu */}
             <div
-              className={`absolute right-0 mt-2 bg-[var(--bg-dark)] border border-[var(--primary)] rounded-xl shadow-lg overflow-hidden transform transition-all duration-200 origin-top ${
+              className={`absolute right-0 mt-2 bg-[var(--bg-dark)] border border-[var(--secondary)] shadow-lg overflow-hidden transform transition-all duration-200 origin-top ${
                 logoutMenuOpen
                   ? "opacity-100 scale-y-100"
                   : "opacity-0 scale-y-0 pointer-events-none"
@@ -121,9 +126,9 @@ export default function Nav() {
             >
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition"
+                className="block w-full font-semibold text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition flex whitespace-nowrap hover:cursor-pointer"
               >
-                Logout
+                Log out
               </button>
             </div>
           </div>
