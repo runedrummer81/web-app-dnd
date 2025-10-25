@@ -46,7 +46,7 @@ export default function SelectedItem({
         transition={{ duration: 0.4, ease: "easeInOut" }}
       >
         <motion.div
-          className={`relative px-6 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
+          className={`relative px-8 py-3.5 text-2xl font-semibold uppercase truncate whitespace-nowrap overflow-hidden transition-all duration-500 ${
             onClick ? "cursor-pointer" : ""
           }`}
           style={{
@@ -114,11 +114,6 @@ export default function SelectedItem({
                     "0.7"
                   )})`
                 : "drop-shadow(0 0 0px transparent)",
-            }}
-            transition={{
-              duration: 0.4,
-              ease: "easeInOut",
-              // NO MORE DELAY!
             }}
           >
             <svg

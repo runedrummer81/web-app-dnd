@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function ActionButton({
@@ -15,8 +15,10 @@ export default function ActionButton({
   size = "lg",
   showLeftArrow = true,
   showRightArrow = true,
-  showGlow = true, // ✨ NEW: simple toggle for glow
+  showGlow = true,
 }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   // Size configurations
   const sizeConfig = {
     sm: {
@@ -29,8 +31,8 @@ export default function ActionButton({
     md: {
       textSize: "text-2xl",
       padding: "px-4 py-1.5",
-      arrowHeight: "h-[55px]",
-      arrowOffset: "32px",
+      arrowHeight: "h-[57px]",
+      arrowOffset: "27px",
       borderWidth: "border-2",
     },
     lg: {
@@ -54,10 +56,11 @@ export default function ActionButton({
 
   return (
     <motion.div
-      className={`relative flex items-center justify-center ${borderClasses} overflow-visible px-1.5 py-1 ${className}`}
+      className={`relative flex items-center justify-center ${borderClasses} px-1.5 py-1 ${className}`}
       style={{
         borderColor: color,
-        boxShadow: showGlow ? `0 0 30px ${shadowColor}` : "none", // ✨ conditional glow
+        boxShadow: showGlow ? `0 0 30px ${shadowColor}` : "none",
+        overflow: "visible",
       }}
       initial={animate ? { opacity: 0, y: 10 } : false}
       animate={animate ? { opacity: 1, y: 0 } : false}
@@ -72,7 +75,7 @@ export default function ActionButton({
             transform: "translateY(-50%) scale(0.97)",
             filter: showGlow
               ? `drop-shadow(0 0 20px ${arrowDropShadow})`
-              : "none", // ✨ conditional arrow glow
+              : "none",
           }}
         >
           <svg
@@ -96,17 +99,37 @@ export default function ActionButton({
       {/* Button */}
       <motion.button
         onClick={onClick}
-        className={`relative cursor-pointer ${config.textSize} ${config.padding} font-extrabold uppercase overflow-hidden
-          before:content-[''] before:absolute before:inset-0
-          before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
-          before:translate-x-[-100%] before:skew-x-12
-          hover:before:animate-[shine_1s_ease-in-out_forwards]`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`relative cursor-pointer ${config.textSize} ${config.padding} font-extrabold uppercase overflow-hidden`}
         style={{
           backgroundColor: bgColor,
           color: textColor,
         }}
       >
         {label}
+
+        {/* Shiny sweep animation - same as SelectedItem */}
+        {isHovered && (
+          <motion.div
+            key={`shine-${isHovered}`}
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0) 20%,
+                rgba(255, 255, 255, 0.8) 50%,
+                rgba(255, 255, 255, 0) 80%,
+                transparent 100%)`,
+            }}
+            initial={{ x: "-100%" }}
+            animate={{ x: "200%" }}
+            transition={{
+              duration: 0.8,
+              ease: "easeInOut",
+            }}
+          />
+        )}
       </motion.button>
 
       {/* Right arrow - only renders if showRightArrow is true */}
@@ -118,7 +141,7 @@ export default function ActionButton({
             transform: "translateY(-50%) scale(0.97)",
             filter: showGlow
               ? `drop-shadow(0 0 20px ${arrowDropShadow})`
-              : "none", // ✨ conditional arrow glow
+              : "none",
           }}
         >
           <svg
