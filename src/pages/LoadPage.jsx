@@ -146,7 +146,7 @@ export default function LoadPage() {
   const activeImg = selectedCampaign?.image || selectedCampaign?.img;
 
   return (
-    <div className="relative min-h-screen flex bg-[#1C1B18] font-serif select-none overflow-hidden p-10">
+    <div className="relative min-h-screen flex bg-[var(--dark-muted-bg)] font-serif select-none overflow-hidden p-10">
       {/* Left Panel */}
       <motion.div
         className="relative w-1/2 flex flex-col items-center justify-center z-10"
@@ -163,8 +163,8 @@ export default function LoadPage() {
           Choose Your Campaign
         </motion.h2>
 
-        <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
-        <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[#1C1B18] to-transparent pointer-events-none z-20"></div>
+        <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[var(--dark-muted-bg)] to-transparent pointer-events-none z-20"></div>
+        <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[var(--dark-muted-bg)] to-transparent pointer-events-none z-20"></div>
 
         <div
           ref={listRef}
@@ -232,11 +232,15 @@ export default function LoadPage() {
         </AnimatePresence>
 
         <div
-          className="absolute inset-0
-      [background:linear-gradient(to_left,transparent_30%,#1C1B18_80%),linear-gradient(to_right,transparent_75%,#1C1B18_100%),linear-gradient(to_bottom,transparent_40%,#1C1B18_90%),linear-gradient(to_top,transparent_75%,#1C1B18_100%)]
-      [background-size:200px_100%,150px_100%,100%_200px,100%_150px]
-      [background-position:left_center,right_center,center_bottom,center_top]
-      [background-repeat:no-repeat]"
+          className="absolute inset-0"
+          style={{
+            background: `
+      linear-gradient(to left, transparent 50%, var(--dark-muted-bg) 100%),
+      linear-gradient(to right, transparent 75%, var(--dark-muted-bg) 100%),
+      linear-gradient(to bottom, transparent 40%, var(--dark-muted-bg) 100%),
+      linear-gradient(to top, transparent 75%, var(--dark-muted-bg) 100%)
+    `,
+          }}
         />
 
         {!activeImg && (
