@@ -212,15 +212,26 @@ useEffect(() => {
 const handleSave = async () => {
   try {
     const sessionRef = doc(db, "Sessions", sessionId);
-    await updateDoc, setOriginalSessionData(sessionRef, {
+
+    await updateDoc(sessionRef, {
       dmNotes: sessionData.dmNotes,
       notesHeadline: sessionData.notesHeadline,
       encounters,
       combatMaps,
       lastEdited: new Date(),
     });
+
     console.log("Session saved");
-    setHasUnsavedChanges(false); // 👈 Clear flag efter save
+
+    // Opdater originaldata, så modal kun vises ved reelle ændringer efterfølgende
+    setOriginalSessionData({
+      ...sessionData,
+      encounters,
+      combatMaps,
+    });
+
+    setHasUnsavedChanges(false);
+
     navigate("/session", {
       state: {
         campaignId: sessionData.campaignId,
@@ -228,9 +239,10 @@ const handleSave = async () => {
       },
     });
   } catch (err) {
-    console.error("error:", err);
+    console.error("Error saving session:", err);
   }
 };
+
 
 // Håndter navigation attempts
 const handleNavigationAttempt = (destination) => {
