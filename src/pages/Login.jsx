@@ -10,6 +10,7 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useState, useEffect } from "react";
 import MistVideo from "../components/Mist";
 import { motion, useMotionValue, animate } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 // Friendly Firebase error messages
 function formatError(code) {
   switch (code) {
@@ -38,6 +39,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState("");
   const scaleY = useMotionValue(1);
+  const navigate = useNavigate();
 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -95,6 +97,7 @@ export default function Login() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
+      navigate("/home");
     } catch (err) {
       setError(formatError(err.code));
     } finally {
