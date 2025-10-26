@@ -1,6 +1,40 @@
-const Border = () => {
+import { useEffect, useState, useRef } from "react";
+
+const Border = ({ currentPath }) => {
+  const prevPath = useRef(currentPath);
+  const isLoginPage = currentPath === "/" || currentPath === "/login";
+
+  // Determine scale based on path
+  const getScale = () => {
+    if (isLoginPage) return "scale-200";
+    return "scale-100";
+  };
+
+  const [scale, setScale] = useState(getScale());
+
+  useEffect(() => {
+    const wasLoginPage =
+      prevPath.current === "/" || prevPath.current === "/login";
+    const isHomePage = currentPath === "/home";
+
+    // If transitioning from login to home, animate
+    if (wasLoginPage && isHomePage) {
+      setScale("scale-200");
+      const timer = setTimeout(() => setScale("scale-100"), 100);
+      prevPath.current = currentPath;
+      return () => clearTimeout(timer);
+    }
+
+    // Otherwise, just set the appropriate scale immediately
+    setScale(getScale());
+    prevPath.current = currentPath;
+  }, [currentPath]);
+
   return (
-    <div className="fixed inset-5 md:inset-6 lg:inset-8 pointer-events-none z-50">
+    <div
+      className={`transition-transform duration-700 ease-out origin-center fixed inset-0 z-[9999] pointer-events-none 
+        ${scale}`}
+    >
       <div className="fixed inset-5 md:inset-6 lg:inset-8 pointer-events-none z-50">
         {/* Top Left Corner */}
         <div className="absolute top-0 left-0 w-20 h-20">
@@ -12,7 +46,6 @@ const Border = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
               className="stroke-[var(--secondary)]"
@@ -23,7 +56,6 @@ const Border = () => {
               className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
-            {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
               className="stroke-[var(--primary)]"
@@ -41,7 +73,6 @@ const Border = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
               className="stroke-[var(--secondary)]"
@@ -52,7 +83,6 @@ const Border = () => {
               className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
-            {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
               className="stroke-[var(--primary)]"
@@ -70,7 +100,6 @@ const Border = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
               className="stroke-[var(--secondary)]"
@@ -81,7 +110,6 @@ const Border = () => {
               className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
-            {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
               className="stroke-[var(--primary)]"
@@ -99,7 +127,6 @@ const Border = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            {/* Gold-orange lines (#bf883c) */}
             <polygon
               points="1.5 40.98 1.5 1.5 40.98 1.5 40.98 40.98 1.5 40.98"
               className="stroke-[var(--secondary)]"
@@ -110,7 +137,6 @@ const Border = () => {
               className="stroke-[var(--secondary)]"
               strokeWidth="3"
             />
-            {/* Light gold lines (#d9c989) */}
             <polyline
               points="12.69 115.38 12.69 12.69 115.38 12.69"
               className="stroke-[var(--primary)]"
@@ -136,7 +162,6 @@ const Border = () => {
         <div className="absolute left-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)]"></div>
         {/* Right Edge */}
         <div className="absolute right-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)]"></div>
-        ----
         {/* Top Edge 2 */}
         <div className="absolute top-2 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--primary)]"></div>
         {/* Bottom Edge 2 */}
