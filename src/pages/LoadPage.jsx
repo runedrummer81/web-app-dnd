@@ -77,7 +77,7 @@ export default function LoadPage() {
     const selectedCampaign = campaigns[centerIndex];
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
     navigate("/session", {
-      state: { campaignId: selectedCampaign.id, from: "/load" },
+      state: { campaignId: selectedCampaign.id, from: "/loadcampaign" },
     });
   }, [campaigns, centerIndex, navigate]);
 
@@ -154,15 +154,6 @@ export default function LoadPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
       >
-        <motion.h2
-          className="text-3xl uppercase tracking-widest font-semibold mb-10 bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[#FFD57F] drop-shadow-[0_0_10px_rgba(218,202,137,0.6)]"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeInOut" }}
-        >
-          Choose Your Campaign
-        </motion.h2>
-
         <div className="absolute top-24 w-full h-16 bg-gradient-to-b from-[var(--dark-muted-bg)] to-transparent pointer-events-none z-20"></div>
         <div className="absolute bottom-16 w-full h-16 bg-gradient-to-t from-[var(--dark-muted-bg)] to-transparent pointer-events-none z-20"></div>
 

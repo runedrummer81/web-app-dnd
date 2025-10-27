@@ -8,7 +8,7 @@ import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
-import LoadPage from "./pages/LoadPage";
+import LoadPage from "./pages/loadPage";
 import Border from "./components/Border";
 import BG from "./components/BG";
 import RunSession from "./pages/RunSession";
@@ -17,6 +17,7 @@ import { useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import Title from "./components/Title";
 
 // Wrapper component to fetch session data AND map data before loading RunSession
 function RunSessionWrapper() {
@@ -131,8 +132,10 @@ export default function App() {
       {!isSessionRunning && (
         <>
           <Nav />
-          <Border />
+          <Border currentPath={location.pathname} />
+
           <BG />
+          <Title />
         </>
       )}
 
@@ -165,7 +168,7 @@ export default function App() {
             }
           />
           <Route
-            path="/load"
+            path="/loadcampaign"
             element={
               <ProtectedRoute>
                 <LoadPage />
