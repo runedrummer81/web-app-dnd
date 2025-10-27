@@ -189,10 +189,25 @@ export default function CreateEncounters() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  ">
+    <motion.div
+      className="flex min-h-screen bg-[var(--dark-muted-bg)] via-gray-800 to-gray-900 text-[-var(--secondary)] p-20 pt-50 gap-8  "
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+    >
       {/* LEFT PANEL — SEARCH + ENCOUNTER CREATION */}
 
-      <div className="w-2/3 flex flex-col space-y-10">
+      <motion.div
+        className="w-2/3 flex flex-col space-y-10"
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          delay: 0.2,
+        }}
+      >
         <div className="flex items-center gap-4 mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -343,16 +358,23 @@ export default function CreateEncounters() {
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
       {/* RIGHT PANEL — SAVED ENCOUNTERS */}
-      <div className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col">
+      <motion.div
+        className="w-1/3 border-l border-[var(--secondary)] pl-6 flex flex-col"
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          delay: 0.3,
+        }}
+      >
         <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
           Saved Encounters
         </h2>
 
-        <div
-          className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
           <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
@@ -362,7 +384,7 @@ export default function CreateEncounters() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`relative border-2 border-[var(--secondary)] overflow-hidden transition-all border p-2 m2 ${
+                className={`relative border-[var(--secondary)] overflow-hidden transition-all border p-2 m2 ${
                   expandedEncounterId === enc.id ? "p-4" : "p-3 cursor-pointer"
                 }`}
               >
@@ -384,10 +406,10 @@ export default function CreateEncounters() {
                 <AnimatePresence>
                   {expandedEncounterId === enc.id && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8, ease: "easeInOut" }}
                       className="mt-3 overflow-hidden flex justify-between "
                     >
                       <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)]">
@@ -446,7 +468,7 @@ export default function CreateEncounters() {
             ))}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
       {/* Hover preview panel (animated) */}
       <AnimatePresence>
@@ -641,6 +663,6 @@ export default function CreateEncounters() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }

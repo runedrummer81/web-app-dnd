@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import LearnMore from "../components/LearnMore";
 import { useAuth } from "../hooks/useAuth"; // ✅ import useAuth
+import SelectedItem from "../components/SelectedItem";
 
 export default function NewCampaign() {
   const { user, loading } = useAuth(); // ✅ get current user
@@ -136,126 +137,138 @@ useEffect(() => {
 
   return (
     <AnimatePresence>
-      <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none">
+      <motion.div
+        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] p-10 font-serif select-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         {/* Hovedlayout */}
-        <div className="flex w-full  justify-center items-center gap-60 mb-6 ">
+        <div className="flex w-full justify-center items-center gap-60 mb-6">
           {/* Left side */}
-          <div className="flex flex-col items-center justify-center  ">
+          <motion.div
+            className="flex flex-col items-center justify-center"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              delay: 0.2,
+            }}
+          >
             <div className="relative inline-block">
-              <button className="font-[var(--font)] block text-2xl font-semibold cursor-pointer border-l-2 border-t-2 border-b-2 border-[var(--secondary)] w-fit h-fit p-1 relative ">
-                <div className="text-[var(--dark-muted-bg)] bg-[var(--primary)] p-5">
-                  NEW CAMPAIGN FROM TEMPLATE
-                </div>
-
-                {/* Højre pil */}
-                <motion.div className="absolute top-1/2 -translate-y-1/2 -right-10 pointer-events-none z-10 drop-shadow-[0_0_20px_rgba(191,136,60,0.8)]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 35.9 67.5"
-                    className="h-[70px] w-auto"
-                  >
-                    <defs>
-                      <style>{`.st0 { fill: none; stroke: var(--secondary); stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
-                    </defs>
-                    <polyline
-                      className="st0"
-                      points="1.4 66.8 34.5 33.8 1.4 .7"
-                    />
-                    <polyline
-                      className="st0"
-                      points="17.9 17.2 1.4 33.8 17.9 50.3"
-                    />
-                    <polyline
-                      className="st0"
-                      points="1.4 .7 1.4 17.2 17.9 33.8 1.4 50.3 1.4 66.8"
-                    />
-                  </svg>
-                </motion.div>
-              </button>
+              <SelectedItem
+                isSelected={true}
+                showArrow={true}
+                animate={true}
+                className="w-fit"
+              >
+                NEW CAMPAIGN FROM TEMPLATE
+              </SelectedItem>
             </div>
 
-            <p className="mt-6 text-lg uppercase tracking-widest opacity-60 text-[var(--secondary)]">
+            <motion.p
+              className="mt-6 text-lg uppercase tracking-widest opacity-60 text-[var(--secondary)]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
               MAKE YOUR OWN
-            </p>
-            {/* <img className="rotate-45 w-6"  src="/images/arrow-head.svg" alt="pilhoved" /> */}
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Right side: templates */}
-          <div className="flex flex-col w-[480px] max-h-[74vh] mt-25 overflow-y-auto space-y-6  border-[var(--primary)]/50">
-            {templates.map(
-              ({ id, title, description, image, learnMoreId }, index) => (
-                <div
-                  key={id}
-                  className="group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]"
-                  onMouseEnter={() => setOpenedIndex(index)} // Opdaterer kun ved hover over ny template
-                >
-                  {/* Baggrundsbillede */}
-                  {image && (
-                    <img
-                      src={image}
-                      alt={title}
-                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none`}
-                      style={{
-                        maskImage:
-                          "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
-                        WebkitMaskImage:
-                          "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
-                      }}
-                    />
-                  )}
+          <motion.div
+            className="flex flex-col w-[480px] max-h-[74vh] mt-25 overflow-y-auto space-y-6 border-[var(--primary)]/50"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              delay: 0.3,
+            }}
+          >
+            {templates.map(({ id, title, image, learnMoreId }, index) => (
+              <motion.div
+                key={id}
+                className="group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]"
+                onMouseEnter={() => setOpenedIndex(index)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 150,
+                  damping: 20,
+                  delay: 0.4 + index * 0.1, // Stagger each template
+                }}
+              >
+                {/* Baggrundsbillede */}
+                {image && (
+                  <img
+                    src={image}
+                    alt={title}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none`}
+                    style={{
+                      maskImage:
+                        "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+                      WebkitMaskImage:
+                        "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+                    }}
+                  />
+                )}
 
-                  {/* Gradient overlay kun til baggrund */}
-                  <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1C1B18] pointer-events-none"></div>
+                {/* Gradient overlay kun til baggrund */}
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1C1B18] pointer-events-none"></div>
 
-                  {/* Tekst og knapper ovenpå */}
-                  <div className="relative z-10 flex flex-col justify-between h-full">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
-                        {title}
-                      </h3>
-                    </div>
+                {/* Tekst og knapper ovenpå */}
+                <div className="relative z-10 flex flex-col justify-between h-full">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
+                      {title}
+                    </h3>
+                  </div>
 
-                    <div
-                      className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
-                        openedIndex === index
-                          ? "max-h-44 mt-4 opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      <div className="mt-4 flex flex-col justify-start items-start gap-2">
-                        {/* LEARN MORE button - centered beneath CONFIRM */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation(); // prevents click from closing the expanded section
-                            handleLearnMore(learnMoreId); // opens the LearnMore modal
-                          }}
-                          className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
-                        >
-                          Learn More
-                        </button>
+                  <div
+                    className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
+                      openedIndex === index
+                        ? "max-h-44 mt-4 opacity-100"
+                        : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="mt-4 flex flex-col justify-start items-start gap-2">
+                      {/* LEARN MORE button - centered beneath CONFIRM */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLearnMore(learnMoreId);
+                        }}
+                        className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
+                      >
+                        Learn More
+                      </button>
 
-                        {/* CONFIRM button */}
-                        <ActionButton
-                          label="CONFIRM"
-                          onClick={handleConfirmClick}
-                          color="var(--secondary)"
-                          bgColor="#f0d382"
-                          textColor="#1C1B18"
-                          size="sm"
-                          showGlow={false}
-                          showLeftArrow={false}
-                          animate={false}
-                        />
-                      </div>
+                      {/* CONFIRM button */}
+                      <ActionButton
+                        label="CONFIRM"
+                        onClick={handleConfirmClick}
+                        color="var(--secondary)"
+                        bgColor="#f0d382"
+                        textColor="#1C1B18"
+                        size="sm"
+                        showGlow={false}
+                        showLeftArrow={false}
+                        animate={false}
+                      />
                     </div>
                   </div>
                 </div>
-              )
-            )}
-          </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-
-        {/* CONFIRM button */}
 
         {/* LearnMore modal */}
         {showLearnMore && selectedTemplate && (
@@ -268,36 +281,77 @@ useEffect(() => {
 
         {/* 🧾 Campaign name popup */}
         {showNamePopup && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div className="bg-[#292621] border border-[var(--secondary)]/60 p-8 w-[400px] text-center">
-              <h2 className="text-xl uppercase tracking-widest font-bold text-[var(--primary)] mb-4">
-                Name your campaign
+          <motion.div
+            className="absolute inset-0 bg-black/80 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setShowNamePopup(false)}
+          >
+            <motion.div
+              className="relative bg-[#292621] border-2 border-[var(--secondary)] p-8 w-[500px] overflow-visible"
+              style={{
+                boxShadow:
+                  "0 0 25px rgba(191,136,60,0.4), 0 0 50px rgba(191,136,60,0.2)",
+              }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 25,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2
+                className="text-3xl uppercase tracking-widest font-bold text-[var(--primary)] mb-6 text-center"
+                style={{ textShadow: "0 0 15px rgba(191,136,60,0.5)" }}
+              >
+                Name Campaign
               </h2>
+
               <input
                 type="text"
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
-                placeholder="Your campaign Name..."
-                className="w-full p-2 mb-4 bg-[#1F1E1A] border border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[var(--primary)]/40"
+                placeholder="Enter campaign name..."
+                className="w-full p-4 mb-6 bg-[#1F1E1A] border-2 border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[var(--primary)]/40 text-xl uppercase font-semibold tracking-wide focus:border-[var(--secondary)] focus:outline-none transition-all duration-300"
+                style={{
+                  boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
+                }}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveCampaign();
+                  if (e.key === "Escape") setShowNamePopup(false);
+                }}
               />
-              <div className="flex justify-between mt-4">
+
+              <div className="flex flex-col items-center gap-3 mt-6">
+                {/* Save Button with ActionButton */}
+                <ActionButton
+                  label="CREATE CAMPAIGN"
+                  onClick={saveCampaign}
+                  color="var(--secondary)"
+                  bgColor="#f0d382"
+                  textColor="#1C1B18"
+                  size="md"
+                  showGlow={false}
+                  showLeftArrow={false}
+                  showRightArrow={true}
+                  animate={false}
+                />
+                {/* Simple Cancel Button */}
                 <button
                   onClick={() => setShowNamePopup(false)}
-                  className="border border-[var(--secondary)] text-[var(--primary)] py-2 px-4 hover:bg-[var(--primary)]/10 hover:cursor-pointer"
+                  className="cursor-pointer text-[var(--secondary)]/70 text-2xl uppercase font-semibold tracking-wide hover:text-[var(--primary)] transition-all duration-300"
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={saveCampaign}
-                  className="bg-[var(--secondary)] border border-[var(--secondary)] text-[var(--primary)] hover:text-[var(--secondary)] font-bold py-2 px-4 hover:bg-[var(--primary)] hover:cursor-pointer"
-                >
-                  Save
-                </button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

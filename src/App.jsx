@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, useLocation } from "react-router";
 import Nav from "./components/Nav";
 import Login from "./pages/Login";
 import HomePage from "./pages/HomePage";
@@ -13,10 +13,12 @@ import Border from "./components/Border";
 import BG from "./components/BG";
 
 export default function App() {
+  const location = useLocation();
+
   return (
     <>
       <Nav />
-      <Border />
+      <Border currentPath={location.pathname} />
       <BG />
       <main>
         <Routes>
@@ -30,7 +32,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/info"
             element={
@@ -39,7 +40,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/continue"
             element={
@@ -56,7 +56,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/encounters"
             element={
@@ -65,7 +64,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/newcampaign"
             element={
@@ -74,7 +72,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/session"
             element={
