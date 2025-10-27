@@ -129,7 +129,7 @@ export default function NewCampaign() {
   return (
     <AnimatePresence>
       <motion.div
-        className="relative min-h-screen flex flex-col items-center justify-center bg-[#1C1B18] p-10 font-serif select-none"
+        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] p-10 font-serif select-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

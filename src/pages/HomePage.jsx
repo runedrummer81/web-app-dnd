@@ -7,6 +7,7 @@ import newcampaignImage from "/images/newcampaign.jpg";
 import encountersImage from "/images/encounter.jpeg";
 import informationImage from "/images/information.jpg";
 import SelectedItem from "../components/SelectedItem";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const [active, setActive] = useState(null); // Start with nothing
@@ -126,7 +127,13 @@ export default function HomePage() {
   }, [active, menuItems]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <motion.div
+      className="relative min-h-screen overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <BGArtwork
         imageUrl={
           active === "Encounters"
@@ -141,9 +148,19 @@ export default function HomePage() {
         }
       />
 
-      <section className="grid grid-cols-[auto_1fr] items-stretch min-w-screen min-h-screen px-30 gap-15 relative z-10">
+      <motion.div className="grid grid-cols-[auto_1fr] items-stretch min-w-screen min-h-screen px-30 gap-15 relative z-10">
         {/* Left column */}
-        <div className="flex flex-col space-y-9 min-h-screen justify-center">
+        <motion.div
+          className="flex flex-col space-y-9 min-h-screen justify-center"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.2,
+          }}
+        >
           {active !== null && // only render when we know what to show
             menuItems.map((label) => (
               <Link
@@ -166,10 +183,10 @@ export default function HomePage() {
                 </SelectedItem>
               </Link>
             ))}
-        </div>
+        </motion.div>
 
         {/* Right column */}
-        <div className="absolute  grid-cols-[auto_1fr] justify-center items-end bottom-0 right-20 p-28 transition-all duration-500">
+        <motion.div className="absolute  grid-cols-[auto_1fr] justify-center items-end bottom-0 right-20 p-28 transition-all duration-500">
           <div
             id="text"
             className={`${active ? "hidden" : ""} flex flex-col items-center `}
@@ -179,6 +196,15 @@ export default function HomePage() {
             <div className=" text-gray-700 text-center">
               {active === "Continue Campaign" && (
                 <div>
+                  <div className="flex justify-between text-2xl  text-[var(--secondary)] text-center px-30 gap-5 uppercase">
+                    <div>
+                      {lastCampaign?.lastOpened
+                        ? lastCampaign.lastOpened.toDate().toLocaleDateString()
+                        : "No last opened date"}
+                    </div>
+
+                    <div>Sessions: {lastCampaign?.sessionsCount}</div>
+                  </div>
                   <div className="flex gap-5 text-4xl font-black text-[var(--primary)] text-center mt-4 uppercase">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -292,8 +318,8 @@ export default function HomePage() {
           ) : (
             ""
           )}
-        </div>
-      </section>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }

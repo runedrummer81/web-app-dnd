@@ -16,10 +16,14 @@ import MapBrowserModal from "../components/MapBrowserModal";
 import EncounterBrowserModal from "../components/EncounterBrowserModal";
 import { motion } from "framer-motion";
 import ArrowButton from "../components/ArrowButton";
+import { useRef } from "react";
 
 export default function SessionEdit() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const encountersContainerRef = useRef(null);
+  const [visibleEncounters, setVisibleEncounters] = useState(5);
 
   const [sessionData, setSessionData] = useState(null);
   const [encounters, setEncounters] = useState([]);
@@ -28,6 +32,8 @@ export default function SessionEdit() {
   const [showMapModal, setShowMapModal] = useState(false);
   const [showEncounterModal, setShowEncounterModal] = useState(false);
   const [creatureImages, setCreatureImages] = useState({});
+
+  const [showMoreEncountersModal, setShowMoreEncountersModal] = useState(false);
 
   const cornerArrowPaths = [
     "M35.178,1.558l0,32.25",
@@ -184,6 +190,31 @@ export default function SessionEdit() {
   const displayedMaps = combatMaps.slice(0, 3);
   const extraMapsCount = combatMaps.length - 3;
 
+  useEffect(() => {
+    const calculateVisibleEncounters = () => {
+      if (!encountersContainerRef.current) return;
+
+      const containerTop =
+        encountersContainerRef.current.getBoundingClientRect().top;
+      const availableHeight = window.innerHeight - containerTop - 20; // adjust padding if needed
+
+      const cardHeight = 140; // approximate height of each card
+      let count = Math.max(1, Math.floor(availableHeight / cardHeight));
+
+      // Make it odd
+      if (count % 2 === 0) {
+        count = Math.max(1, count - 1);
+      }
+
+      setVisibleEncounters(count);
+    };
+
+    calculateVisibleEncounters();
+    window.addEventListener("resize", calculateVisibleEncounters);
+    return () =>
+      window.removeEventListener("resize", calculateVisibleEncounters);
+  }, [encountersContainerRef, encounters]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--dark-muted-bg)] text-[var(--primary)] font-serif p-20 pt-40 gap-8">
       {!sessionData ? (
@@ -192,11 +223,11 @@ export default function SessionEdit() {
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-8 flex-1">
+          <div className="flex gap-8 flex-1">
             {" "}
             {/* Notes Section */}
             <motion.section
-              className="col-span-2 flex flex-col flex-1"
+              className="flex flex-col flex-1"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
@@ -249,89 +280,159 @@ export default function SessionEdit() {
                     +
                   </button>
                 </div>
-                <div className="relative flex flex-col overflow-hidden ">
-                  {/* Corner Arrows */}
-                  {/* <>
-                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-              </> */}
-
-                  <div className="space-y-3 overflow-y-auto flex-1">
+                <div className="relative flex flex-col overflow-hidden">
+                  <div
+                    className="overflow-y-auto flex-1"
+                    ref={encountersContainerRef}
+                  >
                     {encounters.length > 0 ? (
-                      encounters.map((e) => {
-                        const firstCreature =
-                          e.creatures && e.creatures.length > 0
-                            ? e.creatures[0]
-                            : null;
-                        const creatureImageUrl = firstCreature
-                          ? creatureImages[firstCreature.name] ||
-                            "https://via.placeholder.com/400x200?text=No+Image"
-                          : "https://via.placeholder.com/400x200?text=No+Image";
+                      <div className="grid grid-cols-2 gap-3">
+                        {encounters.slice(0, visibleEncounters).map((e) => {
+                          const firstCreature =
+                            e.creatures && e.creatures.length > 0
+                              ? e.creatures[0]
+                              : null;
+                          const creatureImageUrl = firstCreature
+                            ? creatureImages[firstCreature.name] ||
+                              "https://via.placeholder.com/400x200?text=No+Image"
+                            : "https://via.placeholder.com/400x200?text=No+Image";
 
-                        return (
-                          <motion.div
-                            key={e.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)]  transition-all duration-300 group"
-                            style={{ minHeight: "100px" }}
-                          >
-                            <div
-                              className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
-                              style={{
-                                backgroundImage: `url(${creatureImageUrl})`,
-                                backgroundPosition: "right center",
-                                clipPath:
-                                  "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
-                              }}
-                            />
-                            <div
-                              className="absolute inset-2"
-                              style={{
-                                background:
-                                  "linear-gradient(to right, var(--dark-muted-bg) 0%, var(--dark-muted-bg) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
-                              }}
-                            />
+                          return (
+                            <motion.div
+                              key={e.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 group"
+                              style={{ minHeight: "100px" }}
+                            >
+                              <div
+                                className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                                style={{
+                                  backgroundImage: `url(${creatureImageUrl})`,
+                                  backgroundPosition: "right center",
+                                  clipPath:
+                                    "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                                }}
+                              />
+                              <div
+                                className="absolute inset-2"
+                                style={{
+                                  background:
+                                    "linear-gradient(to right, var(--dark-muted-bg) 0%, var(--dark-muted-bg) 40%, rgba(28, 27, 24, 0.7) 70%, transparent 100%)",
+                                }}
+                              />
 
-                            <div className="relative z-10 p-4 flex justify-between items-start">
-                              <div className="flex-1">
-                                <p className="text-xl font-semibold text-[var(--primary)] mb-2  transition-all">
-                                  {e.name}
-                                </p>
-                                <div className="text-[var(--secondary)] text-sm space-y-1">
-                                  {e.creatures && e.creatures.length > 0 ? (
-                                    e.creatures.map((c, i) => (
-                                      <div
-                                        key={i}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <span className="text-[var(--secondary)]/60">
-                                          •
-                                        </span>
-                                        <span>
-                                          {c.name} × {c.count}
-                                        </span>
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className="text-[var(--secondary)]/60 italic">
-                                      No creatures
-                                    </span>
-                                  )}
+                              <div className="relative z-10 p-4 flex justify-between items-start">
+                                <div className="flex-1">
+                                  <p className="text-xl font-semibold text-[var(--primary)] mb-2 transition-all">
+                                    {e.name}
+                                  </p>
+                                  <div className="text-[var(--secondary)] text-sm space-y-1">
+                                    {e.creatures && e.creatures.length > 0 ? (
+                                      e.creatures.map((c, i) => (
+                                        <div
+                                          key={i}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <span className="text-[var(--secondary)]/60">
+                                            •
+                                          </span>
+                                          <span>
+                                            {c.name} × {c.count}
+                                          </span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <span className="text-[var(--secondary)]/60 italic">
+                                        No creatures
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
+                                <button
+                                  onClick={() => handleRemoveEncounter(e.id)}
+                                  className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                                >
+                                  ✕
+                                </button>
                               </div>
+                            </motion.div>
+                          );
+                        })}
+
+                        {/* More encounters */}
+                        {encounters.length > visibleEncounters && (
+                          <div
+                            className="flex items-center justify-center border-2 border-[var(--secondary)] text-[var(--primary)]/70 italic text-center p-4 hover:border-[var(--primary)] cursor-pointer transition-all duration-300"
+                            onClick={() => setShowMoreEncountersModal(true)}
+                          >
+                            +{encounters.length - visibleEncounters} more
+                            encounter
+                            {encounters.length - visibleEncounters > 1
+                              ? "s"
+                              : ""}
+                          </div>
+                        )}
+                        {showMoreEncountersModal && (
+                          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+                            <div className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6 rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto relative">
                               <button
-                                onClick={() => handleRemoveEncounter(e.id)}
-                                className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                                onClick={() =>
+                                  setShowMoreEncountersModal(false)
+                                }
+                                className="absolute top-2 right-2 text-red-400 hover:text-red-300 text-xl"
                               >
                                 ✕
                               </button>
+
+                              <h3 className="text-xl font-bold mb-4 text-[var(--primary)]">
+                                Extra Encounters
+                              </h3>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                {encounters
+                                  .slice(visibleEncounters)
+                                  .map((e) => {
+                                    const firstCreature =
+                                      e.creatures && e.creatures.length > 0
+                                        ? e.creatures[0]
+                                        : null;
+                                    const creatureImageUrl = firstCreature
+                                      ? creatureImages[firstCreature.name] ||
+                                        "https://via.placeholder.com/400x200?text=No+Image"
+                                      : "https://via.placeholder.com/400x200?text=No+Image";
+
+                                    return (
+                                      <div
+                                        key={e.id}
+                                        className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 p-4"
+                                      >
+                                        <p className="font-semibold text-[var(--primary)] mb-2">
+                                          {e.name}
+                                        </p>
+                                        {e.creatures &&
+                                        e.creatures.length > 0 ? (
+                                          e.creatures.map((c, i) => (
+                                            <div
+                                              key={i}
+                                              className="text-[var(--secondary)] text-sm"
+                                            >
+                                              {c.name} × {c.count}
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span className="text-[var(--secondary)]/60 italic">
+                                            No creatures
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                              </div>
                             </div>
-                          </motion.div>
-                        );
-                      })
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-[var(--primary)]/60 italic text-center py-4">
                         No encounters added yet
@@ -350,14 +451,6 @@ export default function SessionEdit() {
                   <h3 className="text-lg uppercase tracking-widest ">Maps</h3>
                 </div>
                 <div className="relative  p-4 ">
-                  {/* Corner Arrows */}
-                  {/* <>
-                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-              </> */}
-
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setShowMapModal(true)}
