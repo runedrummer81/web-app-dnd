@@ -260,3 +260,24 @@ body,
   margin: 0;
   padding: 0;
 }
+
+/* Scrollbar track (background) */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Scrollbar thumb (the draggable part) */
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 4px;
+}
+
+/* Scrollbar hover effect */
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background-color: var(--secondary);
+}
+
+/* Optional: scrollbar track background */
+.scrollbar-custom::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.1);
+}

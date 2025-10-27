@@ -15,21 +15,21 @@ export default function NewCampaign() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
-    const [showNamePopup, setShowNamePopup] = useState(false);
-    const [campaignName, setCampaignName] = useState("");
-    const navigate = useNavigate();
-    const scrollRef = useRef(null);
-    const [active, setActive] = useState(null);
+  const [showNamePopup, setShowNamePopup] = useState(false);
+  const [campaignName, setCampaignName] = useState("");
+  const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const [active, setActive] = useState(null);
 
-    // Lyt efter navigation attempts fra Nav
-// useEffect(() => {
-//   const handleNavigationEvent = () => {
-//     handleNavigationAttempt("/session");
-//   };
-  
-//   window.addEventListener("attemptNavigation", handleNavigationEvent);
-//   return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
-// }, [hasUnsavedChanges]);
+  // Lyt efter navigation attempts fra Nav
+  // useEffect(() => {
+  //   const handleNavigationEvent = () => {
+  //     handleNavigationAttempt("/session");
+  //   };
+
+  //   window.addEventListener("attemptNavigation", handleNavigationEvent);
+  //   return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+  // }, [hasUnsavedChanges]);
 
   // 🔹 Fetch templates from Firestore
   useEffect(() => {
@@ -139,14 +139,14 @@ export default function NewCampaign() {
   return (
     <AnimatePresence>
       <motion.div
-        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] p-10 font-serif select-none"
+        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] px-40 font-serif select-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
       >
         {/* Hovedlayout */}
-        <div className="flex w-full justify-center items-center gap-60 mb-6">
+        <div className="flex w-full justify-between items-center mb-6">
           {/* Left side */}
           <motion.div
             className="flex flex-col items-center justify-center"
@@ -166,7 +166,7 @@ export default function NewCampaign() {
                 animate={true}
                 className="w-fit"
               >
-                NEW CAMPAIGN FROM TEMPLATE
+                Modules
               </SelectedItem>
             </div>
 
@@ -182,7 +182,7 @@ export default function NewCampaign() {
 
           {/* Right side: templates */}
           <motion.div
-            className="flex flex-col w-[480px] max-h-[74vh] mt-25 overflow-y-auto space-y-6 border-[var(--primary)]/50"
+            className="flex flex-col w-[480px] max-h-[480px] mt-25 overflow-y-auto space-y-6 border-[var(--primary)]/50 scroll-snap-y snap-y snap-mandatory scrollbar-custom"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{
@@ -195,7 +195,8 @@ export default function NewCampaign() {
             {templates.map(({ id, title, image, learnMoreId }, index) => (
               <motion.div
                 key={id}
-                className="group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]"
+                className={`group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]
+                ${openedIndex === index ? "pl-40" : ""}`}
                 onMouseEnter={() => setOpenedIndex(index)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -203,15 +204,15 @@ export default function NewCampaign() {
                   type: "spring",
                   stiffness: 150,
                   damping: 20,
-                  delay: 0.4 + index * 0.1, // Stagger each template
+                  delay: 0.4 + index * 0.1,
                 }}
               >
-                {/* Baggrundsbillede */}
+                {/* Background image */}
                 {image && (
                   <img
                     src={image}
                     alt={title}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none`}
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none"
                     style={{
                       maskImage:
                         "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
@@ -221,10 +222,10 @@ export default function NewCampaign() {
                   />
                 )}
 
-                {/* Gradient overlay kun til baggrund */}
+                {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1C1B18] pointer-events-none"></div>
 
-                {/* Tekst og knapper ovenpå */}
+                {/* Text + buttons */}
                 <div className="relative z-10 flex flex-col justify-between h-full">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
@@ -240,7 +241,6 @@ export default function NewCampaign() {
                     }`}
                   >
                     <div className="mt-4 flex flex-col justify-start items-start gap-2">
-                      {/* LEARN MORE button - centered beneath CONFIRM */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -251,7 +251,6 @@ export default function NewCampaign() {
                         Learn More
                       </button>
 
-                      {/* CONFIRM button */}
                       <ActionButton
                         label="CONFIRM"
                         onClick={handleConfirmClick}
