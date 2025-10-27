@@ -32,6 +32,7 @@ export default function CreateEncounters() {
     open: false,
     encounterId: null,
   });
+  const searchInputRef = React.useRef(null);
 
   const handleDeleteEncounter = (id) => {
     setDeleteConfirm({ open: true, encounterId: id });
@@ -83,6 +84,10 @@ export default function CreateEncounters() {
 
     return () => unsubscribe();
   }, []);
+
+  if (searchInputRef.current) {
+  searchInputRef.current.focus();
+}
 
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -208,60 +213,96 @@ export default function CreateEncounters() {
           delay: 0.2,
         }}
       >
-        <div className="flex items-center gap-4 mb-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 257.6 130.8"
-            className="fill-[var(--secondary)] w-8 h-auto -scale-x-100"
-          >
-            <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
-            <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
-          </svg>
-          <div className="relative inline-block">
-            <span
-              ref={spanRef}
-              className="absolute invisible whitespace-pre text-3xl font-normal p-3"
+        <div className="flex gap-4 mb-4 justify-between items-center px-2">
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 257.6 130.8"
+              className="fill-[var(--secondary)] w-8 h-auto -scale-x-100"
             >
-              {encounterName || "Name your encounter..."}
-            </span>
-            <motion.input
-              type="text"
-              value={encounterName}
-              onChange={(e) => setEncounterName(e.target.value)}
-              placeholder="Name your encounter..."
-              className={`p-3 text-[var(--primary)] outline-none text-3xl bg-transparent border-none ${
-                nameError ? "border-b-2 border-red-500" : ""
-              }`}
-              style={{ width }}
-              animate={
-                nameError
-                  ? {
-                      x: [-5, 5, -5, 5, 0],
-                      textShadow: "0 0 8px #bf883c",
-                    }
-                  : { x: 0, textShadow: "0 0 0px transparent" }
-              }
-              transition={{ duration: 0.4 }}
-            />
+              <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
+              <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
+            </svg>
+            <div className="relative inline-block">
+              <span
+                ref={spanRef}
+                className="absolute invisible whitespace-pre text-3xl font-normal pl-3"
+              >
+                {encounterName || "Title (max 30 chars)"}
+              </span>
+              <div className="flex flex-row">
+                <motion.input
+                  type="text"
+                  value={encounterName}
+                  onChange={(e) => setEncounterName(e.target.value)}
+                  placeholder="Title (max 30 chars)"
+                  maxLength={30}
+                  className={`p-3 text-[var(--primary)] outline-none text-3xl bg-transparent border-none placeholder:italic ${
+                    nameError ? "border-b-2 border-red-500" : ""
+                  }`}
+                  style={{ width }}
+                  animate={
+                    nameError
+                      ? {
+                          x: [-5, 5, -5, 5, 0],
+                          textShadow: "0 0 8px #bf883c",
+                        }
+                      : { x: 0, textShadow: "0 0 0px transparent" }
+                  }
+                  transition={{ duration: 0.4 }}
+                />
+                
+              </div>
+            </div>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 257.6 130.8"
+              className="fill-[var(--secondary)] w-8 h-auto "
+            >
+              <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
+              <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
+            </svg>
+            <span
+                  className={` transition-colors ${
+                    encounterName.length >= 30
+                      ? "text-red-400"
+                      : "text-[var(--secondary)]"
+                  }`}
+                >
+                  {encounterName.length}/30
+                </span>
           </div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 257.6 130.8"
-            className="fill-[var(--secondary)] w-8 h-auto "
-          >
-            <path d="M171.5,114.9c-.4-13.6,18-14.3,12.2-15.2-2.6-.4-5-1-7-.5-14.6-10.9-35.6-6.8-52.3-2.6-23.9,6-45.9,17.6-69.5,24.2C23.5,129.5.3,126.4.3,126.4c19.8-1.3,39.1-5.8,55.9-13.1C100.3,94.2,123.8,37.5,88.8,0c14.5,3.5,24.5,23.4,24,37.4-.2,4,5.2,4.2,6.6,1.2,8.1-2.3,12.6,6.3,11.8,14.3-1.7,16.4-19.7,29.1-33.7,33.4-2.9,1.9-.7,6.6,2.6,5.5,41.7-13.4,84.6-51.4,130.7-27.5-5.2-.2-26.1,3.6-27.2,14,.1,2.2,4.1,2.6,5.7,2.6,18.8.4,29.3,18.8,48.3,20.4-5.4,3.2-10.7,6.5-16.7,8.8-16.5,5.8-25.2,0-38-9.7-1.2-.9-4.3-1.6-3.4,1.4,2.3,7.3,4,15.4-.6,22-8.3,13.1-28.3,6.3-27.4-8.9h0Z" />
-            <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
-          </svg>
+
+          <AnimatePresence>
+            {selectedCreatures.length > 0 && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                onClick={handleSaveEncounter}
+                className="relative cursor-pointer text-black p-2 font-bold block overflow-hidden bg-[var(--secondary)] hover:bg-[var(--primary)] transition px-4"
+              >
+                <span className="uppercase relative z-10">
+                  {currentEditingId ? "Update Encounter" : "Save Encounter"}
+                </span>
+                <span className="absolute inset-0 "></span>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
+
         {/* Search bar */}
         <div className="relative w-full ">
           <div className="border-2 border-[var(--secondary)] overflow-none flex items-center ">
             <input
               type="text"
               placeholder="Search for a creature..."
+              ref={searchInputRef}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black outline-none w-full"
+              className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
             />
           </div>
 
@@ -335,28 +376,6 @@ export default function CreateEncounters() {
               ))}
             </AnimatePresence>
           </div>
-
-          <AnimatePresence>
-            {selectedCreatures.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.2 }}
-                whileHover={{
-                  scale: 1.05,
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSaveEncounter}
-                className="relative cursor-pointer text-[var(--primary)] px-8 py-3 font-bold mx-auto block mt-4 overflow-hidden"
-              >
-                <span className="uppercase relative z-10">
-                  {currentEditingId ? "Update Encounter" : "Save Encounter"}
-                </span>
-                <span className="absolute inset-0 "></span>
-              </motion.button>
-            )}
-          </AnimatePresence>
         </div>
       </motion.div>
 
@@ -641,12 +660,12 @@ export default function CreateEncounters() {
                 Delete Encounter?
               </h3>
               <p className="text-[var(--secondary)] mb-6">
-                Are you sure you want to permanently delete this encounter?
+                Are you sure you want to delete this encounter?
               </p>
               <div className="flex justify-center gap-6">
                 <button
                   onClick={confirmDelete}
-                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition"
+                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition hover:cursor-pointer"
                 >
                   Delete
                 </button>
@@ -654,7 +673,7 @@ export default function CreateEncounters() {
                   onClick={() =>
                     setDeleteConfirm({ open: false, encounterId: null })
                   }
-                  className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition"
+                  className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition hover:cursor-pointer"
                 >
                   Cancel
                 </button>
