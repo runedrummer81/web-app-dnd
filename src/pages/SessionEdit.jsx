@@ -204,7 +204,7 @@ useEffect(() => {
 
 
   
-
+ 
 
 
 
@@ -239,12 +239,18 @@ const handleSave = async () => {
     }
   };
 
-  if (!sessionData)
-    return (
-      <p className="text-center mt-20 text-[var(--primary)]">
-        Loading session...
-      </p>
-    );
+  //Modal handlers
+ const handleSaveAndNavigate = async () => { await handleSave(); setShowUnsavedModal(false); // Navigate sker allerede i handleSave
+  };
+
+ const handleContinueWithoutSaving = () => { setHasUnsavedChanges(false); setShowUnsavedModal(false); if (pendingNavigation) { navigate(pendingNavigation); } };
+
+  // if (!sessionData)
+  //   return (
+  //     <p className="text-center mt-20 text-[var(--primary)]">
+  //       Loading session...
+  //     </p>
+  //   );
 
   const displayedMaps = combatMaps.slice(0, 3);
   const extraMapsCount = combatMaps.length - 3;
