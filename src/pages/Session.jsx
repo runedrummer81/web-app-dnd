@@ -206,6 +206,13 @@ export default function Session() {
     }
   };
 
+  // Add this function after createNewSession
+  const runSession = (sessionId) => {
+    navigate(`/run-session/${sessionId}`, {
+      state: { campaignId },
+    });
+  };
+
   // Scroll / center logic
   // centerIndex refers to index into `sessions` array — we keep selectedSession in sync with it
   const handleScroll = useCallback(
@@ -258,11 +265,6 @@ export default function Session() {
   useEffect(() => {
     if (sessions[centerIndex]) setSelectedSession(sessions[centerIndex]);
   }, [centerIndex, sessions]);
-
-  // Utility: safe navigate with session id
-  const runSession = (sessionId) => {
-    navigate("/session-run", { state: { sessionId } });
-  };
 
   return (
     <div

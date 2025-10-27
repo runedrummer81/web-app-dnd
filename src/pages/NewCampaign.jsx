@@ -110,6 +110,7 @@ useEffect(() => {
       description: selectedTemplate.description || "",
       campaignNr: Date.now(),
       templateId: selectedTemplate.id,
+      mapSetId: selectedTemplate.mapSetId,
       lastOpened: new Date(),
       firstOpened: new Date(),
       sessionsCount: 0,
