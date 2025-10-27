@@ -25,9 +25,18 @@ export default function Nav() {
     }
   };
 
+ // I Nav.jsx, tilføj en check før navigation
+const handleBack = () => {
+  // Hvis du er på session-edit siden, send en event
+  if (location.pathname.includes("/session-edit")) {
+    // Trigger et custom event som SessionEdit kan lytte efter
+    window.dispatchEvent(new CustomEvent("attemptNavigation"));
+    return;
+  }
+
   
 
-  const handleBack = () => {
+  
     // Sider hvor vi ikke skal bruge "navigate(-1)"
     const sessionRoutes = "/session";
     const sessEditRoute = "/session-edit"
@@ -47,6 +56,7 @@ export default function Nav() {
   const isHomePage = location.pathname === "/home" ; //  tjek om vi er på forsiden eller login
   const isLogin = location.pathname ==="/login";
   const banned = isHomePage || isLogin;
+
 
   return (
     <>

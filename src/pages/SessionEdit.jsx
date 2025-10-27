@@ -17,6 +17,7 @@ import EncounterBrowserModal from "../components/EncounterBrowserModal";
 import { motion } from "framer-motion";
 import ArrowButton from "../components/ArrowButton";
 import { useRef } from "react";
+import UnsavedModal from "../components/UnsavedModal";
 
 export default function SessionEdit() {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ export default function SessionEdit() {
   const [creatureImages, setCreatureImages] = useState({});
 
   const [showMoreEncountersModal, setShowMoreEncountersModal] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [originalSessionData, setOriginalSessionData] = useState(null);
 
   const cornerArrowPaths = [
     "M35.178,1.558l0,32.25",
@@ -61,6 +66,7 @@ export default function SessionEdit() {
   );
 
   const sessionId = location.state?.sessionId;
+  
 
   useEffect(() => {
     if (!sessionId) {
@@ -75,7 +81,9 @@ export default function SessionEdit() {
         const sessionSnap = await getDoc(sessionRef);
         if (sessionSnap.exists()) {
           const data = sessionSnap.data();
+          
           setSessionData(data);
+          setOriginalSessionData(data); // gem originalen
           setEncounters(data.encounters || []);
           setCombatMaps(data.combatMaps || []);
 
@@ -99,6 +107,7 @@ export default function SessionEdit() {
 
     fetchSession();
   }, [sessionId, navigate]);
+  
 
   useEffect(() => {
     async function fetchCreatureImages() {
@@ -135,6 +144,34 @@ export default function SessionEdit() {
     }
   }, [encounters]);
 
+   // Track changes når data ændres
+useEffect(() => {
+  if (!originalSessionData) return;
+
+  const notesChanged = sessionData?.dmNotes !== originalSessionData.dmNotes;
+  const headlineChanged = sessionData?.notesHeadline !== originalSessionData.notesHeadline;
+  const encountersChanged = JSON.stringify(encounters) !== JSON.stringify(originalSessionData.encounters || []);
+  const mapsChanged = JSON.stringify(combatMaps) !== JSON.stringify(originalSessionData.combatMaps || []);
+
+  const changed = notesChanged || headlineChanged || encountersChanged || mapsChanged;
+  setHasUnsavedChanges(changed);
+}, [sessionData, encounters, combatMaps, originalSessionData]);
+
+  // Lyt efter navigation attempts fra Nav
+useEffect(() => {
+  const handleNavigationEvent = () => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation("/session");
+      setShowUnsavedModal(true);
+    } else {
+      navigate("/session");
+    }
+  };
+  
+  window.addEventListener("attemptNavigation", handleNavigationEvent);
+  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+}, [hasUnsavedChanges, navigate]);
+
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
   };
@@ -164,16 +201,31 @@ export default function SessionEdit() {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const sessionRef = doc(db, "Sessions", sessionId);
-      await updateDoc(sessionRef, {
-        dmNotes: sessionData.dmNotes,
-        notesHeadline: sessionData.notesHeadline,
-        encounters,
-        combatMaps,
-        lastEdited: new Date(),
-      });
+
+
+  
+ 
+
+
+
+
+
+ 
+
+ 
+
+  // Opdater handleSave til at clear unsaved changes flag
+const handleSave = async () => {
+  try {
+    const sessionRef = doc(db, "Sessions", sessionId);
+
+    await updateDoc(sessionRef, {
+      dmNotes: sessionData.dmNotes,
+      notesHeadline: sessionData.notesHeadline,
+      encounters,
+      combatMaps,
+      lastEdited: new Date(),
+    });
 
       console.log("Session saved");
       navigate("/session", {
@@ -186,6 +238,19 @@ export default function SessionEdit() {
       console.error("error:", err);
     }
   };
+
+  //Modal handlers
+ const handleSaveAndNavigate = async () => { await handleSave(); setShowUnsavedModal(false); // Navigate sker allerede i handleSave
+  };
+
+ const handleContinueWithoutSaving = () => { setHasUnsavedChanges(false); setShowUnsavedModal(false); if (pendingNavigation) { navigate(pendingNavigation); } };
+
+  // if (!sessionData)
+  //   return (
+  //     <p className="text-center mt-20 text-[var(--primary)]">
+  //       Loading session...
+  //     </p>
+  //   );
 
   const displayedMaps = combatMaps.slice(0, 3);
   const extraMapsCount = combatMaps.length - 3;
@@ -532,6 +597,13 @@ export default function SessionEdit() {
             onConfirm={handleMapsConfirm}
             alreadySelectedMaps={combatMaps}
           />
+
+      <UnsavedModal
+      open={showUnsavedModal}
+      onClose={() => setShowUnsavedModal(false)}
+      onSave={handleSaveAndNavigate}
+      onContinue={handleContinueWithoutSaving}
+    />
         </>
       )}
     </div>

@@ -15,11 +15,21 @@ export default function NewCampaign() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
-  const [showNamePopup, setShowNamePopup] = useState(false);
-  const [campaignName, setCampaignName] = useState("");
-  const navigate = useNavigate();
-  const scrollRef = useRef(null);
-  const [active, setActive] = useState(null);
+    const [showNamePopup, setShowNamePopup] = useState(false);
+    const [campaignName, setCampaignName] = useState("");
+    const navigate = useNavigate();
+    const scrollRef = useRef(null);
+    const [active, setActive] = useState(null);
+
+    // Lyt efter navigation attempts fra Nav
+useEffect(() => {
+  const handleNavigationEvent = () => {
+    handleNavigationAttempt("/session");
+  };
+  
+  window.addEventListener("attemptNavigation", handleNavigationEvent);
+  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+}, [hasUnsavedChanges]);
 
   // 🔹 Fetch templates from Firestore
   useEffect(() => {
