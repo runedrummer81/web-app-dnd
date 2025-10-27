@@ -4,14 +4,11 @@ import { auth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
 
-
-
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
   const navigate = useNavigate();
   const location = useLocation();
   const [logoutMenuOpen, setLogoutMenuOpen] = useState(false);
-  
 
   if (!user) return null;
 
@@ -25,64 +22,57 @@ export default function Nav() {
     }
   };
 
- // I Nav.jsx, tilføj en check før navigation
-const handleBack = () => {
-  // Hvis du er på session-edit siden, send en event
-  if (location.pathname.includes("/session-edit")) {
-    // Trigger et custom event som SessionEdit kan lytte efter
-    window.dispatchEvent(new CustomEvent("attemptNavigation"));
-    return;
-  }
+  // I Nav.jsx, tilføj en check før navigation
+  const handleBack = () => {
+    // Hvis du er på session-edit siden, send en event
+    if (location.pathname.includes("/session-edit")) {
+      // Trigger et custom event som SessionEdit kan lytte efter
+      window.dispatchEvent(new CustomEvent("attemptNavigation"));
+      return;
+    }
 
-  
-
-  
     // Sider hvor vi ikke skal bruge "navigate(-1)"
     const sessionRoutes = "/session";
-    const sessEditRoute = "/session-edit"
+    const sessEditRoute = "/session-edit";
 
     if (sessionRoutes.includes(location.pathname)) {
       const lastPage = localStorage.getItem("lastNonSessionPage") || "/home";
       navigate(lastPage);
-    }
-    else if(sessEditRoute.includes(location.pathname)) {
+    } else if (sessEditRoute.includes(location.pathname)) {
       navigate("/session");
-    }
-    else{
-      navigate("/home")
+    } else {
+      navigate("/home");
     }
   };
 
-  const isHomePage = location.pathname === "/home" ; //  tjek om vi er på forsiden eller login
-  const isLogin = location.pathname ==="/login";
+  const isHomePage = location.pathname === "/home"; //  tjek om vi er på forsiden eller login
+  const isLogin = location.pathname === "/login";
   const banned = isHomePage || isLogin;
-
 
   return (
     <>
-    <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)]">
-
-      {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
-      {!banned && (
-        <button
-          className="transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
-          onClick={handleBack}
-        >
-        <svg
-          width="48"
-          height="41"
-          viewBox="0 0 48 41"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M47 39.8119C41.3727 32.9601 36.3755 29.0724 32.0086 28.1486C27.6417 27.2248 23.484 27.0853 19.5357 27.7299V40L1 19.9781L19.5357 1V12.6621C26.8367 12.7195 33.0436 15.3321 38.1565 20.5C43.2686 25.6679 46.2165 32.1052 47 39.8119Z"
-          />
-        </svg>
-      </button>
-    )}
+      <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)] pt-5">
+        {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
+        {!banned && (
+          <button
+            className="absolute transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
+            onClick={handleBack}
+          >
+            <svg
+              width="48"
+              height="41"
+              viewBox="0 0 48 41"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M47 39.8119C41.3727 32.9601 36.3755 29.0724 32.0086 28.1486C27.6417 27.2248 23.484 27.0853 19.5357 27.7299V40L1 19.9781L19.5357 1V12.6621C26.8367 12.7195 33.0436 15.3321 38.1565 20.5C43.2686 25.6679 46.2165 32.1052 47 39.8119Z"
+              />
+            </svg>
+          </button>
+        )}
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
           {/* Button 1 */}
