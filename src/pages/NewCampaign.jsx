@@ -22,14 +22,14 @@ export default function NewCampaign() {
     const [active, setActive] = useState(null);
 
     // Lyt efter navigation attempts fra Nav
-useEffect(() => {
-  const handleNavigationEvent = () => {
-    handleNavigationAttempt("/session");
-  };
+// useEffect(() => {
+//   const handleNavigationEvent = () => {
+//     handleNavigationAttempt("/session");
+//   };
   
-  window.addEventListener("attemptNavigation", handleNavigationEvent);
-  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
-}, [hasUnsavedChanges]);
+//   window.addEventListener("attemptNavigation", handleNavigationEvent);
+//   return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
+// }, [hasUnsavedChanges]);
 
   // 🔹 Fetch templates from Firestore
   useEffect(() => {
@@ -110,7 +110,7 @@ useEffect(() => {
       description: selectedTemplate.description || "",
       campaignNr: Date.now(),
       templateId: selectedTemplate.id,
-      mapSetId: selectedTemplate.mapSetId,
+      mapSetId: selectedTemplate.mapSetId || null,
       lastOpened: new Date(),
       firstOpened: new Date(),
       sessionsCount: 0,
