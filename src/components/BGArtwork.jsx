@@ -32,9 +32,9 @@ export default function BGArtwork({ imageUrl }) {
         className="absolute inset-0"
         style={{
           background: `
-      linear-gradient(to left, transparent 30%, var(--dark-muted-bg) 80%),
+      linear-gradient(to left, transparent 50%, var(--dark-muted-bg) 80%),
       linear-gradient(to right, transparent 75%, var(--dark-muted-bg) 100%),
-      linear-gradient(to bottom, transparent 40%, var(--dark-muted-bg) 100%),
+      linear-gradient(to bottom, transparent 10%, var(--dark-muted-bg) 80%),
       linear-gradient(to top, transparent 75%, var(--dark-muted-bg) 100%)
     `,
         }}
