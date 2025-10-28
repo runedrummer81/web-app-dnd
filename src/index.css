@@ -260,3 +260,32 @@ body,
   margin: 0;
   padding: 0;
 }
+
+/* Chrome, Edge, Safari */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: rgba(40, 38, 33, 0.6); /* muted dark bg */
+  border-radius: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 8px;
+  border: 2px solid rgba(40, 38, 33, 0.6);
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Firefox */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary) rgba(40, 38, 33, 0.6);
+  scrollbar-gutter: stable both-edges; /* reserves space */
+  padding-right: 20px; /* content gap */
+  overflow-y: scroll; /* not auto */
+}

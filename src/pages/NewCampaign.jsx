@@ -15,21 +15,33 @@ export default function NewCampaign() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
-    const [showNamePopup, setShowNamePopup] = useState(false);
-    const [campaignName, setCampaignName] = useState("");
-    const navigate = useNavigate();
-    const scrollRef = useRef(null);
-    const [active, setActive] = useState(null);
+  const [showNamePopup, setShowNamePopup] = useState(false);
+  const [campaignName, setCampaignName] = useState("");
+  const navigate = useNavigate();
+  const scrollRef = useRef(null);
 
-    // Lyt efter navigation attempts fra Nav
-// useEffect(() => {
-//   const handleNavigationEvent = () => {
-//     handleNavigationAttempt("/session");
-//   };
-  
-//   window.addEventListener("attemptNavigation", handleNavigationEvent);
-//   return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
-// }, [hasUnsavedChanges]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredTemplates = templates.filter((template) =>
+    template.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const hoverTimer = useRef(null);
+
+  const startHoverTimer = (templateId) => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => {
+      setOpenedIndex(templateId);
+      hoverTimer.current = null;
+    }, 300); // 300ms consecutive hover
+  };
+
+  const cancelHoverTimer = () => {
+    if (hoverTimer.current) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+  };
 
   // 🔹 Fetch templates from Firestore
   useEffect(() => {
@@ -48,6 +60,17 @@ export default function NewCampaign() {
     }
     getTemplates();
   }, []);
+
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [filteredTemplates.length, searchQuery]);
 
   // 🔹 Lock scroll when modal is open
   useEffect(() => {
@@ -98,7 +121,9 @@ export default function NewCampaign() {
       return;
     }
 
-    const selectedTemplate = templates[openedIndex];
+    const selectedTemplate = templates.find((t) => t.id === openedIndex);
+    if (!selectedTemplate) return;
+
     const formattedName = campaignName
       .trim()
       .toLowerCase()
@@ -139,14 +164,14 @@ export default function NewCampaign() {
   return (
     <AnimatePresence>
       <motion.div
-        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] p-10 font-serif select-none"
+        className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--dark-muted-bg)] px-40 font-serif select-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
       >
         {/* Hovedlayout */}
-        <div className="flex w-full justify-center items-center gap-60 mb-6">
+        <div className="flex w-full justify-between items-center mb-6">
           {/* Left side */}
           <motion.div
             className="flex flex-col items-center justify-center"
@@ -166,7 +191,7 @@ export default function NewCampaign() {
                 animate={true}
                 className="w-fit"
               >
-                NEW CAMPAIGN FROM TEMPLATE
+                Modules
               </SelectedItem>
             </div>
 
@@ -182,92 +207,120 @@ export default function NewCampaign() {
 
           {/* Right side: templates */}
           <motion.div
-            className="flex flex-col w-[480px] max-h-[74vh] mt-25 overflow-y-auto space-y-6 border-[var(--primary)]/50"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col mt-20 w-full ml-40 border-[var(--primary)]/50 "
+            animate={{ opacity: 1, y: 0 }}
             transition={{
               type: "spring",
-              stiffness: 100,
+              stiffness: 150,
               damping: 20,
-              delay: 0.3,
             }}
           >
-            {templates.map(({ id, title, image, learnMoreId }, index) => (
-              <motion.div
-                key={id}
-                className="group relative p-5 border-2 transition duration-300 border-[var(--secondary)] hover:border-[var(--primary)]"
-                onMouseEnter={() => setOpenedIndex(index)}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 150,
-                  damping: 20,
-                  delay: 0.4 + index * 0.1, // Stagger each template
-                }}
-              >
-                {/* Baggrundsbillede */}
-                {image && (
-                  <img
-                    src={image}
-                    alt={title}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none`}
-                    style={{
-                      maskImage:
-                        "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
-                      WebkitMaskImage:
-                        "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+            {" "}
+            <motion.div
+              className="absolute top-40 w-100 z-20 pt-2 pb-2"
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 20,
+              }}
+            >
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search templates..."
+                className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
+              />
+            </motion.div>
+            <motion.div
+              ref={scrollContainerRef}
+              className="flex flex-col mt-20 w-full max-h-[500px] overflow-y-auto border-[var(--primary)]/50"
+              style={{
+                scrollSnapType: "y mandatory",
+              }}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 20,
+                delay: 0.3,
+              }}
+            >
+              <div className="relative snap-start gap-6 flex flex-col snap-y snap-mandatory scrollbar-custom">
+                {filteredTemplates.map(({ id, title, image, learnMoreId }) => (
+                  <motion.div
+                    key={id}
+                    className={`group relative p-5 border-2 border-[var(--secondary)] hover:border-[var(--primary)]`}
+                    onPointerEnter={() => startHoverTimer(id)}
+                    onPointerLeave={cancelHoverTimer}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 150,
+                      damping: 20,
                     }}
-                  />
-                )}
-
-                {/* Gradient overlay kun til baggrund */}
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1C1B18] pointer-events-none"></div>
-
-                {/* Tekst og knapper ovenpå */}
-                <div className="relative z-10 flex flex-col justify-between h-full">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
-                      {title}
-                    </h3>
-                  </div>
-
-                  <div
-                    className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
-                      openedIndex === index
-                        ? "max-h-44 mt-4 opacity-100"
-                        : "max-h-0 opacity-0"
-                    }`}
                   >
-                    <div className="mt-4 flex flex-col justify-start items-start gap-2">
-                      {/* LEARN MORE button - centered beneath CONFIRM */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLearnMore(learnMoreId);
+                    {/* Background image */}
+                    {image && (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 pointer-events-none"
+                        style={{
+                          maskImage:
+                            "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
+                          WebkitMaskImage:
+                            "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 60%)",
                         }}
-                        className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
-                      >
-                        Learn More
-                      </button>
-
-                      {/* CONFIRM button */}
-                      <ActionButton
-                        label="CONFIRM"
-                        onClick={handleConfirmClick}
-                        color="var(--secondary)"
-                        bgColor="#f0d382"
-                        textColor="#1C1B18"
-                        size="sm"
-                        showGlow={false}
-                        showLeftArrow={false}
-                        animate={false}
                       />
+                    )}
+
+                    {/* Text + buttons */}
+                    <div className="relative z-10 flex flex-col justify-start">
+                      {" "}
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg uppercase tracking-widest font-semibold text-[var(--primary)]">
+                          {title}
+                        </h3>
+                      </div>
+                      <div
+                        className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
+                          openedIndex === id
+                            ? "max-h-44 mt-4 opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <div className="mt-4 flex flex-col justify-start items-start gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLearnMore(learnMoreId);
+                            }}
+                            className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
+                          >
+                            Learn More
+                          </button>
+
+                          <ActionButton
+                            label="CONFIRM"
+                            onClick={handleConfirmClick}
+                            color="var(--secondary)"
+                            bgColor="#f0d382"
+                            textColor="#1C1B18"
+                            size="sm"
+                            showGlow={false}
+                            showLeftArrow={false}
+                            animate={false}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -327,7 +380,7 @@ export default function NewCampaign() {
                 }}
               />
 
-              <div className="flex flex-col items-center gap-3 mt-6">
+              <motion.div className="flex flex-col items-center gap-3 mt-6">
                 {/* Save Button with ActionButton */}
                 <ActionButton
                   label="CREATE CAMPAIGN"
@@ -348,7 +401,7 @@ export default function NewCampaign() {
                 >
                   Cancel
                 </button>
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
