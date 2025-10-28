@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
+import ActionButton from "./ActionButton";
 
 export default function EncounterBrowserModal({
   isOpen,
@@ -16,6 +18,8 @@ export default function EncounterBrowserModal({
   const [loading, setLoading] = useState(true);
   const [creatureImages, setCreatureImages] = useState({});
   const [tempSelectedEncounters, setTempSelectedEncounters] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   // Fetch encounters from Firestore
   useEffect(() => {
@@ -34,6 +38,7 @@ export default function EncounterBrowserModal({
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         setAvailableEncounters(data);
+        
       } catch (err) {
         console.error("Error fetching encounters:", err);
       } finally {
@@ -43,6 +48,18 @@ export default function EncounterBrowserModal({
 
     fetchEncounters();
   }, [isOpen]);
+
+  const filteredEncounters = availableEncounters.filter((enc) =>
+  enc.name.toLowerCase().includes(searchQuery.toLowerCase())
+);
+// Når modal åbnes, marker allerede tilføjede encounters som valgte
+useEffect(() => {
+  if (isOpen) {
+    setTempSelectedEncounters([...alreadySelectedEncounters]);
+  } else {
+    setTempSelectedEncounters([]);
+  }
+}, [isOpen, alreadySelectedEncounters]);
 
   // Fetch creature images when encounters are loaded
   useEffect(() => {
@@ -85,39 +102,50 @@ export default function EncounterBrowserModal({
     return alreadySelectedEncounters.some((e) => e.id === encounterId);
   };
 
-  // Toggle encounter selection
-  const toggleEncounterSelection = (encounter) => {
-    const isSelected = tempSelectedEncounters.find(
-      (e) => e.id === encounter.id
+ // Toggle encounter selection
+const toggleEncounterSelection = (encounter) => {
+  const isSelected = tempSelectedEncounters.find(e => e.id === encounter.id);
+  if (isSelected) {
+    setTempSelectedEncounters(
+      tempSelectedEncounters.filter(e => e.id !== encounter.id)
     );
-    if (isSelected) {
-      setTempSelectedEncounters(
-        tempSelectedEncounters.filter((e) => e.id !== encounter.id)
-      );
-    } else {
-      setTempSelectedEncounters([...tempSelectedEncounters, encounter]);
-    }
-  };
+  } else {
+    setTempSelectedEncounters([...tempSelectedEncounters, encounter]);
+  }
+};
 
-  // Handle confirm - add all selected encounters
-  const handleConfirm = () => {
-    // THIS IS THE FIX - Filter and pass as array, not forEach
-    const newEncounters = tempSelectedEncounters.filter(
-      (encounter) => !isEncounterAlreadyAdded(encounter.id)
-    );
+// Confirm - send hele arrayet tilbage
+const handleConfirm = () => {
+  onConfirm(tempSelectedEncounters);
+  handleClose();
+};
 
-    if (newEncounters.length > 0) {
-      onConfirm(newEncounters); // Pass the whole array at once
-    }
-
-    handleClose();
-  };
 
   // Handle close
   const handleClose = () => {
     setTempSelectedEncounters([]);
     onClose();
   };
+
+  // Check if there are changes compared to already selected
+const hasSelectionChanged = () => {
+  if (tempSelectedEncounters.length !== alreadySelectedEncounters.length) {
+    return true; // forskelligt antal = ændring
+  }
+
+  const tempIds = tempSelectedEncounters.map((e) => e.id).sort();
+  const alreadyIds = alreadySelectedEncounters.map((e) => e.id).sort();
+
+  // Hvis bare ét ID ikke matcher → ændring
+  for (let i = 0; i < tempIds.length; i++) {
+    if (tempIds[i] !== alreadyIds[i]) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 
   if (!isOpen) return null;
 
@@ -127,7 +155,7 @@ export default function EncounterBrowserModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-8"
+        className="fixed inset-0 bg-black/70 flex justify-center items-center z-10001 p-8"
         onClick={handleClose}
       >
         <motion.div
@@ -138,11 +166,29 @@ export default function EncounterBrowserModal({
           className="bg-[#1F1E1A] border-2 border-[var(--secondary)] shadow-[0_0_60px_rgba(191,136,60,0.4)] w-full max-w-3xl max-h-[75vh] overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-[var(--secondary)]/30">
-            <div>
+          <div className="p-6 border-b border-[var(--secondary)]/30">
+            <div className="flex justify-between items-center ">
               <h3 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
                 Select Encounters
               </h3>
+              
+                <button
+              onClick={handleClose}
+              className="text-[var(--primary)] hover:text-white transition text-2xl w-8 h-8 flex items-center justify-center"
+            >
+              ✕
+            </button>
+              </div>
+            
+
+              <div className="flex justify-between w-full pr-10">
+                <input
+                type="text"
+                placeholder="Search encounters..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mt-3 w-100 bg-[#1C1B18] border border-[var(--secondary)]/40 rounded px-3 py-2 text-[var(--secondary)] placeholder-[var(--secondary)]/50 focus:outline-none focus:border-[var(--primary)]"
+              />
               {tempSelectedEncounters.length > 0 && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
@@ -153,31 +199,47 @@ export default function EncounterBrowserModal({
                   {tempSelectedEncounters.length !== 1 ? "s" : ""} selected
                 </motion.p>
               )}
-            </div>
-            <button
-              onClick={handleClose}
-              className="text-[var(--primary)] hover:text-white transition text-2xl w-8 h-8 flex items-center justify-center"
-            >
-              ✕
-            </button>
+                            
+            <ActionButton
+                              label="CREATE ENCOUNTER"
+                              onClick={() => navigate("/encounters")}
+                              color="var(--secondary)"
+                              bgColor="#f0d382"
+                              textColor="#1C1B18"
+                              size="sm"
+                              showGlow={false}
+                              showLeftArrow={false}
+                              showRightArrow={true}
+                              animate={false}
+                            className="mt-3 mr-3"/>
+            
+              </div>
+              
+            
           </div>
 
           {/* Encounter List */}
-          <div className="flex-1 overflow-y-auto p-6 min-h-[400px]">
+          <div className="flex-1 overflow-y-auto p-6"> {/*slettet min-h-[300px]*/}
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-[var(--secondary)] text-lg">
                   Loading encounters...
                 </p>
               </div>
-            ) : availableEncounters.length > 0 ? (
+            ) : filteredEncounters.length > 0 ? (
               <div className="space-y-3">
-                {availableEncounters.map((enc, index) => {
+                {filteredEncounters.map((enc, index) => {
                   const isAlreadyAdded = isEncounterAlreadyAdded(enc.id);
                   const isSelected = tempSelectedEncounters.find(
                     (e) => e.id === enc.id
                   );
+                  {filteredEncounters.length === 0 && !loading && (
+                    <div className="text-center text-[var(--secondary)]/60 mt-10">
+                      No encounters match your search.
+                    </div>
+                  )}
 
+                  
                   const firstCreature =
                     enc.creatures && enc.creatures.length > 0
                       ? enc.creatures[0]
@@ -193,14 +255,11 @@ export default function EncounterBrowserModal({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      onClick={() =>
-                        !isAlreadyAdded && toggleEncounterSelection(enc)
-                      }
-                      disabled={isAlreadyAdded}
+                      onClick={() =>{
+                        toggleEncounterSelection(enc);
+                      }}
                       className={`w-full text-left relative overflow-hidden border-2 transition-all duration-300 group ${
-                        isAlreadyAdded
-                          ? "border-green-600/50 opacity-50 cursor-not-allowed"
-                          : isSelected
+                        isSelected
                           ? "border-[var(--primary)] shadow-[0_0_25px_rgba(191,136,60,0.5)]"
                           : "border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:shadow-[0_0_20px_rgba(191,136,60,0.3)]"
                       }`}
@@ -229,7 +288,7 @@ export default function EncounterBrowserModal({
                       {/* Content */}
                       <div className="relative z-10 p-4">
                         <div className="flex justify-between items-start mb-2">
-                          <p
+                           <p
                             className={`font-semibold text-lg ${
                               isAlreadyAdded
                                 ? "text-[var(--secondary)]"
@@ -240,7 +299,8 @@ export default function EncounterBrowserModal({
                           </p>
                           <div className="flex items-center gap-2">
                             {/* Selection checkmark */}
-                            {isSelected && !isAlreadyAdded && (
+                            {isSelected 
+                             && (
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
@@ -251,12 +311,12 @@ export default function EncounterBrowserModal({
                                 </span>
                               </motion.div>
                             )}
-                            {/* Already added badge */}
+                            {/* Already added badge
                             {isAlreadyAdded && (
                               <span className="px-2 py-1 bg-green-600/80 text-white text-xs font-semibold uppercase">
                                 Added
                               </span>
-                            )}
+                            )} */} 
                           </div>
                         </div>
                         {enc.creatures && enc.creatures.length > 0 && (
@@ -301,19 +361,22 @@ export default function EncounterBrowserModal({
             >
               Cancel
             </button>
+            
+             
+
             <button
               onClick={handleConfirm}
-              disabled={tempSelectedEncounters.length === 0}
+              disabled={!hasSelectionChanged()}
               className={`px-6 py-2 border-2 transition uppercase tracking-wider ${
-                tempSelectedEncounters.length === 0
+                !hasSelectionChanged()
                   ? "border-[var(--secondary)]/30 text-[var(--secondary)]/30 cursor-not-allowed"
                   : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10 shadow-[0_0_15px_rgba(191,136,60,0.3)]"
               }`}
             >
-              Add{" "}
+              Save
               {tempSelectedEncounters.length > 0
                 ? `(${tempSelectedEncounters.length})`
-                : "Encounters"}
+                : " Changes"}
             </button>
           </div>
         </motion.div>

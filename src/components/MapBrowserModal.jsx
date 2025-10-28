@@ -128,7 +128,7 @@ export default function MapBrowserModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-8"
+        className="fixed inset-0 bg-black/70 flex justify-center items-center z-10001 p-8"
         onClick={handleClose}
       >
         <motion.div
