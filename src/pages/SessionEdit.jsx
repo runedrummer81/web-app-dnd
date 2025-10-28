@@ -194,9 +194,8 @@ export default function SessionEdit() {
   };
 
   const handleEncounterConfirm = (newSelectedEncounters) => {
-  setEncounters(newSelectedEncounters);
-};
-
+    setEncounters(newSelectedEncounters);
+  };
 
   // Opdater handleSave til at clear unsaved changes flag
   const handleSave = async () => {
@@ -289,7 +288,7 @@ export default function SessionEdit() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-2 select-none">
                 <h3 className="text-lg uppercase tracking-widest ">Notes</h3>
               </div>
 
@@ -327,7 +326,7 @@ export default function SessionEdit() {
               {/* Encounters */}
               <div className="mb-6">
                 <div className="flex justify-between items-center ">
-                  <h3 className="text-lg uppercase tracking-widest ">
+                  <h3 className="text-lg uppercase tracking-widest select-none">
                     Encounters
                   </h3>
                   <button
@@ -359,7 +358,7 @@ export default function SessionEdit() {
                               key={e.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 group"
+                              className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 group select-none"
                               style={{ minHeight: "100px" }}
                             >
                               <div
@@ -420,7 +419,7 @@ export default function SessionEdit() {
                         {/* More encounters */}
                         {encounters.length > visibleEncounters && (
                           <div
-                            className="flex items-center justify-center border-2 border-[var(--secondary)] text-[var(--primary)]/70 italic text-center p-4 hover:border-[var(--primary)] cursor-pointer transition-all duration-300"
+                            className="flex items-center justify-center border-2 border-[var(--secondary)] text-[var(--primary)]/70 italic text-center p-4 hover:border-[var(--primary)] cursor-pointer transition-all duration-300 select-none"
                             onClick={() => setShowMoreEncountersModal(true)}
                           >
                             +{encounters.length - visibleEncounters} more
@@ -462,7 +461,7 @@ export default function SessionEdit() {
                                     return (
                                       <div
                                         key={e.id}
-                                        className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 p-4"
+                                        className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 p-4 "
                                       >
                                         <p className="font-semibold text-[var(--primary)] mb-2">
                                           {e.name}
@@ -502,10 +501,12 @@ export default function SessionEdit() {
               {/* Maps */}
               <div>
                 <div
-                  className="flex justify-between items-center mb-3"
+                  className="flex justify-between items-center mb-3 "
                   style={{ height: "40px" }}
                 >
-                  <h3 className="text-lg uppercase tracking-widest ">Maps</h3>
+                  <h3 className="text-lg uppercase tracking-widest select-none">
+                    Maps
+                  </h3>
                 </div>
                 <div className="relative  p-4 ">
                   <div className="flex flex-wrap gap-3">
@@ -540,7 +541,7 @@ export default function SessionEdit() {
                         ))}
                         {extraMapsCount > 0 && (
                           <div className="flex items-center justify-center aspect-square w-24 border-2 border-[var(--secondary)]/50 bg-[#1C1B18]">
-                            <p className="text-[var(--primary)] text-center text-sm font-semibold drop-shadow-[0_0_8px_rgba(191,136,60,0.5)]">
+                            <p className="text-[var(--primary)] text-center text-sm font-semibold select-none">
                               +{extraMapsCount}
                               <br />
                               more
@@ -562,8 +563,6 @@ export default function SessionEdit() {
           {/* Save Button with Arrows */}
           <div className="flex justify-end">
             <div className="col-span-3 flex justify-between items-center">
-              
-
               <ArrowButton
                 label="Save Session"
                 onClick={handleSave}
