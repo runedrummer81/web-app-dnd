@@ -8,7 +8,7 @@ import NewCampaign from "./pages/NewCampaign";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Session from "./pages/Session";
 import SessionEdit from "./pages/SessionEdit";
-import LoadPage from "./pages/loadPage";
+import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
 import BG from "./components/BG";
 import RunSession from "./pages/RunSession";
