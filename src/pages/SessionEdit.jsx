@@ -188,18 +188,10 @@ useEffect(() => {
     setCombatMaps([...combatMaps, ...newMaps]);
   };
 
-  const handleEncounterConfirm = (newEncounters) => {
-    if (Array.isArray(newEncounters)) {
-      const encountersToAdd = newEncounters.filter(
-        (enc) => !encounters.find((e) => e.id === enc.id)
-      );
-      setEncounters([...encounters, ...encountersToAdd]);
-    } else {
-      if (!encounters.find((e) => e.id === newEncounters.id)) {
-        setEncounters([...encounters, newEncounters]);
-      }
-    }
-  };
+  const handleEncounterConfirm = (newSelectedEncounters) => {
+  setEncounters(newSelectedEncounters);
+};
+
 
 
 
@@ -568,9 +560,9 @@ const handleSave = async () => {
           </div>
 
           {/* Save Button with Arrows */}
-          <div className="grid grid-cols-3">
+          <div className="flex justify-end">
             <div className="col-span-3 flex justify-between items-center">
-              <DiceThrower />
+              
 
               <ArrowButton
                 label="Save Session"
