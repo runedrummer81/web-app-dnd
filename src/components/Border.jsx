@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Border = ({ currentPath, isSelected = true }) => {
   const prevPath = useRef(currentPath);
@@ -250,13 +251,13 @@ const Border = ({ currentPath, isSelected = true }) => {
         </div>
         {/* Logo */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-80 z-[10000] pointer-events-auto duration-300 transition">
-          <a href="/home">
+          <Link to="/home">
             <img
               src="images/logo.svg"
               alt="Logo"
               className="object-contain transition-transform duration-300 hover:scale-105"
             />
-          </a>
+          </Link>
         </div>
         {/* Bottom Edge */}
         <div className="absolute bottom-0 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--secondary)] overflow-hidden">
