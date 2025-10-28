@@ -8,6 +8,9 @@ import { CombatHistory } from "./CombatHistory";
 import { useMapSync } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase";
+import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
 
 export const DMPanel = ({
   sessionData,
@@ -17,6 +20,7 @@ export const DMPanel = ({
   weather,
   onWeatherChange,
   isPlayerWindowOpen,
+  onEndSessionClick,
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -24,6 +28,21 @@ export const DMPanel = ({
   const [notesOpen, setNotesOpen] = useState(false);
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
+  const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
+  const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
+
+  const handleEndSession = async () => {
+    try {
+      await updateDoc(doc(db, "Sessions", sessionData.id), {
+        sessionNotes: quickNotes, // save the current notes
+      });
+      console.log("Session notes saved!");
+      // Optionally close the DM panel or do other cleanup
+      setShowEndSessionConfirm(false);
+    } catch (err) {
+      console.error("Error saving session notes:", err);
+    }
+  };
 
   // Normal state tabs
   const normalTabs = [
@@ -158,7 +177,7 @@ export const DMPanel = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden">
+    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden z-1">
       {/* Header with Book Marker Tabs */}
       <div
         className={`relative flex-shrink-0 ${isPlayerWindowOpen ? "" : "pt-6"}`}
@@ -217,16 +236,60 @@ export const DMPanel = ({
               </span>
             </motion.button>
           ))}
-        </div>
+          {/* END SESSION TAB */}
+          <div className="relative" style={{ marginBottom: "-40px" }}>
+            {/* Gold border layer */}
+            <div
+              className="absolute inset-0 bg-gradient-to-b from-[#c8a85b] to-[#8c6b2e]"
+              style={{
+                clipPath: "polygon(0% 0%, 100% 0%, 100% 90%, 50% 100%, 0% 90%)",
+                transform: "scale(1.03)",
+                zIndex: 0,
+              }}
+            />
 
-        {/* Decorative line below bookmarks */}
-        <div
-          className={`h-px bg-gradient-to-r ${
-            combatActive
-              ? "from-red-700/20 via-red-500/40 to-red-700/20"
-              : "from-[#BF883C]/20 via-[#BF883C]/40 to-[#BF883C]/20"
-          }`}
-        />
+            <motion.button
+              onClick={onEndSessionClick}
+              className="cursor-pointer relative flex flex-col items-center justify-center px-5 py-7 w-full
+       bg-gradient-to-b from-[#3c0000] via-[#2a0000] to-[#1a0000]
+       text-[#f8eac7] font-bold uppercase tracking-[0.25em]
+       shadow-[inset_0_2px_6px_rgba(255,255,255,0.1),0_4px_15px_rgba(0,0,0,0.8)]
+       transition-colors duration-300
+       hover:from-[#7a0000] hover:via-[#4b0000] hover:to-[#2a0000]"
+              style={{
+                clipPath: "polygon(0% 0%, 100% 0%, 100% 90%, 50% 100%, 0% 90%)",
+                fontFamily: "EB Garamond, serif",
+                letterSpacing: "0.25em",
+                textShadow:
+                  "0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(191,136,60,0.2), 0 0 20px rgba(0,0,0,0.7)",
+                zIndex: 1,
+              }}
+            >
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-fabric.png')] opacity-30 pointer-events-none" />
+              <div className="relative flex flex-col items-center">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#f8eac7"
+                  strokeWidth="2"
+                  className="mb-1 drop-shadow-[0_0_4px_rgba(191,136,60,0.4)]"
+                >
+                  <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+                </svg>
+                <span
+                  className="text-sm tracking-[0.3em]"
+                  style={{
+                    fontFamily: "Cinzel Decorative, EB Garamond, serif",
+                  }}
+                >
+                  End
+                </span>
+              </div>
+            </motion.button>
+          </div>
+        </div>
 
         {/* Active Tab Title with Glow */}
         <motion.div
@@ -371,7 +434,8 @@ export const DMPanel = ({
                         >
                           <div className="p-4">
                             <SessionNotes
-                              initialNotes={sessionData?.sessionNotes || []}
+                              initialNotes={quickNotes}
+                              onNotesChange={setQuickNotes} // <-- now DMPanel always knows current notes
                             />
                           </div>
                         </motion.div>
@@ -786,6 +850,23 @@ export const DMPanel = ({
           )}
         </AnimatePresence>
       </div>
+      <ConfirmEndSessionModal
+        show={showEndSessionConfirm}
+        onCancel={() => setShowEndSessionConfirm(false)}
+        onConfirm={async () => {
+          try {
+            // Save session notes
+            await updateDoc(doc(db, "Sessions", sessionData.id), {
+              sessionNotes: quickNotes,
+            });
+
+            setShowEndSessionConfirm(false);
+            console.log("Session ended and notes saved!");
+          } catch (err) {
+            console.error("Error ending session:", err);
+          }
+        }}
+      />
     </div>
   );
 };

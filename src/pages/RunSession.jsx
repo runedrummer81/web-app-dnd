@@ -8,8 +8,14 @@ import { MapDisplay } from "../components/session/MapDisplay";
 import { DMPanel } from "../components/session/DMPanel";
 import { PlayerDisplayButton } from "../components/session/PlayerDisplayButton";
 import { useMapSync } from "../components/session/MapSyncContext";
+import { ConfirmEndSessionModal } from "../components/session/ConfirmEndSessionModal";
 
-const DMPanelWrapper = ({ sessionData, mapSetData, isPlayerWindowOpen }) => {
+const DMPanelWrapper = ({
+  sessionData,
+  mapSetData,
+  isPlayerWindowOpen,
+  onEndSessionClick,
+}) => {
   const { mapState, updateMapState } = useMapSync();
 
   const handleMapSwitch = (mapId) => {
@@ -34,6 +40,7 @@ const DMPanelWrapper = ({ sessionData, mapSetData, isPlayerWindowOpen }) => {
       weather={mapState.weather}
       onWeatherChange={handleWeatherChange}
       isPlayerWindowOpen={isPlayerWindowOpen}
+      onEndSessionClick={onEndSessionClick}
     />
   );
 };
@@ -41,6 +48,7 @@ const DMPanelWrapper = ({ sessionData, mapSetData, isPlayerWindowOpen }) => {
 const RunSession = ({ sessionId, sessionData, mapSetData }) => {
   const [playerWindowRef, setPlayerWindowRef] = useState(null);
   const [isPlayerWindowOpen, setIsPlayerWindowOpen] = useState(false);
+  const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
 
   const openPlayerDisplay = () => {
     const playerWindow = window.open(
@@ -63,6 +71,14 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
   return (
     <RunSessionContext.Provider value={{ mapSetData }}>
       <MapSyncProvider isDMView={true}>
+        <ConfirmEndSessionModal
+          show={showEndSessionConfirm}
+          onCancel={() => setShowEndSessionConfirm(false)}
+          onConfirm={async () => {
+            console.log("End session confirmed!");
+            setShowEndSessionConfirm(false);
+          }}
+        />
         <CombatStateProvider>
           <div className="w-screen h-screen flex bg-black overflow-hidden">
             {/* Map Display - Left Side */}
@@ -220,6 +236,7 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
                     sessionData={sessionData}
                     mapSetData={mapSetData}
                     isPlayerWindowOpen={isPlayerWindowOpen}
+                    onEndSessionClick={() => setShowEndSessionConfirm(true)}
                   />
                 </div>
               </div>
