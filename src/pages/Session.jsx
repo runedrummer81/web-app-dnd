@@ -294,8 +294,8 @@ export default function Session() {
           <AnimatePresence mode="popLayout">
             {visibleSessions.map((sess) => {
               const isCenter = sess.offset === 0;
-              const yOffset = sess.offset * 60;
-              const scale = isCenter ? 1.1 : 0.85;
+              const yOffset = sess.offset * 20;
+              const scale = isCenter ? 1 : 0.9;
               const opacity = isCenter ? 1 : 0.5;
 
               return (
@@ -386,171 +386,208 @@ export default function Session() {
         {/* Details box */}
         {selectedSession && (
           <>
-            <motion.div
-              className="relative flex flex-col w-full p-6 xl:p-8  border-2 border-[#bf883c] z-10 space-y-5 overflow-hidden max-h-[70vh] bg-[var(--dark-muted-bg)]/90"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              {/* Corner Arrows */}
-
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 37 36"
-                className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125"
-                fill="none"
-                strokeWidth="2"
+            <motion.div className="relative h-120 flex flex-row gap-5 w-full z-10 overflow-hidden ">
+              <motion.div
+                className="relative w-3/5 flex flex-col p-6 border-2 border-[var(--secondary)] z-10 space-y-5 overflow-hidden bg-[var(--dark-muted-bg)]/90"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
-                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
-                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
-                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
-                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
-                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
-              </svg>
+                {/* Corner Arrows */}
 
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 37 36"
-                className="absolute top-0 right-0 w-8 h-8 scale-125 "
-                fill="none"
-                strokeWidth="2"
-              >
-                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
-                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
-                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
-                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
-                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
-                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 37 36"
+                  className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125"
+                  fill="none"
+                  strokeWidth="2"
+                >
+                  <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                  <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                  <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                  <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                  <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                  <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+                </svg>
 
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 37 36"
-                className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125  translate-y-[21px]"
-                fill="none"
-                strokeWidth="2"
-              >
-                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
-                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
-                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
-                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
-                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
-                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 37 36"
+                  className="absolute top-0 right-0 w-8 h-8 scale-125 "
+                  fill="none"
+                  strokeWidth="2"
+                >
+                  <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                  <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                  <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                  <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                  <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                  <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+                </svg>
 
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 37 36"
-                className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125 translate-y-[21px]"
-                fill="none"
-                strokeWidth="2"
-              >
-                <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
-                <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
-                <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
-                <path d="M1.999,1.558l8,8" stroke="#bf883c" />
-                <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
-                <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
-                <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 37 36"
+                  className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125  translate-y-[21px]"
+                  fill="none"
+                  strokeWidth="2"
+                >
+                  <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                  <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                  <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                  <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                  <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                  <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+                </svg>
 
-              {/* Title */}
-              <h2 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
-                {selectedSession.notesHeadline}
-              </h2>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 37 36"
+                  className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125 translate-y-[21px]"
+                  fill="none"
+                  strokeWidth="2"
+                >
+                  <path d="M35.178,1.558l0,32.25" stroke="#bf883c" />
+                  <path d="M35.178,1.558l-33.179,-0" stroke="#bf883c" />
+                  <path d="M26.941,9.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,25.571l8.237,8.237" stroke="#bf883c" />
+                  <path d="M1.999,1.558l8,8" stroke="#bf883c" />
+                  <path d="M18.911,1.558l0,16.06" stroke="#bf883c" />
+                  <path d="M26.941,9.558l-16.705,-0" stroke="#bf883c" />
+                  <path d="M34.971,17.588l-16.06,-0" stroke="#bf883c" />
+                </svg>
 
-              {/* DM Notes */}
-              <div className="h-[250px] overflow-auto">
-                <p className="text-[#bf883c] whitespace-pre-wrap">
-                  {selectedSession.dmNotes || "No notes yet"}
-                </p>
-              </div>
-            </motion.div>
+                {/* Title */}
+                <h2 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)] mb-4">
+                  {selectedSession.notesHeadline}
+                </h2>
 
-            {/* Row beneath DM Notes: Encounters + Maps */}
-            <div className="flex h-50 w-full mt-6 z-10 gap-6">
-              {/* LEFT: Encounters box */}
-              <div className="w-1/5 p-4 border-2 border-[var(--secondary)] overflow-auto">
-                <h3 className="text-[var(--primary)] font-semibold mb-2">
-                  Encounters
-                </h3>
-
-                {selectedSession.encounters &&
-                selectedSession.encounters.length > 0 ? (
-                  <ul className="text-[var(--secondary)]/90 list-disc list-inside space-y-1">
-                    {selectedSession.encounters.slice(0, 3).map((enc, idx) => (
-                      <li key={idx}>{enc.name || `Encounter ${idx + 1}`}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-[var(--secondary)]/80 text-sm">
-                    No encounters yet
+                {/* DM Notes */}
+                <div className="h-[250px] overflow-auto">
+                  <p className="text-[#bf883c] whitespace-pre-wrap">
+                    {selectedSession.dmNotes || "No notes yet"}
                   </p>
-                )}
+                </div>
+              </motion.div>
 
-                {/* Show +X more indicator if more than 3 encounters */}
-                {selectedSession.encounters?.length > 3 && (
-                  <div className="w-full mt-2  flex items-center justify-center">
-                    <p className="text-[var(--primary)] text-center text-sm font-semibold ">
-                      +{selectedSession.encounters.length - 3} more
-                    </p>
+              {/* Row beneath DM Notes: Encounters + Maps */}
+              <motion.div className="w-2/5 flex flex-col z-10 justify-between">
+                {/* LEFT: Encounters box */}
+                <div className="w-full p-6 border-2 border-[var(--secondary)] bg-[var(--dark-muted-bg)]/90">
+                  <div className="grid grid-cols-2 grid-rows-3">
+                    {selectedSession.encounters &&
+                    selectedSession.encounters.length > 0 ? (
+                      <>
+                        {selectedSession.encounters
+                          .slice(0, 5)
+                          .map((enc, idx) => (
+                            <div key={idx}>
+                              <p className="font-semibold text-[var(--primary)] mb-3">
+                                {enc.name || `Encounter ${idx + 1}`}
+                              </p>
+                              {enc.creatures && enc.creatures.length > 0 ? (
+                                <ul className="ml-2 space-y-1 text-sm text-[var(--secondary)]">
+                                  {enc.creatures.map((c, i) => (
+                                    <li key={i}>
+                                      {c.name} × {c.count}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-[var(--secondary)]/60 italic text-sm">
+                                  No creatures
+                                </p>
+                              )}
+                            </div>
+                          ))}
+
+                        {/* 9th slot shows +X more */}
+                        {selectedSession.encounters.length > 9 ? (
+                          <div className="flex items-center justify-start">
+                            <p className="text-[var(--secondary)] text-center text-3xl font-semibold">
+                              +{selectedSession.encounters.length - 5}
+                            </p>
+                          </div>
+                        ) : (
+                          selectedSession.encounters
+                            .slice(7, 9)
+                            .map((enc, idx) => (
+                              <div
+                                key={idx + 8}
+                                className="border border-[var(--secondary)] p-2 rounded"
+                              >
+                                <p className="font-semibold text-[var(--primary)] mb-1">
+                                  {enc.name || `Encounter ${idx + 9}`}
+                                </p>
+                                {enc.creatures && enc.creatures.length > 0 ? (
+                                  <ul className="ml-2 space-y-1 text-sm text-[var(--secondary)]">
+                                    {enc.creatures.map((c, i) => (
+                                      <li key={i}>
+                                        {c.name} × {c.count}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="text-[var(--secondary)]/60 italic text-sm">
+                                    No creatures
+                                  </p>
+                                )}
+                              </div>
+                            ))
+                        )}
+                      </>
+                    ) : (
+                      <p className="col-span-3 text-[var(--secondary)]/80 text-sm text-center">
+                        No encounters yet
+                      </p>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* RIGHT: Maps */}
-              <div className="h-50 w-4/5 flex gap-4 pointer-events-none">
-                {(selectedSession.combatMaps || [])
-                  .slice(0, 3)
-                  .map((map, idx) => (
-                    <div
-                      key={idx}
-                      className="h-fill p-2 border-2 border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
-                    >
-                      {map.image ? (
-                        <img
-                          src={map.image}
-                          alt={map.title || `Map ${idx + 1}`}
-                          className="object-cover w-full h-full transition-transform duration-200"
-                        />
-                      ) : (
-                        <p className="text-[var(--secondary)]/80 text-sm text-center px-2">
-                          {map.title || `Map ${idx + 1}`}
-                        </p>
-                      )}
+                {/* RIGHT: Maps */}
+                <div className="flex gap-4 pointer-events-none">
+                  {(selectedSession.combatMaps || [])
+                    .slice(0, 2)
+                    .map((map, idx) => (
+                      <div
+                        key={idx}
+                        className="flex-1 aspect-square p-2 border-2 border-[var(--secondary)] overflow-hidden cursor-pointer flex items-center justify-center"
+                      >
+                        {map.image ? (
+                          <img
+                            src={map.image}
+                            alt={map.title || `Map ${idx + 1}`}
+                            className="object-cover w-full h-full transition-transform duration-200"
+                          />
+                        ) : (
+                          <p className="text-[var(--secondary)]/80 text-sm text-center px-2">
+                            {map.title || `Map ${idx + 1}`}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+
+                  {/* Placeholder or +X more */}
+                  {(selectedSession.combatMaps?.length || 0) > 2 ? (
+                    <div className="flex-1 aspect-square flex items-center justify-center border-2 border-[var(--secondary)]">
+                      <p className="text-[var(--secondary)] text-3xl font-semibold">
+                        +{(selectedSession.combatMaps?.length || 0) - 2}
+                      </p>
                     </div>
-                  ))}
-
-                {/* Fill remaining slots with placeholders */}
-                {Array.from({
-                  length: 1 - (selectedSession.combatMaps?.length || 0),
-                }).map((_, idx) => (
-                  <div
-                    key={`placeholder-${idx}`}
-                    className="bg-[var(--dark-muted-bg)]/50 border-2 border-[var(--secondary)]/50 flex items-center justify-center text-[#555] text-sm"
-                  >
-                    Empty
-                  </div>
-                ))}
-
-                {/* Show +X more indicator if more than 3 maps */}
-                {(selectedSession.combatMaps?.length || 0) > 3 && (
-                  <div className="w-50 border-2 border-[var(--secondary)] flex items-center justify-center">
-                    <p className="text-[var(--primary)] text-center text-sm font-semibold">
-                      +{(selectedSession.combatMaps?.length || 0) - 3} more
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+                  ) : (
+                    <div className="flex-1 aspect-square border-2 border-[var(--secondary)]/50 flex items-center justify-center text-[#555] text-sm">
+                      Empty
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
 
             {/* Buttons beneath details box */}
             <div
@@ -597,10 +634,10 @@ mt-8 z-20"
                 <ActionButton
                   label="RUN SESSION"
                   onClick={() => runSession(selectedSession.id)}
-                  size="lg"
+                  size="md"
                   showLeftArrow={true}
                   showRightArrow={true}
-                  showGlow={true}
+                  showGlow={false}
                   animate={true}
                   animationDelay={0.2}
                 />
