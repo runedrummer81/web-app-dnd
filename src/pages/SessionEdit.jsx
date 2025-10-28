@@ -66,7 +66,6 @@ export default function SessionEdit() {
   );
 
   const sessionId = location.state?.sessionId;
-  
 
   useEffect(() => {
     if (!sessionId) {
@@ -81,7 +80,7 @@ export default function SessionEdit() {
         const sessionSnap = await getDoc(sessionRef);
         if (sessionSnap.exists()) {
           const data = sessionSnap.data();
-          
+
           setSessionData(data);
           setOriginalSessionData(data); // gem originalen
           setEncounters(data.encounters || []);
@@ -107,7 +106,6 @@ export default function SessionEdit() {
 
     fetchSession();
   }, [sessionId, navigate]);
-  
 
   useEffect(() => {
     async function fetchCreatureImages() {
@@ -144,33 +142,40 @@ export default function SessionEdit() {
     }
   }, [encounters]);
 
-   // Track changes når data ændres
-useEffect(() => {
-  if (!originalSessionData) return;
+  // Track changes når data ændres
+  useEffect(() => {
+    if (!originalSessionData) return;
 
-  const notesChanged = sessionData?.dmNotes !== originalSessionData.dmNotes;
-  const headlineChanged = sessionData?.notesHeadline !== originalSessionData.notesHeadline;
-  const encountersChanged = JSON.stringify(encounters) !== JSON.stringify(originalSessionData.encounters || []);
-  const mapsChanged = JSON.stringify(combatMaps) !== JSON.stringify(originalSessionData.combatMaps || []);
+    const notesChanged = sessionData?.dmNotes !== originalSessionData.dmNotes;
+    const headlineChanged =
+      sessionData?.notesHeadline !== originalSessionData.notesHeadline;
+    const encountersChanged =
+      JSON.stringify(encounters) !==
+      JSON.stringify(originalSessionData.encounters || []);
+    const mapsChanged =
+      JSON.stringify(combatMaps) !==
+      JSON.stringify(originalSessionData.combatMaps || []);
 
-  const changed = notesChanged || headlineChanged || encountersChanged || mapsChanged;
-  setHasUnsavedChanges(changed);
-}, [sessionData, encounters, combatMaps, originalSessionData]);
+    const changed =
+      notesChanged || headlineChanged || encountersChanged || mapsChanged;
+    setHasUnsavedChanges(changed);
+  }, [sessionData, encounters, combatMaps, originalSessionData]);
 
   // Lyt efter navigation attempts fra Nav
-useEffect(() => {
-  const handleNavigationEvent = () => {
-    if (hasUnsavedChanges) {
-      setPendingNavigation("/session");
-      setShowUnsavedModal(true);
-    } else {
-      navigate("/session");
-    }
-  };
-  
-  window.addEventListener("attemptNavigation", handleNavigationEvent);
-  return () => window.removeEventListener("attemptNavigation", handleNavigationEvent);
-}, [hasUnsavedChanges, navigate]);
+  useEffect(() => {
+    const handleNavigationEvent = () => {
+      if (hasUnsavedChanges) {
+        setPendingNavigation("/session");
+        setShowUnsavedModal(true);
+      } else {
+        navigate("/session");
+      }
+    };
+
+    window.addEventListener("attemptNavigation", handleNavigationEvent);
+    return () =>
+      window.removeEventListener("attemptNavigation", handleNavigationEvent);
+  }, [hasUnsavedChanges, navigate]);
 
   const handleNotesChange = (e) => {
     setSessionData({ ...sessionData, dmNotes: e.target.value });
@@ -188,44 +193,23 @@ useEffect(() => {
     setCombatMaps([...combatMaps, ...newMaps]);
   };
 
-  const handleEncounterConfirm = (newEncounters) => {
-    if (Array.isArray(newEncounters)) {
-      const encountersToAdd = newEncounters.filter(
-        (enc) => !encounters.find((e) => e.id === enc.id)
-      );
-      setEncounters([...encounters, ...encountersToAdd]);
-    } else {
-      if (!encounters.find((e) => e.id === newEncounters.id)) {
-        setEncounters([...encounters, newEncounters]);
-      }
-    }
-  };
+  const handleEncounterConfirm = (newSelectedEncounters) => {
+  setEncounters(newSelectedEncounters);
+};
 
-
-
-  
- 
-
-
-
-
-
- 
-
- 
 
   // Opdater handleSave til at clear unsaved changes flag
-const handleSave = async () => {
-  try {
-    const sessionRef = doc(db, "Sessions", sessionId);
+  const handleSave = async () => {
+    try {
+      const sessionRef = doc(db, "Sessions", sessionId);
 
-    await updateDoc(sessionRef, {
-      dmNotes: sessionData.dmNotes,
-      notesHeadline: sessionData.notesHeadline,
-      encounters,
-      combatMaps,
-      lastEdited: new Date(),
-    });
+      await updateDoc(sessionRef, {
+        dmNotes: sessionData.dmNotes,
+        notesHeadline: sessionData.notesHeadline,
+        encounters,
+        combatMaps,
+        lastEdited: new Date(),
+      });
 
       console.log("Session saved");
       navigate("/session", {
@@ -240,10 +224,18 @@ const handleSave = async () => {
   };
 
   //Modal handlers
- const handleSaveAndNavigate = async () => { await handleSave(); setShowUnsavedModal(false); // Navigate sker allerede i handleSave
+  const handleSaveAndNavigate = async () => {
+    await handleSave();
+    setShowUnsavedModal(false); // Navigate sker allerede i handleSave
   };
 
- const handleContinueWithoutSaving = () => { setHasUnsavedChanges(false); setShowUnsavedModal(false); if (pendingNavigation) { navigate(pendingNavigation); } };
+  const handleContinueWithoutSaving = () => {
+    setHasUnsavedChanges(false);
+    setShowUnsavedModal(false);
+    if (pendingNavigation) {
+      navigate(pendingNavigation);
+    }
+  };
 
   // if (!sessionData)
   //   return (
@@ -568,9 +560,9 @@ const handleSave = async () => {
           </div>
 
           {/* Save Button with Arrows */}
-          <div className="grid grid-cols-3">
+          <div className="flex justify-end">
             <div className="col-span-3 flex justify-between items-center">
-              <DiceThrower />
+              
 
               <ArrowButton
                 label="Save Session"
@@ -598,12 +590,12 @@ const handleSave = async () => {
             alreadySelectedMaps={combatMaps}
           />
 
-      <UnsavedModal
-      open={showUnsavedModal}
-      onClose={() => setShowUnsavedModal(false)}
-      onSave={handleSaveAndNavigate}
-      onContinue={handleContinueWithoutSaving}
-    />
+          <UnsavedModal
+            open={showUnsavedModal}
+            onClose={() => setShowUnsavedModal(false)}
+            onSave={handleSaveAndNavigate}
+            onContinue={handleContinueWithoutSaving}
+          />
         </>
       )}
     </div>
