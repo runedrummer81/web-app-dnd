@@ -135,7 +135,7 @@ export default function App() {
           <Border currentPath={location.pathname} />
 
           <BG />
-          <Title />
+          {/* <Title /> */}
         </>
       )}
 

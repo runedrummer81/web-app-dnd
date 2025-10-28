@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 // Helper: split words from camelCase, PascalCase, underscores, or concatenated lowercase
 function splitWords(str) {
@@ -55,8 +56,42 @@ export default function Title({ children, fallbackCampaignId }) {
     children || formattedCampaignName || formatPageName(location.pathname);
 
   return (
-    <h1 className="absolute uppercase left-50 top-22 text-2xl font-bold text-[var(--secondary)] mb-6 z-[999]">
+    <>  
+    {/* <h1 className="absolute uppercase left-50 top-22 text-2xl font-bold text-[var(--secondary)] mb-6 z-[999]">
       {title}
-    </h1>
+    </h1> */}
+
+    {/* Better Title with Glow */}
+        <motion.div
+          
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="pt-4"
+        >
+          <h1
+            className={` text-2xl lg:text-3xl font-bold uppercase tracking-[0.3em] text-center ${
+            "text-[var(--secondary)]"
+            }`}
+            style={{
+              fontFamily: "EB Garamond, serif",
+              textShadow:
+                "0 0 25px rgba(191,136,60,0.4), 0 0 50px rgba(191,136,60,0.4)",
+                
+            }}
+          >{title}
+            
+          </h1>
+          <motion.div
+            className={`h-[2px] w-48 mt-2 mx-auto bg-gradient-to-r ${
+               "from-transparent via-[var(--secondary)] to-transparent"
+            }`}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          />
+        </motion.div>
+    </>
+    
   );
 }

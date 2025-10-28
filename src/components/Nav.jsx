@@ -3,6 +3,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
+import Title from "./Title";
 
 export default function Nav() {
   const { user } = useAuth(); // read auth state from Firebase
@@ -52,10 +53,11 @@ export default function Nav() {
   return (
     <>
       <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)] pt-5">
-        {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
+        <div className="absolute flex gap-20">
+          {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
         {!banned && (
           <button
-            className="absolute transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
+            className=" transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
             onClick={handleBack}
           >
             <svg
@@ -73,6 +75,10 @@ export default function Nav() {
             </svg>
           </button>
         )}
+
+        <Title />
+        </div>
+        
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
           {/* Button 1 */}
