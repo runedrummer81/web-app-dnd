@@ -7,7 +7,7 @@ export const ConfirmEndSessionModal = ({ show, onCancel, onConfirm }) => {
   return createPortal(
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black/70 z-50"
+        className="fixed inset-0 flex items-center justify-center bg-black/70 z-1000"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
