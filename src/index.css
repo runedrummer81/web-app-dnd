@@ -6,7 +6,15 @@
   --dark-muted-bg: #141411;
   --dark-border: #403c29;
   --font: "EB Garamond", serif;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --yellow: #eab308;
+  --green: #22c55e;
+  --red: #ef4444;
+  --gray: #9ca3af;
 }
+
+
 
 body {
   font-family: var(--font);
