@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { RouteManager } from "./RouteManager";
 import { SessionNotes } from "./SessionNotes";
 import { DiceRoller } from "./DiceRoller";
@@ -28,6 +29,8 @@ export const DMPanel = ({
   const [notesOpen, setNotesOpen] = useState(true);
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
+
+  const navigate =useNavigate();
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
@@ -249,7 +252,7 @@ export const DMPanel = ({
             />
 
             <motion.button
-              onClick={onEndSessionClick}
+              onClick={() => setShowEndSessionConfirm(true)}
               className="cursor-pointer relative flex flex-col items-center justify-center px-5 py-7 w-full
        bg-gradient-to-b from-[#3c0000] via-[#2a0000] to-[#1a0000]
        text-[#f8eac7] font-bold uppercase tracking-[0.25em]
@@ -787,11 +790,14 @@ export const DMPanel = ({
           try {
             // Save session notes
             await updateDoc(doc(db, "Sessions", sessionData.id), {
-              sessionNotes: quickNotes,
+              sessionNotes: quickNotes, endedAt: new Date(),
             });
 
             setShowEndSessionConfirm(false);
             console.log("Session ended and notes saved!");
+
+            // Navigér videre til /session
+            navigate("/session");
           } catch (err) {
             console.error("Error ending session:", err);
           }
