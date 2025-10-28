@@ -294,13 +294,13 @@ export default function NewCampaign() {
                             : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div className="mt-4 flex flex-col justify-start items-start gap-2">
+                        <div className="flex flex-col justify-start items-start gap-4">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleLearnMore(learnMoreId);
                             }}
-                            className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
+                            className="text-lg uppercase tracking-wider text-[var(--secondary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
                           >
                             Learn More
                           </button>

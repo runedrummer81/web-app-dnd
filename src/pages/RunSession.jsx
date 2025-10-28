@@ -82,12 +82,12 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
         <CombatStateProvider>
           <div className="w-screen h-screen flex bg-black overflow-hidden">
             {/* Map Display - Left Side */}
-            <div className="w-full lg:w-[65%] xl:w-[67%] 2xl:w-[70%] h-full">
+            <div className=" lg:block lg:w-[65%] h-full">
               <MapDisplay />
             </div>
 
             {/* DM Info Box - Right Side */}
-            <div className="w-full lg:w-[35%] xl:w-[33%] 2xl:w-[30%] h-full relative bg-[#151612]">
+            <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
               {/* Art Deco Border Frame */}
               <div className="absolute inset-0 pointer-events-none z-50">
                 {/* Corner SVGs - Top Left */}
