@@ -353,7 +353,7 @@ export default function Session() {
       </motion.div>
 
       {/* RIGHT PANEL: Background + Details */}
-      <motion.div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden mx-auto ">
+      <motion.div className="relative flex-1 ml-20 flex flex-col items-center justify-center overflow-hidden mx-auto ">
         {/* BACKGROUND IMAGE (blurred) */}
         {activeImg && (
           <motion.div
