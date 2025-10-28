@@ -61,27 +61,7 @@ export const RouteManager = ({
     return { days: fullDays, hours: remainingHours, distance };
   };
 
-  const calculateRestStops = () => {
-    const { days } = calculateTravelTime();
-    return Math.max(0, days);
-  };
-
-  const calculateEncounterChance = () => {
-    const { days } = calculateTravelTime();
-    const baseChance = 0.25;
-    const totalChance = Math.min(0.95, days * baseChance);
-    return Math.round(totalChance * 100);
-  };
-
-  const calculateRations = () => {
-    const { days } = calculateTravelTime();
-    return Math.ceil(days * 1.5);
-  };
-
   const { days, hours, distance } = calculateTravelTime();
-  const restStops = calculateRestStops();
-  const encounterChance = calculateEncounterChance();
-  const rationsNeeded = calculateRations();
 
   return (
     <div className="space-y-4">
@@ -185,18 +165,6 @@ export const RouteManager = ({
                 value: `${days}d ${hours}h`,
                 color: "#d9ca89",
               },
-              {
-                icon: "🏕️",
-                label: "Rest Stops",
-                value: restStops,
-                color: "#d9ca89",
-              },
-              {
-                icon: "🍖",
-                label: "Rations",
-                value: rationsNeeded,
-                color: "#d9ca89",
-              },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -227,35 +195,6 @@ export const RouteManager = ({
                 </div>
               </motion.div>
             ))}
-          </div>
-
-          {/* Encounter Chance Bar */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span
-                className="text-xs uppercase tracking-wider text-[#BF883C]/70"
-                style={{ fontFamily: "EB Garamond, serif" }}
-              >
-                ⚔️ Encounter Chance
-              </span>
-              <span
-                className="text-sm font-bold text-[#d9ca89]"
-                style={{ fontFamily: "EB Garamond, serif" }}
-              >
-                {encounterChance}%
-              </span>
-            </div>
-            <div className="h-2 bg-[#151612] border border-[#BF883C]/20 overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-[#BF883C] to-[#d9ca89]"
-                initial={{ width: 0 }}
-                animate={{ width: `${encounterChance}%` }}
-                transition={{ duration: 1, delay: 0.5 }}
-                style={{
-                  boxShadow: "0 0 10px rgba(217,202,137,0.5)",
-                }}
-              />
-            </div>
           </div>
 
           {/* Visibility Toggle */}
@@ -349,100 +288,6 @@ export const RouteManager = ({
           ))}
         </div>
       </div>
-
-      {/* Terrain Type */}
-      <div>
-        <label
-          className="block text-[#d9ca89] font-bold mb-2 text-sm uppercase tracking-wider"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          Primary Terrain
-        </label>
-        <div className="relative">
-          <select
-            value={terrainType}
-            onChange={(e) => setTerrainType(e.target.value)}
-            className="w-full bg-gradient-to-r from-[#3d3426] to-[#2a2419] text-[#d9ca89] p-4 border border-[#BF883C]/30 focus:outline-none focus:border-[#d9ca89] transition-all appearance-none cursor-pointer font-bold uppercase tracking-wider text-sm"
-            style={{ fontFamily: "EB Garamond, serif" }}
-          >
-            <option value="road">🛤️ Road (Fast)</option>
-            <option value="tundra">❄️ Tundra (Normal)</option>
-            <option value="mountains">⛰️ Mountains (Slow)</option>
-            <option value="frozenLake">🧊 Frozen Lake (Risky)</option>
-            <option value="forest">🌲 Forest (Slow)</option>
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#d9ca89"
-              strokeWidth="2"
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Travel Tips */}
-      {route.waypoints.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative bg-[#1a1814]/50 border border-[#d9ca89]/20 p-4"
-        >
-          <div
-            className="absolute top-0 left-0 w-3 h-3 bg-[#d9ca89]/20"
-            style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
-          />
-
-          <div className="flex items-start gap-2 mb-2">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#d9ca89"
-              strokeWidth="2"
-              className="flex-shrink-0 mt-0.5"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 16v-4M12 8h.01" />
-            </svg>
-            <p
-              className="font-bold text-[#d9ca89] text-xs uppercase tracking-wider"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              DM Tips
-            </p>
-          </div>
-          <ul
-            className="space-y-1.5 text-xs text-[#BF883C]/70 ml-6"
-            style={{ fontFamily: "EB Garamond, serif" }}
-          >
-            {days > 3 && (
-              <li className="flex items-start gap-2">
-                <span className="text-[#d9ca89]">•</span> Long journey: Consider
-                Constitution saves
-              </li>
-            )}
-            {weather.snow && (
-              <li className="flex items-start gap-2">
-                <span className="text-[#d9ca89]">•</span> Snow: Difficult
-                terrain, double rations
-              </li>
-            )}
-            {encounterChance > 50 && (
-              <li className="flex items-start gap-2">
-                <span className="text-[#d9ca89]">•</span> High encounter chance:
-                Prepare random encounters
-              </li>
-            )}
-          </ul>
-        </motion.div>
-      )}
     </div>
   );
 };
