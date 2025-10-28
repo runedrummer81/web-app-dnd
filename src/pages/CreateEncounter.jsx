@@ -239,7 +239,7 @@ export default function CreateEncounters() {
               >
                 {encounterName || "Title (max 30 chars)"}
               </span>
-              <div className="flex flex-row">
+              <div className="flex flex-row ">
                 <motion.input
                   type="text"
                   value={encounterName}
@@ -272,7 +272,7 @@ export default function CreateEncounters() {
               <path d="M17.1,72.5h0c10.8-9.3,32.3-14.9,40.8.5l.3.8c5.8-5.4,5.8-17.5-3.1-19.3,12.1-6.8,16.8-17.2,12.9-30.7-2-7-6.2-12.6-11.7-16.7,4.4,16.4-6.9,32-19.4,41.3-9.5,7-18.9,12.4-26,22.3-5.4,7.6-8.5,15.5-10.9,23.9,4.2-8.5,10.4-16.2,17.1-22h0Z" />
             </svg>
             <span
-              className={` transition-colors ${
+              className={` transition-colors select-none ${
                 encounterName.length >= 30
                   ? "text-red-400"
                   : "text-[var(--secondary)]"
@@ -303,7 +303,7 @@ export default function CreateEncounters() {
 
         {/* Search bar */}
         <div className="relative w-full ">
-          <div className="border-2 border-[var(--secondary)] overflow-none flex items-center ">
+          <div className="border-2 border-[var(--secondary)]  overflow-none flex items-center ">
             <input
               type="text"
               placeholder="Search for a creature..."
@@ -344,7 +344,7 @@ export default function CreateEncounters() {
 
           <div className="border-1 border-[var(--secondary)]">
             {filteredCreatures.length === 0 && searchTerm.trim() !== "" ? (
-              <div className="p-2 italic text-[var(--secondary)] bg-[var(--dark-muted-bg)] text-center">
+              <div className="p-2 italic text-[var(--secondary)] bg-[var(--dark-muted-bg)] text-center select-none">
                 No results found
               </div>
             ) : (
@@ -383,7 +383,7 @@ export default function CreateEncounters() {
         <div className="flex flex-col p-6 space-y-4 flex-1 overflow-y-auto text-[var(--primary)] ">
           <div className="flex flex-col gap-3 text">
             {selectedCreatures.length === 0 && (
-              <p className="italic text-center text-[var(--secondary)]">
+              <p className="italic text-center text-[var(--secondary)] select-none">
                 No creatures selected
               </p>
             )}
@@ -398,18 +398,45 @@ export default function CreateEncounters() {
                   transition={{ duration: 0.2 }}
                   className="flex justify-between items-center border-b border-[var(--secondary)] pb-2"
                 >
-                  <span>{c.name}</span>
-                  <div className="flex items-center gap-2 text-xl ">
+                  <span
+                    className="select-none text-2xl"
+                    onMouseEnter={(e) =>
+                      setHoveredCreature({
+                        ...c,
+                        mousePos: {
+                          x: e.clientX + 15,
+                          y: e.clientY + 15,
+                        },
+                      })
+                    }
+                    onMouseMove={(e) =>
+                      setHoveredCreature((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              mousePos: {
+                                x: e.clientX + 15,
+                                y: e.clientY + 15,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    onMouseLeave={() => setHoveredCreature(null)}
+                  >
+                    {c.name}
+                  </span>
+                  <div className="flex items-center gap-2 ">
                     <button
                       onClick={() => handleCountChange(c.id, -1)}
-                      className="px-2 hover:cursor-pointer text-3xl"
+                      className="px-2 hover:cursor-pointer text-[var(--secondary)] text-2xl"
                     >
-                      -
+                      −
                     </button>
-                    <span>{c.count}</span>
+                    <span className="select-none text-2xl">{c.count}</span>
                     <button
                       onClick={() => handleCountChange(c.id, 1)}
-                      className="px-2 hover:cursor-pointer"
+                      className="px-2 hover:cursor-pointer text-[var(--secondary)] text-2xl"
                     >
                       +
                     </button>
@@ -437,7 +464,7 @@ export default function CreateEncounters() {
           delay: 0.3,
         }}
       >
-        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0">
+        <h2 className="text-2xl font-bold text-[var(--primary)] mb-4 flex-shrink-0 select-none">
           Saved Encounters
         </h2>
 
@@ -457,7 +484,7 @@ export default function CreateEncounters() {
               >
                 {/* Encounter header */}
                 <div
-                  className="flex justify-between items-center relative z-10"
+                  className="flex justify-between items-center relative z-10 select-none  "
                   onClick={() => toggleExpand(enc.id)}
                 >
                   <h3 className="text-lg font-bold text-[var(--primary)] tracking-wide transition-colors duration-200 group-hover:text-black">
@@ -479,7 +506,7 @@ export default function CreateEncounters() {
                       transition={{ duration: 0.8, ease: "easeInOut" }}
                       className="mt-3 overflow-hidden flex justify-between "
                     >
-                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)]">
+                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none">
                         {(enc.creatures || []).map((c, i) => (
                           <li
                             key={i}

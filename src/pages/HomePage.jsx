@@ -194,7 +194,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* Right column */}
-        <motion.div className="absolute  grid-cols-[auto_1fr] justify-center items-end bottom-0 right-0 p-28 transition-all duration-500">
+        <motion.div className="absolute  grid-cols-[auto_1fr] justify-center items-end bottom-0 right-0 p-28 transition-all duration-500 select-none">
           <div
             id="text"
             className={`${active ? "hidden" : ""} flex flex-col items-center `}

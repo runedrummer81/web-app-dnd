@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export const SessionNotes = ({ initialNotes = [] }) => {
+export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
   const [notes, setNotes] = useState(initialNotes);
   const [newNoteText, setNewNoteText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("story");
@@ -27,12 +27,17 @@ export const SessionNotes = ({ initialNotes = [] }) => {
       }),
     };
 
-    setNotes([newNote, ...notes]);
+    const updatedNotes = [newNote, ...notes];
+    setNotes(updatedNotes);
     setNewNoteText("");
+
+    if (onNotesChange) onNotesChange(updatedNotes); // <-- notify parent
   };
 
   const deleteNote = (id) => {
-    setNotes(notes.filter((note) => note.id !== id));
+    const updatedNotes = notes.filter((note) => note.id !== id);
+    setNotes(updatedNotes);
+    if (onNotesChange) onNotesChange(updatedNotes); // <-- notify parent
   };
 
   const getCategoryConfig = (categoryId) => {

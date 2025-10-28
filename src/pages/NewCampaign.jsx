@@ -207,7 +207,7 @@ export default function NewCampaign() {
 
           {/* Right side: templates */}
           <motion.div
-            className="flex flex-col mt-20 w-full ml-40 border-[var(--primary)]/50 "
+            className="flex flex-col mt-30 w-full ml-40 border-[var(--primary)]/50 "
             animate={{ opacity: 1, y: 0 }}
             transition={{
               type: "spring",
@@ -217,7 +217,7 @@ export default function NewCampaign() {
           >
             {" "}
             <motion.div
-              className="absolute top-40 w-100 z-20 pt-2 pb-2"
+              className="w-100 z-20 pt-2 pb-6"
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 type: "spring",
@@ -225,17 +225,19 @@ export default function NewCampaign() {
                 damping: 20,
               }}
             >
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search templates..."
-                className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
-              />
+              <div className="border-2 border-[var(--secondary)] overflow-none flex">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search templates..."
+                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
+                />
+              </div>
             </motion.div>
             <motion.div
               ref={scrollContainerRef}
-              className="flex flex-col mt-20 w-full max-h-[500px] overflow-y-auto border-[var(--primary)]/50"
+              className="flex flex-col w-full h-100 overflow-y-auto border-[var(--primary)]/50 items-start justify-start"
               style={{
                 scrollSnapType: "y mandatory",
               }}
@@ -248,11 +250,11 @@ export default function NewCampaign() {
                 delay: 0.3,
               }}
             >
-              <div className="relative snap-start gap-6 flex flex-col snap-y snap-mandatory scrollbar-custom">
+              <div className="relative snap-start gap-6 flex flex-col snap-y snap-mandatory scrollbar-custom w-full">
                 {filteredTemplates.map(({ id, title, image, learnMoreId }) => (
                   <motion.div
                     key={id}
-                    className={`group relative p-5 border-2 border-[var(--secondary)] hover:border-[var(--primary)]`}
+                    className="group relative p-5 border-2 border-[var(--secondary)] hover:border-[var(--primary)] snap-start w-full"
                     onPointerEnter={() => startHoverTimer(id)}
                     onPointerLeave={cancelHoverTimer}
                     animate={{ opacity: 1, y: 0 }}
@@ -292,13 +294,13 @@ export default function NewCampaign() {
                             : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div className="mt-4 flex flex-col justify-start items-start gap-2">
+                        <div className="flex flex-col justify-start items-start gap-4">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleLearnMore(learnMoreId);
                             }}
-                            className="text-lg uppercase tracking-wider text-[var(--primary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
+                            className="text-lg uppercase tracking-wider text-[var(--secondary)] hover:text-[var(--secondary)] transition-colors cursor-pointer self-left"
                           >
                             Learn More
                           </button>
