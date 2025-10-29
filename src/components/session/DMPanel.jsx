@@ -30,7 +30,7 @@ export const DMPanel = ({
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-  const navigate =useNavigate();
+  const navigate = useNavigate();
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
@@ -180,7 +180,7 @@ export const DMPanel = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden z-1">
+    <div className="h-full bg-[#151612] text-gray-100 flex flex-col overflow-hidden z-1">
       {/* Header with Book Marker Tabs */}
       <div
         className={`relative flex-shrink-0 ${isPlayerWindowOpen ? "" : "pt-6"}`}
@@ -790,7 +790,8 @@ export const DMPanel = ({
           try {
             // Save session notes
             await updateDoc(doc(db, "Sessions", sessionData.id), {
-              sessionNotes: quickNotes, endedAt: new Date(),
+              sessionNotes: quickNotes,
+              endedAt: new Date(),
             });
 
             setShowEndSessionConfirm(false);
