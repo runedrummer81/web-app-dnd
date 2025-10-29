@@ -180,16 +180,7 @@ export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
         </div>
       )}
 
-      <style>{`
-        :root {
-          --blue: #3b82f6;
-          --purple: #a855f7;
-          --yellow: #eab308;
-          --green: #22c55e;
-          --red: #ef4444;
-          --gray: #9ca3af;
-        }
-      `}</style>
+      
     </div>
   );
 };

@@ -468,13 +468,43 @@ export default function Session() {
                   {selectedSession.notesHeadline}
                 </h2>
 
-                {/* DM Notes */}
-                <div className="h-[250px] overflow-auto">
-                  <p className="text-[#bf883c] whitespace-pre-wrap">
-                    {selectedSession.dmNotes || "No notes yet"}
-                  </p>
-                </div>
-              </motion.div>
+              {/* DM Notes */}
+<div className="text-[#bf883c] whitespace-pre-wrap mb-4">
+  {selectedSession.dmNotes || "No notes yet"}
+</div>
+
+{/* Session Notes */}
+<div>
+  <h3 className="text-[var(--primary)] font-semibold mb-2">Session Notes</h3>
+  {selectedSession.sessionNotes?.length > 0 ? (
+    <ul className="space-y-3">
+      {selectedSession.sessionNotes.map((note) => {
+        const colorMap = {
+          story: "var(--blue)",
+          npc: "var(--purple)",
+          loot: "var(--yellow)",
+          quest: "var(--green)",
+          combat: "var(--red)",
+          other: "var(--gray)",
+        };
+        const textColor = colorMap[note.category] || "var(--primary)";
+        return (
+          <li key={note.id} className="whitespace-pre-wrap">
+            <p
+              style={{ color: textColor }}
+              className="text-lg tracking-wide leading-snug"
+            >
+              {note.text}
+            </p>
+          </li>
+        );
+      })}
+    </ul>
+  ) : (
+    <p className="text-[var(--secondary)]/70 italic">No session notes yet</p>
+  )}
+</div>
+            </motion.div>
 
               {/* Row beneath DM Notes: Encounters + Maps */}
               <motion.div className="w-2/5 flex flex-col z-10 justify-between">
