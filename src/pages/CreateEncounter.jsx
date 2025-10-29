@@ -46,6 +46,12 @@ export default function CreateEncounters() {
 
     try {
       await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
+      
+      if (currentEditingId === deleteConfirm.encounterId) {
+        setCurrentEditingId(null);
+        setEncounterName("");
+        setSelectedCreatures([]);
+      }
     } catch (err) {
       console.error("Error deleting encounter:", err);
     } finally {
@@ -200,6 +206,8 @@ export default function CreateEncounters() {
 
     return { spanRef, width };
   }
+
+  
 
   return (
     <motion.div
@@ -395,19 +403,19 @@ ${
                       >
                         <path
                           d="M39.202 76.9561L75.895 40.2631L36.693 1.06107"
-                          stroke="#D9CA89"
+                          stroke="var(--primary)"
                           stroke-width="3"
                           stroke-miterlimit="10"
                         />
                         <path
                           d="M56.2974 20.6661L37.9509 39.0126L57.5477 58.6094"
-                          stroke="#D9CA89"
+                          stroke="var(--primary)"
                           stroke-width="3"
                           stroke-miterlimit="10"
                         />
                         <path
                           d="M36.693 1.06107L37.3184 20.0408L56.9152 39.6376L38.5687 57.9841L39.202 76.9561"
-                          stroke="#D9CA89"
+                          stroke="var(--primary)"
                           stroke-width="3"
                           stroke-miterlimit="10"
                         />
@@ -510,7 +518,7 @@ ${
           Saved Encounters
         </h2>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
           <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
@@ -520,13 +528,14 @@ ${
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`relative border-[var(--secondary)] overflow-hidden transition-all border p-2 m2 ${
+                className={`relative overflow-hidden transition-all border p-2 m2 ${
                   expandedEncounterIds.includes(enc.id)
-                    ? "p-4"
-                    : "p-3 cursor-pointer"
+                    ? "border-[var(--primary)] p-4 cursor-pointer shadow-[0_0_12px_var(--primary)]"
+                    : "border-[var(--secondary)] p-4 cursor-pointer"
                 }`}
               >
                 {/* Encounter header */}
+                <div className="overflow-hidden">
                 <div
                   className="flex justify-between items-center relative z-10 select-none  "
                   onClick={() => toggleExpand(enc.id)}
@@ -535,7 +544,7 @@ ${
                     {enc.name || "Unnamed Encounter"}
                   </h3>
 
-                  <button className="text-[var(--primary)] transition text-sm">
+                  <button className="text-[var(--primary)] transition text-sm hover:cursor-pointer">
                     {expandedEncounterIds.includes(enc.id) ? "▲" : "▼"}
                   </button>
                 </div>
@@ -544,17 +553,17 @@ ${
                 <AnimatePresence>
                   {expandedEncounterIds.includes(enc.id) && (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                      className="mt-3 overflow-hidden flex justify-between "
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="mt-3 overflow-hidden flex justify-between overflow-hidden"
                     >
-                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none">
+                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none overflow-hidden">
                         {(enc.creatures || []).map((c, i) => (
                           <li
                             key={i}
-                            className="transition-colors cursor-pointer"
+                            className="transition-colors cursor-pointer overflow-hidden"
                             onMouseEnter={(e) =>
                               setHoveredCreature({
                                 ...c,
@@ -602,6 +611,7 @@ ${
                     </motion.div>
                   )}
                 </AnimatePresence>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
