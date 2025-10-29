@@ -112,11 +112,11 @@ export const SessionNotes = ({
       <section className="relative">
         <button
           onClick={() => setNotesOpen(!notesOpen)}
-          className="w-full p-4 transition-all duration-300 flex items-center justify-between group"
+          className="w-full transition-all duration-300 flex items-center justify-between group"
         >
           <div className="text-left">
             <h2
-              className={`text-base font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+              className={`text-base font-bold uppercase transition-colors duration-300 ${
                 notesOpen ? "text-[var(--primary)]" : "text-[var(--secondary)]"
               }`}
             >

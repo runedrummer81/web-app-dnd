@@ -716,6 +716,10 @@ export const DMPanel = ({
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    {/* DM Notes */}
+                    <div className="text-[#bf883c] whitespace-pre-wrap px-4 pt-10">
+                      {sessionData?.dmNotes || "No notes yet"}
+                    </div>
                   </section>
                 </motion.div>
               )}
