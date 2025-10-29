@@ -23,7 +23,7 @@ export default function CreateEncounters() {
   const [encounterName, setEncounterName] = useState("");
   const [savedEncounters, setSavedEncounters] = useState([]);
   const [hoveredCreature, setHoveredCreature] = useState(null);
-  const [expandedEncounterId, setExpandedEncounterId] = useState(null);
+  const [expandedEncounterIds, setExpandedEncounterIds] = useState([]);
   const navigate = useNavigate();
   const [currentEditingId, setCurrentEditingId] = useState(null);
   const { spanRef, width } = useAutoWidthInput(encounterName);
@@ -35,6 +35,7 @@ export default function CreateEncounters() {
   const searchInputRef = React.useRef(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [selectedCreature, setSelectedCreature] = useState(null);
 
   const handleDeleteEncounter = (id) => {
     setDeleteConfirm({ open: true, encounterId: id });
@@ -178,8 +179,13 @@ export default function CreateEncounters() {
   };
 
   const toggleExpand = (id) => {
-    setExpandedEncounterId((prev) => (prev === id ? null : id));
-  };
+  setExpandedEncounterIds((prev) =>
+    prev.includes(id)
+      ? prev.filter((encId) => encId !== id)
+      : [...prev, id]
+  );
+};
+
 
   const handleEditEncounter = (encounter) => {
     setEncounterName(encounter.name || "");
@@ -479,7 +485,9 @@ export default function CreateEncounters() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 className={`relative border-[var(--secondary)] overflow-hidden transition-all border p-2 m2 ${
-                  expandedEncounterId === enc.id ? "p-4" : "p-3 cursor-pointer"
+                  expandedEncounterIds.includes(enc.id)
+                    ? "p-4"
+                    : "p-3 cursor-pointer"
                 }`}
               >
                 {/* Encounter header */}
@@ -492,13 +500,13 @@ export default function CreateEncounters() {
                   </h3>
 
                   <button className="text-[var(--primary)] transition text-sm">
-                    {expandedEncounterId === enc.id ? "▲" : "▼"}
+                    {expandedEncounterIds.includes(enc.id)  ? "▲" : "▼"}
                   </button>
                 </div>
 
                 {/* Expandable details */}
                 <AnimatePresence>
-                  {expandedEncounterId === enc.id && (
+                  {expandedEncounterIds.includes(enc.id)  && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
