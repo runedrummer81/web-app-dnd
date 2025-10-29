@@ -7,7 +7,7 @@ import { auth } from "../firebase";
 import HomePage from "./HomePage";
 import { useAuth } from "../hooks/useAuth";
 import { HiEye, HiEyeOff } from "react-icons/hi";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MistVideo from "../components/Mist";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -44,13 +44,15 @@ export default function Login() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
+  const showPasswordRef = useRef(null);
+
   useEffect(() => {
     let mounted = true;
 
     const blink = async () => {
       while (mounted) {
         // Only blink if the password field is NOT focused
-        if (!isPasswordFocused) {
+        if (!isPasswordFocused || showPassword) {
           await new Promise((r) => setTimeout(r, 5000 + Math.random() * 3000));
           await animate(scaleY, 0.1, { duration: 0.15, ease: "easeInOut" });
           await new Promise((r) => setTimeout(r, 800 + Math.random() * 300));
@@ -120,6 +122,11 @@ export default function Login() {
     }
   };
 
+  const handleShowPassword = () => {
+    setShowPassword(!showPassword);
+    showPasswordRef.current.focus();
+  };
+
   if (user) return <HomePage />;
 
   return (
@@ -133,7 +140,6 @@ export default function Login() {
             transform: `translate(${offset.x}px, ${offset.y}px)`,
           }}
         >
-
           <div
             className="relative w-full h-full mx-auto"
             style={{
@@ -279,6 +285,7 @@ export default function Login() {
           </label>
           <div className="border p-2 border-[var(--secondary)] mb-4 relative transition-colors duration-200">
             <input
+              ref={showPasswordRef}
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Secret Key"
@@ -304,7 +311,7 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => handleShowPassword()}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[var(--secondary)] hover:text-[var(--dark-muted-bg)] focus:outline-none transition duration-200 hover:cursor-pointer"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
