@@ -14,8 +14,6 @@
   --gray: #9ca3af;
 }
 
-
-
 body {
   font-family: var(--font);
 }
@@ -312,4 +310,18 @@ body,
   height: 100vh;
   overflow: hidden; /* Prevent internal scroll */
   position: relative;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px #d9ca89, 0 0 20px #d9ca89;
+  }
+  50% {
+    box-shadow: 0 0 10px #d9ca89, 0 0 20px #d9ca89;
+  }
+}
+
+.animate-glow {
+  animation: glow 1.5s infinite ease-in-out;
 }
