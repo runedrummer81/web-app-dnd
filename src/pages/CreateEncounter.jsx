@@ -85,9 +85,6 @@ export default function CreateEncounters() {
       }
     );
 
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
     return () => unsubscribe();
   }, []);
 
@@ -179,13 +176,10 @@ export default function CreateEncounters() {
   };
 
   const toggleExpand = (id) => {
-  setExpandedEncounterIds((prev) =>
-    prev.includes(id)
-      ? prev.filter((encId) => encId !== id)
-      : [...prev, id]
-  );
-};
-
+    setExpandedEncounterIds((prev) =>
+      prev.includes(id) ? prev.filter((encId) => encId !== id) : [...prev, id]
+    );
+  };
 
   const handleEditEncounter = (encounter) => {
     setEncounterName(encounter.name || "");
@@ -349,23 +343,35 @@ export default function CreateEncounters() {
           </div>
 
           <div className="border-1 border-[var(--secondary)]">
+            {filteredCreatures.length > 0 && (
+              <div className="px-2 py-1 text-xs text-[var(--secondary)] bg-[var(--dark-muted-bg)]  select-none italic">
+                {searchTerm.trim() === ""
+                  ? "Recent suggestions — keep typing to search"
+                  : `${filteredCreatures.length} result${
+                      filteredCreatures.length === 1 ? "" : "s"
+                    } found`}
+              </div>
+            )}
             {filteredCreatures.length === 0 && searchTerm.trim() !== "" ? (
               <div className="p-2 italic text-[var(--secondary)] bg-[var(--dark-muted-bg)] text-center select-none">
-                No results found
+                No results found — try a different search term
               </div>
             ) : (
               filteredCreatures.map((creature, index) => (
                 <div
                   key={creature.id}
-                  className={`flex justify-between items-center p-2 cursor-pointer transition-colors
-  ${
-    index === highlightedIndex
-      ? "bg-[var(--primary)] text-black"
-      : "text-[var(--secondary)] bg-[var(--dark-muted-bg)] hover:bg-[var(--primary)] hover:text-black"
-  }
+                  className={`flex items-center p-2 cursor-pointer transition-colors
+${
+  index === highlightedIndex
+    ? "text-[var(--primary)] italic"
+    : "text-[var(--secondary)] bg-[var(--dark-muted-bg)] italic hover:text-[var(--primary)]"
+}
 `}
                   onClick={() => handleAddCreature(creature)}
-                  onMouseEnter={() => setHoveredCreature(creature)}
+                  onMouseEnter={() => {
+                    setHoveredCreature(creature);
+                    setHighlightedIndex(index);
+                  }}
                   onMouseLeave={() => setHoveredCreature(null)}
                   onMouseMove={(e) => {
                     setHoveredCreature((prev) =>
@@ -378,6 +384,36 @@ export default function CreateEncounters() {
                     );
                   }}
                 >
+                  <div className="w-4 flex items-center justify-center mr-2">
+                    {index === highlightedIndex && (
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 79 79"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M39.202 76.9561L75.895 40.2631L36.693 1.06107"
+                          stroke="#D9CA89"
+                          stroke-width="3"
+                          stroke-miterlimit="10"
+                        />
+                        <path
+                          d="M56.2974 20.6661L37.9509 39.0126L57.5477 58.6094"
+                          stroke="#D9CA89"
+                          stroke-width="3"
+                          stroke-miterlimit="10"
+                        />
+                        <path
+                          d="M36.693 1.06107L37.3184 20.0408L56.9152 39.6376L38.5687 57.9841L39.202 76.9561"
+                          stroke="#D9CA89"
+                          stroke-width="3"
+                          stroke-miterlimit="10"
+                        />
+                      </svg>
+                    )}
+                  </div>
                   <span>{creature.name}</span>
                 </div>
               ))
@@ -500,13 +536,13 @@ export default function CreateEncounters() {
                   </h3>
 
                   <button className="text-[var(--primary)] transition text-sm">
-                    {expandedEncounterIds.includes(enc.id)  ? "▲" : "▼"}
+                    {expandedEncounterIds.includes(enc.id) ? "▲" : "▼"}
                   </button>
                 </div>
 
                 {/* Expandable details */}
                 <AnimatePresence>
-                  {expandedEncounterIds.includes(enc.id)  && (
+                  {expandedEncounterIds.includes(enc.id) && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
