@@ -508,7 +508,7 @@ export default function Session() {
                           ))}
 
                         {/* 9th slot shows +X more */}
-                        {selectedSession.encounters.length > 9 ? (
+                        {selectedSession.encounters.length > 5 ? (
                           <div className="flex items-center justify-start">
                             <p className="text-[var(--secondary)] text-center text-3xl font-semibold">
                               +{selectedSession.encounters.length - 5}
