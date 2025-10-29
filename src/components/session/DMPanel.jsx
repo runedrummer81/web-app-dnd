@@ -179,7 +179,7 @@ export const DMPanel = ({
                   ? combatActive
                     ? "bg-gradient-to-b from-red-700 to-red-900"
                     : "bg-[var(--primary)]"
-                  : "bg-[var(--secondary)]/30"
+                  : "bg-[var(--secondary)]/40"
               }`}
               style={{
                 clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
