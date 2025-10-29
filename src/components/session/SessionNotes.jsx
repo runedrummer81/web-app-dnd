@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
-  const [notes, setNotes] = useState(initialNotes);
+export const SessionNotes = ({
+  initialNotes = [],
+  selectedSession,
+  onNotesChange,
+}) => {
+  const [notes, setNotes] = useState([]);
   const [newNoteText, setNewNoteText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("story");
+  const [notesOpen, setNotesOpen] = useState(false);
 
   const categories = [
     { id: "story", label: "Story Moment", color: "blue" },
@@ -14,6 +19,12 @@ export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
     { id: "combat", label: "Combat", color: "red" },
     { id: "other", label: "Other", color: "gray" },
   ];
+
+  // Merge initialNotes and selectedSession notes on mount or when selectedSession changes
+  useEffect(() => {
+    const premadeNotes = selectedSession?.sessionNotes || [];
+    setNotes([...premadeNotes, ...initialNotes]);
+  }, [initialNotes, selectedSession]);
 
   const addNote = () => {
     if (!newNoteText.trim()) return;
@@ -39,17 +50,13 @@ export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
   };
 
   const getCat = (id) => categories.find((c) => c.id === id) || categories[5];
-  const countBy = (id) => notes.filter((n) => n.category === id).length;
 
   return (
-    <div className="relative w-full h-full flex flex-col gap-4 p-5 bg-gradient-to-br from-[#181713] to-[#221f18] shadow-[inset_0_0_25px_rgba(217,202,137,0.15)] overflow-y-hidden">
-      {/* Ambient Glow */}
-      <div className="absolute -inset-2 rounded-2xl pointer-events-none opacity-30 blur-2xl bg-gradient-to-tr from-[#d9ca89]/20 to-[#bf883c]/10" />
-
+    <div className="relative w-full h-full flex flex-col overflow-y-hidden gap-4 px-4">
       {/* Quick Note Section */}
-      <div className="relative z-10 bg-[#1a1814] border border-[#d9ca89]/40 p-5 shadow-inner">
-        <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-[var(--primary)] font-bold text-sm tracking-wide uppercase drop-shadow-[0_0_6px_rgba(234,179,8,0.6)]">
+      <div className="relative z-10 flex flex-col gap-5">
+        <div className="flex items-center">
+          <h3 className="text-[var(--primary)] font-bold text-sm tracking-wide uppercase ">
             Quick Notes
           </h3>
         </div>
@@ -60,14 +67,22 @@ export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
             <motion.button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex items-center justify-center gap-1 py-2 text-xs font-semibold transition-all border ${
-                selectedCategory === cat.id
-                  ? `bg-[var(--${cat.color})] text-[var(--primary)] border-transparent shadow-[0_0_8px_rgba(234,179,8,0.5)]`
-                  : "bg-[#25221c] text-gray-300 border-[#3a362c] hover:bg-[#312d25]"
-              }`}
+              className={`
+      relative flex items-center justify-center gap-1 py-2 px-3 text-xs font-semibold transition-all
+      border border-[var(--secondary)]
+      ${
+        selectedCategory === cat.id
+          ? `bg-[var(--primary)] text-[var(--dark-muted-bg)]`
+          : `text-[var(--secondary)] hover:border-[var(--primary)]`
+      }
+    `}
             >
+              {selectedCategory === cat.id && (
+                <span
+                  className="absolute left-0 top-0 h-full w-4"
+                  style={{ backgroundColor: `var(--${cat.color})` }}
+                />
+              )}
               <span>{cat.icon}</span>
               {cat.label}
             </motion.button>
@@ -75,112 +90,132 @@ export const SessionNotes = ({ initialNotes = [], onNotesChange }) => {
         </div>
 
         {/* Input Row */}
-        <div className="flex gap-2">
+        <div className="flex">
           <input
             type="text"
             value={newNoteText}
             onChange={(e) => setNewNoteText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addNote()}
             placeholder="Record an event, NPC, or treasure..."
-            className="flex-1 bg-[#2a2720] text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500/60"
+            className="flex-1 text-[var(--primary)] px-3 py-2 text-sm focus:outline-none"
           />
           <button
             onClick={addNote}
-            className="cursor-pointer bg-[var(--primary)] hover:bg-[var(--secondary)] text-black px-4 py-2 font-semibold text-sm shadow-[0_0_12px_rgba(234,179,8,0.4)] transition-all"
+            className="cursor-pointer border-2 border-[var(--secondary)] hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--primary)] hover:text-[var(--dark-muted-bg)] px-4 py-2 font-semibold text-sm transition-all"
           >
             Add
           </button>
         </div>
       </div>
 
-      {/* 📜 Notes Log */}
-      <div className="relative z-10 space-y-3 overflow-y-auto">
-        {notes.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-yellow-500 font-semibold text-sm tracking-wide drop-shadow-[0_0_6px_rgba(234,179,8,0.6)] uppercase">
-                Session Log
-              </h3>
-              <button
-                onClick={() => setNotes([])}
-                className="text-xs text-red-500 hover:text-red-400"
-              >
-                Clear All
-              </button>
-            </div>
+      {/* NOTES OVERVIEW DROPDOWN */}
+      <section className="relative">
+        <button
+          onClick={() => setNotesOpen(!notesOpen)}
+          className="w-full p-4 transition-all duration-300 flex items-center justify-between group"
+        >
+          <div className="text-left">
+            <h2
+              className={`text-base font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                notesOpen ? "text-[var(--primary)]" : "text-[var(--secondary)]"
+              }`}
+            >
+              Session Log
+            </h2>
+            {notes.length > 0 && (
+              <p className="text-xs text-[#BF883C]/70 uppercase tracking-wider mt-1">
+                {notes.length} note{notes.length > 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
 
-            <AnimatePresence>
-              {notes.map((note) => {
-                const cat = getCat(note.category);
-                return (
-                  <motion.div
-                    key={note.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="relative bg-[#1a1814] border-l-[4px] p-3 rounded-r-md group shadow-md hover:bg-[#23201a] transition-all"
-                    style={{ borderLeftColor: `var(--${cat.color})` }}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg">{cat.icon}</span>
-                          <span className="text-xs font-semibold text-yellow-500">
-                            {cat.label}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {note.timestamp}
-                          </span>
+          <motion.svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            className="text-[#BF883C] transition-colors duration-300"
+            animate={{ rotate: notesOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <path
+              d="M 5,7 L 10,12 L 15,7"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="square"
+            />
+          </motion.svg>
+        </button>
+
+        <AnimatePresence>
+          {notesOpen && notes.length > 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col gap-3 p-4">
+                {notes.map((note) => {
+                  const cat = getCat(note.category);
+                  return (
+                    <div
+                      key={note.id}
+                      className="relative border-l-[4px] p-3 rounded-r-md group transition-all"
+                      style={{ borderLeftColor: `var(--${cat.color})` }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className="text-s font-semibold"
+                              style={{ color: `var(--${cat.color})` }}
+                            >
+                              {cat.label}
+                            </span>
+                            <span className="text-xs text-[var(--secondary)]">
+                              {note.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-sm text-[var(--primary)] leading-snug">
+                            {note.text}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-200 leading-snug">
-                          {note.text}
-                        </p>
+                        <button
+                          onClick={() => deleteNote(note.id)}
+                          className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 text-xs transition-all"
+                        >
+                          ✕
+                        </button>
                       </div>
-                      <button
-                        onClick={() => deleteNote(note.id)}
-                        className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 text-xs transition-all"
-                      >
-                        ✕
-                      </button>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </>
-        ) : (
-          <div className="bg-[#1a1814]/60 border border-[#d9ca89]/20 p-8 rounded text-center">
-            <p className="text-gray-500 text-sm italic">
-              “No tales recorded yet, Dungeon Master.”
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* 🧭 Category Summary */}
-      {notes.length > 0 && (
-        <div className="relative z-10 bg-[#1a1814]/60 border border-[#d9ca89]/20 p-4 rounded-lg mt-2">
-          <p className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wide drop-shadow-[0_0_3px_rgba(234,179,8,0.5)]">
-            Session Summary
-          </p>
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            {categories.map((cat) => {
-              const count = countBy(cat.id);
-              return (
-                count > 0 && (
-                  <div key={cat.id} className="text-gray-300">
-                    {cat.icon} {cat.label}:{" "}
-                    <span className="text-yellow-500 font-bold">{count}</span>
-                  </div>
-                )
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      
+                  );
+                })}
+                <button
+                  onClick={() => setNotes([])}
+                  className="text-xs text-red-500 hover:text-red-400 mt-2"
+                >
+                  Clear All
+                </button>
+              </div>
+            </motion.div>
+          )}
+          {notesOpen && notes.length === 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden p-4 bg-[#1a1814]/60 border border-[#d9ca89]/20 rounded text-center"
+            >
+              <p className="text-gray-500 text-sm italic">
+                “No tales recorded yet, Dungeon Master.”
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
     </div>
   );
 };

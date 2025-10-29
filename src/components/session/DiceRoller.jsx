@@ -118,80 +118,9 @@ export const DiceRoller = () => {
   const SelectedIcon = selectedDie.icon;
 
   return (
-    <div className="pt-4 overflow-hidden">
+    <div className=" overflow-hidden">
       {/* Main Container with Border Frame */}
-      <div className="relative border-2 border-[#BF883C]/40 bg-gradient-to-br from-[#1C1B18] to-[#292621] p-4 lg:p-6 overflow-hidden">
-        {/* Corner Decorations */}
-        <div className="absolute top-0 left-0 w-6 h-6 border-l-4 border-t-4 border-[#d9ca89]" />
-        <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-[#d9ca89]" />
-        <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-[#d9ca89]" />
-        <div className="absolute bottom-0 right-0 w-6 h-6 border-r-4 border-b-4 border-[#d9ca89]" />
-
-        {/* Outer Glow */}
-        <div
-          className="absolute -inset-1 opacity-30 blur-xl pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(45deg, rgba(191,136,60,0.3), rgba(217,202,137,0.3))",
-          }}
-        />
-
-        {/* Dice Selector */}
-        <div className="relative mb-3 lg:mb-4">
-          <div className="flex justify-center gap-2">
-            {dice.map((die) => {
-              const Icon = die.icon;
-              return (
-                <motion.button
-                  key={die.label}
-                  onClick={() => handleDieSelect(die)}
-                  className={`relative p-2 border-2 transition-all duration-300 ${
-                    selectedDie.label === die.label
-                      ? "border-[#d9ca89] bg-[#d9ca89]/10"
-                      : "border-[#BF883C]/30 hover:border-[#BF883C]/60"
-                  }`}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{
-                    boxShadow:
-                      selectedDie.label === die.label
-                        ? "0 0 20px rgba(217,202,137,0.4)"
-                        : "none",
-                  }}
-                >
-                  <Icon
-                    size={20}
-                    className={
-                      selectedDie.label === die.label
-                        ? "text-[#d9ca89]"
-                        : "text-[#BF883C]"
-                    }
-                    style={{
-                      filter:
-                        selectedDie.label === die.label
-                          ? "drop-shadow(0 0 8px rgba(217,202,137,0.6))"
-                          : "none",
-                    }}
-                  />
-                  <div
-                    className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-[9px] uppercase tracking-wider font-bold whitespace-nowrap"
-                    style={{
-                      color:
-                        selectedDie.label === die.label ? "#d9ca89" : "#BF883C",
-                      textShadow:
-                        selectedDie.label === die.label
-                          ? "0 0 10px rgba(217,202,137,0.5)"
-                          : "none",
-                    }}
-                  >
-                    {die.label}
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
+      <div className="relative p-4overflow-hidden">
         {/* Main Dice Display - FIXED DIMENSIONS */}
         <div className="flex flex-col items-center mt-6">
           <div className="relative w-full max-w-[280px] lg:max-w-[320px] aspect-square flex items-center justify-center mx-auto">
@@ -585,6 +514,61 @@ export const DiceRoller = () => {
                 </motion.div>
               </motion.div>
             </AnimatePresence>
+          </div>
+        </div>
+        {/* Dice Selector */}
+        <div className="relative mb-3 lg:mb-4">
+          <div className="flex justify-center gap-2">
+            {dice.map((die) => {
+              const Icon = die.icon;
+              return (
+                <motion.button
+                  key={die.label}
+                  onClick={() => handleDieSelect(die)}
+                  className={`relative p-2 border-2 transition-all duration-300 ${
+                    selectedDie.label === die.label
+                      ? "border-[#d9ca89] bg-[#d9ca89]/10"
+                      : "border-[#BF883C]/30 hover:border-[#BF883C]/60"
+                  }`}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    boxShadow:
+                      selectedDie.label === die.label
+                        ? "0 0 20px rgba(217,202,137,0.4)"
+                        : "none",
+                  }}
+                >
+                  <Icon
+                    size={20}
+                    className={
+                      selectedDie.label === die.label
+                        ? "text-[#d9ca89]"
+                        : "text-[#BF883C]"
+                    }
+                    style={{
+                      filter:
+                        selectedDie.label === die.label
+                          ? "drop-shadow(0 0 8px rgba(217,202,137,0.6))"
+                          : "none",
+                    }}
+                  />
+                  <div
+                    className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-[9px] uppercase tracking-wider font-bold whitespace-nowrap"
+                    style={{
+                      color:
+                        selectedDie.label === die.label ? "#d9ca89" : "#BF883C",
+                      textShadow:
+                        selectedDie.label === die.label
+                          ? "0 0 10px rgba(217,202,137,0.5)"
+                          : "none",
+                    }}
+                  >
+                    {die.label}
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </div>
