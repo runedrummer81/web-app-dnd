@@ -20,8 +20,6 @@ export const DMPanel = ({
   currentMapId,
   weather,
   onWeatherChange,
-  isPlayerWindowOpen,
-  onEndSessionClick,
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -33,19 +31,6 @@ export const DMPanel = ({
   const navigate = useNavigate();
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
-
-  const handleEndSession = async () => {
-    try {
-      await updateDoc(doc(db, "Sessions", sessionData.id), {
-        sessionNotes: quickNotes, // save the current notes
-      });
-      console.log("Session notes saved!");
-      // Optionally close the DM panel or do other cleanup
-      setShowEndSessionConfirm(false);
-    } catch (err) {
-      console.error("Error saving session notes:", err);
-    }
-  };
 
   // Normal state tabs
   const normalTabs = [
@@ -180,23 +165,21 @@ export const DMPanel = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="h-full bg-[#151612] text-gray-100 flex flex-col overflow-hidden z-1">
+    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden">
       {/* Header with Book Marker Tabs */}
-      <div
-        className={`relative flex-shrink-0 ${isPlayerWindowOpen ? "" : "pt-6"}`}
-      >
+      <div className={`relative flex-shrink-0`}>
         {/* Bookmark Tabs - Flag shaped */}
-        <div className="flex gap-1 px-2">
+        <div className="flex justify-center gap-2 px-15 pt-2">
           {tabs.map((tab, index) => (
             <motion.button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-1 px-3 py-4 transition-all duration-300 group ${
+              className={`relative flex-1 py-4 transition-all duration-300 ${
                 activeTab === tab.id
                   ? combatActive
                     ? "bg-gradient-to-b from-red-700 to-red-900"
-                    : "bg-gradient-to-b from-[#BF883C] to-[#8b6429]"
-                  : "bg-gradient-to-b from-[#3d3426] to-[#2a2419] hover:from-[#4a3f2d] hover:to-[#342d1f]"
+                    : "bg-[var(--primary)]"
+                  : "bg-[var(--secondary)]/40"
               }`}
               style={{
                 clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
@@ -217,8 +200,8 @@ export const DMPanel = ({
               <div
                 className={`mb-1 flex justify-center ${
                   activeTab === tab.id
-                    ? "text-white"
-                    : "text-[#BF883C] group-hover:text-[#d9ca89]"
+                    ? "text-[var(--dark-muted-bg)]"
+                    : "text-[var(--primary)] group-hover:text-[#d9ca89]"
                 }`}
               >
                 {tab.icon}
@@ -226,72 +209,51 @@ export const DMPanel = ({
 
               {/* Small label text */}
               <span
-                className={`text-[10px] font-bold uppercase tracking-[0.15em] block text-center ${
+                className={`text-[8px] font-bold uppercase tracking-[0.15em] block text-center ${
                   activeTab === tab.id
-                    ? "text-white"
-                    : "text-[#BF883C] group-hover:text-[#d9ca89]"
+                    ? "text-[var(--dark-muted-bg)]"
+                    : "text-[var(--primary)] group-hover:text-[#d9ca89]"
                 }`}
-                style={{
-                  fontFamily: "EB Garamond, serif",
-                }}
               >
                 {tab.label}
               </span>
             </motion.button>
           ))}
           {/* END SESSION TAB */}
-          <div className="relative" style={{ marginBottom: "-40px" }}>
-            {/* Gold border layer */}
-            <div
-              className="absolute inset-0 bg-gradient-to-b from-[#c8a85b] to-[#8c6b2e]"
-              style={{
-                clipPath: "polygon(0% 0%, 100% 0%, 100% 90%, 50% 100%, 0% 90%)",
-                transform: "scale(1.03)",
-                zIndex: 0,
-              }}
-            />
+          <motion.button
+            onClick={() => setShowEndSessionConfirm(true)}
+            className="relative flex-1 py-4 transition-all duration-300 
+  bg-gradient-to-b from-red-700 to-red-900 
+  hover:from-red-600 hover:to-red-800 
+  text-[#f8eac7] font-bold uppercase tracking-[0.15em]
+  shadow-[0_2px_6px_rgba(0,0,0,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)]
+  cursor-pointer"
+            style={{
+              clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
+              boxShadow:
+                "0 4px 12px rgba(239,68,68,0.5), inset 0 -2px 8px rgba(0,0,0,0.3)",
+            }}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="mb-1 flex justify-center">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f8eac7"
+                strokeWidth="2"
+                className="drop-shadow-[0_0_4px_rgba(239,68,68,0.4)]"
+              >
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+              </svg>
+            </div>
 
-            <motion.button
-              onClick={() => setShowEndSessionConfirm(true)}
-              className="cursor-pointer relative flex flex-col items-center justify-center px-5 py-7 w-full
-       bg-gradient-to-b from-[#3c0000] via-[#2a0000] to-[#1a0000]
-       text-[#f8eac7] font-bold uppercase tracking-[0.25em]
-       shadow-[inset_0_2px_6px_rgba(255,255,255,0.1),0_4px_15px_rgba(0,0,0,0.8)]
-       transition-colors duration-300
-       hover:from-[#7a0000] hover:via-[#4b0000] hover:to-[#2a0000]"
-              style={{
-                clipPath: "polygon(0% 0%, 100% 0%, 100% 90%, 50% 100%, 0% 90%)",
-                fontFamily: "EB Garamond, serif",
-                letterSpacing: "0.25em",
-                textShadow:
-                  "0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(191,136,60,0.2), 0 0 20px rgba(0,0,0,0.7)",
-                zIndex: 1,
-              }}
-            >
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-fabric.png')] opacity-30 pointer-events-none" />
-              <div className="relative flex flex-col items-center">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#f8eac7"
-                  strokeWidth="2"
-                  className="mb-1 drop-shadow-[0_0_4px_rgba(191,136,60,0.4)]"
-                >
-                  <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
-                </svg>
-                <span
-                  className="text-sm tracking-[0.3em]"
-                  style={{
-                    fontFamily: "Cinzel Decorative, EB Garamond, serif",
-                  }}
-                >
-                  End
-                </span>
-              </div>
-            </motion.button>
-          </div>
+            <span className="text-[8px] font-bold uppercase tracking-[0.15em] block text-center text-[#f8eac7]">
+              End
+            </span>
+          </motion.button>
         </div>
 
         {/* Active Tab Title with Glow */}
@@ -388,23 +350,18 @@ export const DMPanel = ({
                   className="space-y-6"
                 >
                   {/* TRAVEL ROUTES */}
-                  <section className="relative border border-[#BF883C]/30 bg-[#151612]/50">
-                    <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[#d9ca89]" />
-
+                  <section className="relative">
                     <button
                       onClick={() => setRoutesOpen(!routesOpen)}
-                      className="w-full p-4 hover:bg-[#1a1814]/50 transition-all duration-300 flex items-center justify-between group"
+                      className={`w-full p-4 transition-all duration-300 flex items-center justify-between group`}
                     >
                       <div className="text-left">
                         <h2
-                          className="text-base font-bold text-[#d9ca89] uppercase tracking-[0.2em]"
-                          style={{
-                            fontFamily: "EB Garamond, serif",
-                            textShadow: "0 0 12px rgba(217,202,137,0.4)",
-                          }}
+                          className={`text-base font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                            routesOpen
+                              ? "text-[var(--primary)]"
+                              : "text-[var(--secondary)]"
+                          }`}
                         >
                           Travel Routes
                         </h2>
@@ -419,7 +376,7 @@ export const DMPanel = ({
                         width="20"
                         height="20"
                         viewBox="0 0 20 20"
-                        className="text-[#BF883C]"
+                        className="text-[#BF883C] transition-colors duration-300"
                         animate={{ rotate: routesOpen ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
                       >
@@ -440,7 +397,7 @@ export const DMPanel = ({
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="overflow-hidden border-t border-[#BF883C]/20"
+                          className="overflow-hidden "
                         >
                           <div className="p-4">
                             <RouteManager
@@ -471,24 +428,27 @@ export const DMPanel = ({
                     </AnimatePresence>
                   </section>
 
-                  {/* ATMOSPHERE & WEATHER */}
-                  <section className="relative border border-[#BF883C]/30 bg-[#151612]/50">
-                    <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[#d9ca89]" />
+                  <motion.div
+                    className={`h-[2px] w-100 mt-2 mx-auto bg-gradient-to-r ${"from-transparent via-[var(--secondary)] to-transparent"}`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
 
+                  {/* ATMOSPHERE & WEATHER */}
+                  <section className="relative">
                     <button
                       onClick={() => setWeatherOpen(!weatherOpen)}
-                      className="w-full p-4 hover:bg-[#1a1814]/50 transition-all duration-300 flex items-center justify-between group"
+                      className={`w-full p-4 transition-all duration-300 flex items-center justify-between group
+      `}
                     >
                       <div className="text-left">
                         <h2
-                          className="text-base font-bold text-[#d9ca89] uppercase tracking-[0.2em]"
-                          style={{
-                            fontFamily: "EB Garamond, serif",
-                            textShadow: "0 0 12px rgba(217,202,137,0.4)",
-                          }}
+                          className={`text-base font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                            weatherOpen
+                              ? "text-[var(--primary)]"
+                              : "text-[var(--secondary)]"
+                          }`}
                         >
                           Atmosphere & Weather
                         </h2>
@@ -504,7 +464,7 @@ export const DMPanel = ({
                         width="20"
                         height="20"
                         viewBox="0 0 20 20"
-                        className="text-[#BF883C]"
+                        className="text-[#BF883C] transition-colors duration-300"
                         animate={{ rotate: weatherOpen ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
                       >
@@ -525,16 +485,17 @@ export const DMPanel = ({
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="overflow-hidden border-t border-[#BF883C]/20"
+                          className="overflow-hidden "
                         >
                           <div className="p-4">
                             <div className="grid grid-cols-2 gap-3">
+                              {/* Day/Night Button */}
                               <motion.button
                                 onClick={() => toggleWeather("timeOfDay")}
-                                className={`p-4 border transition-all duration-300 ${
+                                className={`p-4 border transition-all duration-300 border-[var(--secondary)] ${
                                   weather.timeOfDay === "night"
-                                    ? "border-blue-500 bg-blue-900/20"
-                                    : "border-yellow-400 bg-yellow-500/20"
+                                    ? " bg-blue-900/20"
+                                    : " bg-yellow-500/20"
                                 }`}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -555,12 +516,13 @@ export const DMPanel = ({
                                 </div>
                               </motion.button>
 
+                              {/* Snow Button */}
                               <motion.button
                                 onClick={() => toggleWeather("snow")}
-                                className={`p-4 border transition-all duration-300 ${
+                                className={`p-4 border transition-all duration-300 border-[var(--secondary)] ${
                                   weather.snow
-                                    ? "border-white bg-blue-100/20"
-                                    : "border-[#BF883C]/30 bg-[#151612]/50"
+                                    ? " bg-blue-100/20"
+                                    : " bg-[#151612]/50"
                                 }`}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -576,6 +538,7 @@ export const DMPanel = ({
                                 </div>
                               </motion.button>
 
+                              {/* Aurora Button */}
                               <motion.button
                                 onClick={() => toggleWeather("aurora")}
                                 disabled={weather.timeOfDay === "day"}
@@ -623,6 +586,13 @@ export const DMPanel = ({
                     </AnimatePresence>
                   </section>
 
+                  <motion.div
+                    className={`h-[2px] w-100 mt-2 mx-auto bg-gradient-to-r ${"from-transparent via-[var(--secondary)] to-transparent"}`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
+
                   {/* DICE ROLLER */}
                   <DiceRoller />
                 </motion.div>
@@ -636,100 +606,83 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-4"
+                  className="flex flex-col gap-6 "
                 >
-                  {mapSetData ? (
-                    <>
-                      <motion.button
-                        onClick={() => onMapSwitch("world")}
-                        className={`relative w-full text-left p-4 border transition-all duration-300 ${
-                          currentMapId === "world"
-                            ? "border-[#d9ca89] bg-[#BF883C]/10"
-                            : "border-[#BF883C]/30 bg-[#151612]/50 hover:border-[#BF883C]/60"
-                        }`}
-                        whileHover={{ x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        {currentMapId === "world" && (
+                  <div className="flex gap-6 px-5">
+                    {mapSetData ? (
+                      <>
+                        {/* WORLD MAP */}
+                        <section className="relative flex-1">
+                          <button
+                            onClick={() => onMapSwitch("world")}
+                            className={`w-full transition-all duration-300 flex items-center justify-between group `}
+                          >
+                            <div className="text-left">
+                              <div
+                                className={`transition-colors duration-300 ${
+                                  currentMapId === "world"
+                                    ? "text-[#d9ca89]"
+                                    : "text-[var(--secondary)]"
+                                }`}
+                              >
+                                <h2 className="font-bold uppercase ">
+                                  {mapSetData.worldMap?.name || "World Map"}
+                                </h2>
+                                <img
+                                  src={mapSetData.worldMap.imageUrl}
+                                  alt={`Map of ${mapSetData.worldMap.imageUrl}`}
+                                  className="h-auto"
+                                />
+                              </div>
+                            </div>
+                          </button>
+                        </section>
+
+                        {/* CITY MAPS */}
+                        {mapSetData.cityMaps?.length > 0 && (
                           <>
-                            <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
-                            <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[#d9ca89]" />
-                            <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[#d9ca89]" />
-                            <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[#d9ca89]" />
+                            {mapSetData.cityMaps.map((cityMap) => (
+                              <section
+                                key={cityMap.id}
+                                className="relative flex-1"
+                              >
+                                <button
+                                  onClick={() => onMapSwitch(cityMap.id)}
+                                  className={`w-full transition-all duration-300 flex items-center justify-between group `}
+                                >
+                                  <div className="text-left">
+                                    <div
+                                      className={`transition-colors duration-300 ${
+                                        currentMapId === cityMap.id
+                                          ? "text-[#d9ca89]"
+                                          : "text-[var(--secondary)]"
+                                      }`}
+                                    >
+                                      <h2 className=" font-bold uppercase ">
+                                        {cityMap.name}
+                                      </h2>
+                                      <img
+                                        src={cityMap.imageUrl}
+                                        alt={`Map of ${cityMap.name}`}
+                                        className="h-auto"
+                                      />
+                                    </div>
+                                  </div>
+                                </button>
+                              </section>
+                            ))}
                           </>
                         )}
-
-                        <p
-                          className={`font-bold uppercase tracking-[0.15em] ${
-                            currentMapId === "world"
-                              ? "text-[#d9ca89]"
-                              : "text-[#BF883C]"
-                          }`}
-                          style={{
-                            fontFamily: "EB Garamond, serif",
-                            textShadow:
-                              currentMapId === "world"
-                                ? "0 0 10px rgba(217,202,137,0.4)"
-                                : "none",
-                          }}
-                        >
-                          {mapSetData.worldMap?.name || "World Map"}
-                        </p>
-                      </motion.button>
-
-                      {mapSetData.cityMaps?.length > 0 && (
-                        <>
-                          <div className="h-px bg-gradient-to-r from-transparent via-[#BF883C]/30 to-transparent my-4" />
-                          {mapSetData.cityMaps.map((cityMap) => (
-                            <motion.button
-                              key={cityMap.id}
-                              onClick={() => onMapSwitch(cityMap.id)}
-                              className={`relative w-full text-left p-4 border transition-all duration-300 ${
-                                currentMapId === cityMap.id
-                                  ? "border-[#d9ca89] bg-[#BF883C]/10"
-                                  : "border-[#BF883C]/30 bg-[#151612]/50 hover:border-[#BF883C]/60"
-                              }`}
-                              whileHover={{ x: 4 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              {currentMapId === cityMap.id && (
-                                <>
-                                  <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
-                                  <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[#d9ca89]" />
-                                  <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[#d9ca89]" />
-                                  <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[#d9ca89]" />
-                                </>
-                              )}
-
-                              <p
-                                className={`font-bold uppercase tracking-[0.15em] ${
-                                  currentMapId === cityMap.id
-                                    ? "text-[#d9ca89]"
-                                    : "text-[#BF883C]"
-                                }`}
-                                style={{
-                                  fontFamily: "EB Garamond, serif",
-                                  textShadow:
-                                    currentMapId === cityMap.id
-                                      ? "0 0 10px rgba(217,202,137,0.4)"
-                                      : "none",
-                                }}
-                              >
-                                {cityMap.name}
-                              </p>
-                            </motion.button>
-                          ))}
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <p
-                      className="text-[#BF883C]/50 text-center py-8 uppercase tracking-wider"
-                      style={{ fontFamily: "EB Garamond, serif" }}
-                    >
-                      No maps available
-                    </p>
-                  )}
+                      </>
+                    ) : (
+                      <p
+                        className="text-[#BF883C]/50 text-center py-8 uppercase tracking-wider"
+                        style={{ fontFamily: "EB Garamond, serif" }}
+                      >
+                        No maps available
+                      </p>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
@@ -744,7 +697,7 @@ export const DMPanel = ({
                   className="space-y-3"
                 >
                   {/* SESSION NOTES */}
-                  <section className="relative w-full bg-[#151612]/50">
+                  <section className="relative w-full">
                     <AnimatePresence>
                       {notesOpen && (
                         <motion.div
