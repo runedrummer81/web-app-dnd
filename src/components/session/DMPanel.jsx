@@ -11,7 +11,7 @@ import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
+// import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
 import SpellBook from "./Spells";
 
 export const DMPanel = ({
@@ -25,7 +25,8 @@ export const DMPanel = ({
   onEndSessionClick,  
   quickNotes,         
   setQuickNotes,
-  onEndCombat,      
+  onEndCombat,
+  onRequestEndSessionConfirm      
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -251,7 +252,7 @@ export const DMPanel = ({
           ))}
           {/* END SESSION TAB */}
           <motion.button
-            onClick={() => setShowEndSessionConfirm(true)}
+            onClick={onRequestEndSessionConfirm}
             className="relative flex-1 py-4 transition-all duration-300 
   bg-gradient-to-b from-red-700 to-red-900 
   hover:from-red-600 hover:to-red-800 
@@ -748,6 +749,7 @@ export const DMPanel = ({
                     <AnimatePresence>
                       {notesOpen && (
                         <motion.div
+                        key="session-notes"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -763,6 +765,7 @@ export const DMPanel = ({
                         </motion.div>
                       )}
                       <motion.div
+                      key="dm-notes"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -793,11 +796,11 @@ export const DMPanel = ({
           )}
         </AnimatePresence>
       </div>
-      <ConfirmEndSessionModal
+      {/* <ConfirmEndSessionModal
         show={showEndSessionConfirm}
         onCancel={() => setShowEndSessionConfirm(false)}
         onConfirm={onEndSessionClick}
-      />
+      /> */}
     </div>
   );
 };
