@@ -31,6 +31,8 @@ export const CombatStateProvider = ({ children }) => {
   });
 
   const startCombat = (encounter, playerData, combatMap) => {
+    console.log("🎲 Starting combat with encounter:", encounter);
+
     updateMapState({
       currentMapId: combatMap.id,
       markers: [],
@@ -50,15 +52,19 @@ export const CombatStateProvider = ({ children }) => {
       });
     });
 
-    // Add creatures with rolled initiatives
-    encounter.creatures.forEach((creature, index) => {
-      for (let i = 0; i < (creature.count || 1); i++) {
+    // Add creatures with rolled initiatives - EXPLICIT COUNT HANDLING
+    encounter.creatures.forEach((creature, creatureTypeIndex) => {
+      // Make sure we have a count - default to 1 if not present
+      const creatureCount = parseInt(creature.count) || 1;
+      console.log(`📊 Adding ${creatureCount}x ${creature.name}`);
+
+      for (let i = 0; i < creatureCount; i++) {
         const initiativeRoll = Math.floor(Math.random() * 20) + 1;
         const initiative = initiativeRoll + (creature.dexModifier || 0);
 
         combatants.push({
-          id: `creature-${index}-${i}`,
-          name: `${creature.name} ${i + 1}`,
+          id: `creature-${creatureTypeIndex}-${i}`,
+          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
           initiative,
           isPlayer: false,
           hp: creature.hp,
@@ -70,6 +76,7 @@ export const CombatStateProvider = ({ children }) => {
       }
     });
 
+    console.log("📋 Total combatants created:", combatants.length);
     combatants.sort((a, b) => b.initiative - a.initiative);
 
     setInitiativeOrder(combatants);
@@ -88,8 +95,8 @@ export const CombatStateProvider = ({ children }) => {
     const tokens = [];
 
     // Spawn player tokens in a horizontal line above center
-    const playerY = centerY - 150; // 150px above center
-    const playerSpacing = 100; // Space between tokens
+    const playerY = centerY - 150;
+    const playerSpacing = 100;
     const playerStartX =
       centerX - ((playerData.length - 1) * playerSpacing) / 2;
 
@@ -104,38 +111,54 @@ export const CombatStateProvider = ({ children }) => {
       });
     });
 
+    // Calculate total creature count for spacing
+    // Calculate total creature count for spacing
+    const totalCreatureCount = encounter.creatures.reduce((sum, c) => {
+      return sum + (parseInt(c.count) || 1);
+    }, 0);
+
+    console.log("🐉 Total creature tokens to spawn:", totalCreatureCount);
+
+    // Dynamic spacing based on creature count
+    let creatureSpacing = 100; // default spacing
+    if (totalCreatureCount > 10) {
+      creatureSpacing = 80; // closer together for 11-15 creatures
+    }
+    if (totalCreatureCount > 15) {
+      creatureSpacing = 60; // even closer for 16-20 creatures
+    }
+    if (totalCreatureCount > 20) {
+      creatureSpacing = 50; // very close for 20+ creatures
+    }
+
     // Spawn creature tokens in a horizontal line below center
-    const totalCreatures = encounter.creatures.reduce(
-      (sum, c) => sum + (c.count || 1),
-      0
-    );
-    const creatureY = centerY + 150; // 150px below center
-    const creatureSpacing = 100;
+    const creatureY = centerY + 150;
     const creatureStartX =
-      centerX - ((totalCreatures - 1) * creatureSpacing) / 2;
+      centerX - ((totalCreatureCount - 1) * creatureSpacing) / 2;
 
-    let creatureIndex = 0;
-    encounter.creatures.forEach((creature) => {
-      const count = creature.count || 1;
+    let globalCreatureIndex = 0;
+    encounter.creatures.forEach((creature, creatureTypeIndex) => {
+      const creatureCount = parseInt(creature.count) || 1;
 
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < creatureCount; i++) {
         tokens.push({
-          id: `token-creature-${creatureIndex}`,
-          name: `${creature.name} ${i + 1}`,
+          id: `token-creature-${creatureTypeIndex}-${i}`,
+          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
           imageUrl:
             creature.imageURL || "https://via.placeholder.com/100?text=E",
           position: [
             creatureY,
-            creatureStartX + creatureIndex * creatureSpacing,
+            creatureStartX + globalCreatureIndex * creatureSpacing,
           ],
           size: 60,
           isPlayer: false,
           creatureData: creature,
         });
-        creatureIndex++;
+        globalCreatureIndex++;
       }
     });
 
+    console.log("🎭 Total tokens created:", tokens.length);
     updateMapState({ tokens });
   };
 

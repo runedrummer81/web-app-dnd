@@ -27,7 +27,7 @@ export const DMPanel = ({
   quickNotes,
   setQuickNotes,
   onEndCombat,
-  onRequestEndSessionConfirm      
+  onRequestEndSessionConfirm,
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, isSetupMode, endCombat } = useCombatState();
@@ -791,7 +791,7 @@ export const DMPanel = ({
                     <AnimatePresence>
                       {notesOpen && (
                         <motion.div
-                        key="session-notes"
+                          key="session-notes"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -807,7 +807,7 @@ export const DMPanel = ({
                         </motion.div>
                       )}
                       <motion.div
-                      key="dm-notes"
+                        key="dm-notes"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
