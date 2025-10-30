@@ -115,14 +115,31 @@ export const CombatStateProvider = ({ children }) => {
     setCurrentTurnIndex(nextIndex);
   };
 
-  const updateCreatureHp = (creatureId, newHp) => {
-    setInitiativeOrder((prev) =>
-      prev.map((combatant) =>
-        combatant.id === creatureId
-          ? { ...combatant, hp: Math.max(0, newHp) }
-          : combatant
-      )
-    );
+  const updateCreatureHp = (id, newHp) => {
+    setInitiativeOrder((prev) => {
+      // Clamp HP so it never goes below 0 or above maxHp
+      const updated = prev.map((c) =>
+        c.id === id
+          ? { ...c, currentHp: Math.max(0, Math.min(newHp, c.maxHp)) }
+          : c
+      );
+
+      // Remove any non-player combatant whose HP is now 0
+      const filtered = updated.filter((c) => c.isPlayer || c.currentHp > 0);
+
+      // If we removed something before the current index, adjust the turn index
+      let adjustedIndex = currentTurnIndex;
+      if (
+        filtered.length < updated.length &&
+        currentTurnIndex >= filtered.length
+      ) {
+        adjustedIndex = 0;
+      }
+
+      // Update both initiative order and turn index
+      setCurrentTurnIndex(adjustedIndex);
+      return filtered;
+    });
   };
 
   const rollAttack = (attacker, attack, target) => {
