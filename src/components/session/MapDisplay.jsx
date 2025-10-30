@@ -80,18 +80,14 @@ export const MapDisplay = () => {
     (currentMap.width || 2000) / 2,
   ];
 
-  // Player view: scaled wrapper only used for non-combat (world/city) maps.
+  // Player view: scaled wrapper to match DM's exact container dimensions
   const [containerDimensions, setContainerDimensions] = useState(null);
 
   useEffect(() => {
-    // we only compute container scaling for player view and non-combat maps
-    if (
-      isDMView ||
-      !mapState.dmContainerSize ||
-      !wrapperRef.current ||
-      currentMap.isCombat
-    )
+    // Calculate scaling for player view to match DM's container exactly
+    if (isDMView || !mapState.dmContainerSize || !wrapperRef.current) {
       return;
+    }
 
     const wrapper = wrapperRef.current;
     const actualWidth = wrapper.offsetWidth;
@@ -100,145 +96,119 @@ export const MapDisplay = () => {
     const scaleX = actualWidth / mapState.dmContainerSize.width;
     const scaleY = actualHeight / mapState.dmContainerSize.height;
 
+    // Use the smaller scale to maintain aspect ratio (letterbox if needed)
+    const scale = Math.min(scaleX, scaleY);
+
     setContainerDimensions({
       width: mapState.dmContainerSize.width,
       height: mapState.dmContainerSize.height,
-      scaleX,
-      scaleY,
+      scale: scale,
+      // Calculate centering offsets for letterboxing
+      offsetX: (actualWidth - mapState.dmContainerSize.width * scale) / 2,
+      offsetY: (actualHeight - mapState.dmContainerSize.height * scale) / 2,
     });
-  }, [isDMView, mapState.dmContainerSize, wrapperRef, currentMap.isCombat]);
+  }, [isDMView, mapState.dmContainerSize, wrapperRef]);
+
+  // Render the map container
+  const renderMapContainer = () => (
+    <MapContainer
+      center={mapCenter}
+      zoom={1}
+      style={{ width: "100%", height: "100%" }}
+      className="bg-black"
+      ref={mapRef}
+      crs={L.CRS.Simple}
+      zoomControl={false}
+      attributionControl={false}
+      minZoom={0}
+      maxZoom={8}
+      maxBounds={mapBounds}
+      maxBoundsViscosity={1.0}
+    >
+      {currentMap.imageUrl && (
+        <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
+      )}
+      <MapController
+        mapDimensions={{
+          width: currentMap.width,
+          height: currentMap.height,
+        }}
+        currentMap={currentMap}
+      />
+      <MapEventsHandler />
+
+      {mapState.markers.map((marker) => (
+        <Marker
+          key={marker.id}
+          position={marker.position}
+          icon={createGoldenMarker()}
+        >
+          <Popup>
+            <div className="text-center">
+              <strong className="text-[#bf883c]">{marker.label}</strong>
+              {isDMView && (
+                <button
+                  onClick={() => {
+                    updateMapState({
+                      markers: mapState.markers.filter(
+                        (m) => m.id !== marker.id
+                      ),
+                    });
+                  }}
+                  className="block mt-2 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 w-full"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      <RouteDisplay
+        route={mapState.route}
+        isDMView={isDMView}
+        onRemoveWaypoint={(i) => {
+          if (!isDMView) return;
+          const newWaypoints = mapState.route.waypoints.filter(
+            (_, idx) => idx !== i
+          );
+          updateMapState({
+            route: { ...mapState.route, waypoints: newWaypoints },
+          });
+        }}
+      />
+    </MapContainer>
+  );
 
   return (
     <div
       ref={wrapperRef}
       className="relative w-full h-full bg-black overflow-hidden"
     >
-      {/* Player view + non-combat maps -> scaled wrapper for pixel-perfect mapping */}
-      {!isDMView && !currentMap.isCombat && containerDimensions ? (
+      {/* Player view: scaled wrapper for pixel-perfect sync with DM */}
+      {!isDMView && containerDimensions ? (
         <div
           style={{
+            position: "absolute",
             width: `${containerDimensions.width}px`,
             height: `${containerDimensions.height}px`,
-            transform: `scale(${containerDimensions.scaleX}, ${containerDimensions.scaleY})`,
+            transform: `scale(${containerDimensions.scale})`,
             transformOrigin: "top left",
+            left: `${containerDimensions.offsetX}px`,
+            top: `${containerDimensions.offsetY}px`,
           }}
         >
-          <MapContainer
-            center={mapCenter}
-            zoom={1}
-            style={{ width: "100%", height: "100%" }}
-            className="bg-black"
-            ref={mapRef}
-            crs={L.CRS.Simple}
-            zoomControl={false}
-            attributionControl={false}
-            minZoom={0}
-            maxZoom={4}
-            maxBounds={mapBounds}
-            maxBoundsViscosity={1.0}
-          >
-            {currentMap.imageUrl && (
-              <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
-            )}
-            <MapController
-              mapDimensions={{
-                width: currentMap.width,
-                height: currentMap.height,
-              }}
-              currentMap={currentMap}
-            />
-            <MapEventsHandler />
-
-            {mapState.markers.map((marker) => (
-              <Marker
-                key={marker.id}
-                position={marker.position}
-                icon={createGoldenMarker()}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <strong className="text-[#bf883c]">{marker.label}</strong>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-
-            <RouteDisplay
-              route={mapState.route}
-              isDMView={isDMView}
-              onRemoveWaypoint={(i) => {}}
-            />
-          </MapContainer>
+          {renderMapContainer()}
         </div>
+      ) : isDMView ? (
+        /* DM view: normal full container */
+        renderMapContainer()
       ) : (
-        /* DM view OR combat maps (both DM and players for combat) -> normal full container */
-        <MapContainer
-          center={mapCenter}
-          zoom={1}
-          className="w-full h-full bg-black"
-          ref={mapRef}
-          crs={L.CRS.Simple}
-          zoomControl={false}
-          attributionControl={false}
-          minZoom={0}
-          maxZoom={8}
-          maxBounds={mapBounds}
-          maxBoundsViscosity={1.0}
-        >
-          {currentMap.imageUrl && (
-            <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
-          )}
-          <MapController
-            mapDimensions={{
-              width: currentMap.width,
-              height: currentMap.height,
-            }}
-            currentMap={currentMap}
-          />
-          <MapEventsHandler />
-
-          {mapState.markers.map((marker) => (
-            <Marker
-              key={marker.id}
-              position={marker.position}
-              icon={createGoldenMarker()}
-            >
-              <Popup>
-                <div className="text-center">
-                  <strong className="text-[#bf883c]">{marker.label}</strong>
-                  {isDMView && (
-                    <button
-                      onClick={() => {
-                        updateMapState({
-                          markers: mapState.markers.filter(
-                            (m) => m.id !== marker.id
-                          ),
-                        });
-                      }}
-                      className="block mt-2 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 w-full"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          <RouteDisplay
-            route={mapState.route}
-            isDMView={isDMView}
-            onRemoveWaypoint={(i) => {
-              if (!isDMView) return;
-              const newWaypoints = mapState.route.waypoints.filter(
-                (_, idx) => idx !== i
-              );
-              updateMapState({
-                route: { ...mapState.route, waypoints: newWaypoints },
-              });
-            }}
-          />
-        </MapContainer>
+        /* Loading state for player view */
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="text-white text-xl">Loading map...</div>
+        </div>
       )}
 
       <WeatherEffects weather={mapState.weather} />
