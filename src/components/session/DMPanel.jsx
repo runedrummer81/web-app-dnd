@@ -14,12 +14,16 @@ import { db } from "../../firebase";
 import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
 
 export const DMPanel = ({
+  sessionId,
   sessionData,
   mapSetData,
   onMapSwitch,
   currentMapId,
   weather,
   onWeatherChange,
+  onEndSessionClick,  // NY LINJE
+  quickNotes,         // NY LINJE
+  setQuickNotes,      // NY LINJE
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -28,9 +32,9 @@ export const DMPanel = ({
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-  const navigate = useNavigate();
+  
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
-  const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
+  // const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
   // Normal state tabs
   const normalTabs = [
@@ -746,26 +750,10 @@ export const DMPanel = ({
         </AnimatePresence>
       </div>
       <ConfirmEndSessionModal
-        show={showEndSessionConfirm}
-        onCancel={() => setShowEndSessionConfirm(false)}
-        onConfirm={async () => {
-          try {
-            // Save session notes
-            await updateDoc(doc(db, "Sessions", sessionData.id), {
-              sessionNotes: quickNotes,
-              endedAt: new Date(),
-            });
-
-            setShowEndSessionConfirm(false);
-            console.log("Session ended and notes saved!");
-
-            // Navigér videre til /session
-            navigate("/session");
-          } catch (err) {
-            console.error("Error ending session:", err);
-          }
-        }}
-      />
+  show={showEndSessionConfirm}
+  onCancel={() => setShowEndSessionConfirm(false)}
+  onConfirm={onEndSessionClick}
+/>
     </div>
   );
 };
