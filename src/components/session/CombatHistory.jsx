@@ -50,40 +50,31 @@ export const CombatHistory = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="border-2 border-[#BF883C]/30 bg-gradient-to-br from-[#1a1814] to-[#151612] p-4 text-center">
+        <div className=" p-4 text-center">
           <p
-            className="text-xs text-[#BF883C]/70 uppercase tracking-wider mb-2"
-            style={{ fontFamily: "EB Garamond, serif" }}
+            className="text-xs text-[var(--secondary)] uppercase  mb-2"
           >
             Current Round
           </p>
           <p
-            className="text-3xl font-bold text-red-400"
-            style={{
-              fontFamily: "EB Garamond, serif",
-              textShadow: "0 0 15px rgba(239,68,68,0.4)",
-            }}
+            className="text-3xl font-bold text-[var(--primary)]"
           >
             {combatRound}
           </p>
         </div>
 
-        <div className="border-2 border-[#BF883C]/30 bg-gradient-to-br from-[#1a1814] to-[#151612] p-4 text-center">
+        <div className=" p-4 text-center">
           <p
-            className="text-xs text-[#BF883C]/70 uppercase tracking-wider mb-2"
+            className="text-xs text-[var(--secondary)] uppercase mb-2"
             style={{ fontFamily: "EB Garamond, serif" }}
           >
             Total Actions
           </p>
           <p
-            className="text-3xl font-bold text-[#d9ca89]"
-            style={{
-              fontFamily: "EB Garamond, serif",
-              textShadow: "0 0 15px rgba(217,202,137,0.4)",
-            }}
+            className="text-3xl font-bold text-[var(--primary)]"
           >
             {combatLog.length}
           </p>
@@ -93,11 +84,7 @@ export const CombatHistory = () => {
       {/* Combat Log */}
       <div>
         <h3
-          className="text-lg font-bold text-[#d9ca89] uppercase tracking-wider mb-3"
-          style={{
-            fontFamily: "EB Garamond, serif",
-            textShadow: "0 0 10px rgba(217,202,137,0.3)",
-          }}
+          className="text-lg font-bold text-[var(--secondary)] uppercase  mb-3"
         >
           Combat Log
         </h3>
@@ -109,10 +96,8 @@ export const CombatHistory = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.02 }}
-              className="relative border-2 border-[#BF883C]/20 bg-[#151612]/50 p-3 hover:border-[#BF883C]/40 transition-all"
+              className="relative  p-3 transition-all"
             >
-              <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-[#d9ca89]/30" />
-              <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-[#d9ca89]/30" />
 
               <div className="flex items-start gap-3">
                 <span className="text-xl flex-shrink-0">
@@ -123,7 +108,6 @@ export const CombatHistory = () => {
                   {entry.type === "attack" && (
                     <p
                       className={`text-sm ${getLogColor(entry.type, entry)}`}
-                      style={{ fontFamily: "EB Garamond, serif" }}
                     >
                       <span className="font-bold">{entry.attacker}</span>{" "}
                       attacks <span className="font-bold">{entry.target}</span>{" "}
@@ -133,11 +117,26 @@ export const CombatHistory = () => {
                       (+mod = {entry.total}) → {entry.hit ? "✓ HIT" : "✗ MISS"}
                     </p>
                   )}
+                  {entry.type === "healing" && (
+                    <p
+                      className="text-sm text-green-400"
+                    >
+                      <span className="font-bold">{entry.target}</span> regains{" "}
+                      <span className="font-bold">{entry.healing}</span> HP.
+                    </p>
+                  )}
+
+                  {entry.type === "death" && (
+                    <p
+                      className="text-sm text-red-500 font-bold"
+                    >
+                      {entry.message}
+                    </p>
+                  )}
 
                   {entry.type === "damage" && (
                     <p
                       className={`text-sm ${getLogColor(entry.type, entry)}`}
-                      style={{ fontFamily: "EB Garamond, serif" }}
                     >
                       <span className="font-bold">{entry.target}</span> takes{" "}
                       <span className="font-bold text-orange-400">
@@ -172,7 +171,6 @@ export const CombatHistory = () => {
 
                   <p
                     className="text-[10px] text-[#BF883C]/50 mt-1 uppercase tracking-wider"
-                    style={{ fontFamily: "EB Garamond, serif" }}
                   >
                     {entry.timestamp} {entry.round && `• Round ${entry.round}`}
                   </p>

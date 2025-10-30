@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
+import SpellBook from "./Spells";
 
 export const DMPanel = ({
   sessionId,
@@ -33,7 +34,6 @@ export const DMPanel = ({
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-  
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   // const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
@@ -124,6 +124,26 @@ export const DMPanel = ({
       ),
     },
     {
+      id: "spellbook",
+      label: "Spellbook",
+      icon: (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M20 22H6.5A2.5 2.5 0 0 1 4 19.5V5.5A2.5 2.5 0 0 1 6.5 3H20v19z" />
+          <path d="M6.5 3v14" />
+        </svg>
+      ),
+    },
+    {
       id: "history",
       label: "History",
       icon: (
@@ -144,7 +164,12 @@ export const DMPanel = ({
   const tabs = combatActive ? combatTabs : normalTabs;
 
   // When entering combat, switch to initiative tab
-  if (combatActive && activeTab !== "initiative" && activeTab !== "history") {
+  if (
+    combatActive &&
+    activeTab !== "initiative" &&
+    activeTab !== "history" &&
+    activeTab !== "spellbook"
+  ) {
     setActiveTab("initiative");
   }
 
@@ -295,7 +320,7 @@ export const DMPanel = ({
         </motion.div>
       </div>
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-6 relative">
+      <div className="flex-1 overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* COMBAT STATE TABS */}
           {combatActive ? (
@@ -329,6 +354,19 @@ export const DMPanel = ({
                   >
                     End Combat
                   </motion.button>
+                </motion.div>
+              )}
+
+              {/* SPELLBOOK TAB */}
+              {activeTab === "spellbook" && (
+                <motion.div
+                  key="spellbook"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <SpellBook />
                 </motion.div>
               )}
 
@@ -756,10 +794,10 @@ export const DMPanel = ({
         </AnimatePresence>
       </div>
       <ConfirmEndSessionModal
-  show={showEndSessionConfirm}
-  onCancel={() => setShowEndSessionConfirm(false)}
-  onConfirm={onEndSessionClick}
-/>
+        show={showEndSessionConfirm}
+        onCancel={() => setShowEndSessionConfirm(false)}
+        onConfirm={onEndSessionClick}
+      />
     </div>
   );
 };
