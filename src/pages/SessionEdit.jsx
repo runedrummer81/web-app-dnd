@@ -40,6 +40,8 @@ export default function SessionEdit() {
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [originalSessionData, setOriginalSessionData] = useState(null);
 
+  const [headlineError, setHeadlineError] = useState(false);
+
   const cornerArrowPaths = [
     "M35.178,1.558l0,32.25",
     "M35.178,1.558l-33.179,-0",
@@ -197,8 +199,14 @@ export default function SessionEdit() {
     setEncounters(newSelectedEncounters);
   };
 
-  // Opdater handleSave til at clear unsaved changes flag
   const handleSave = async () => {
+    if (!sessionData.notesHeadline || sessionData.notesHeadline.trim() === "") {
+      // Trigger shake + flash
+      setHeadlineError(true);
+      setTimeout(() => setHeadlineError(false), 600); // reset after animation
+      return;
+    }
+
     try {
       const sessionRef = doc(db, "Sessions", sessionId);
 
@@ -301,18 +309,31 @@ export default function SessionEdit() {
                   <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
                   <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
                 </>
-                <input
-                  type="text"
-                  value={sessionData.notesHeadline || ""}
-                  onChange={(e) =>
-                    setSessionData({
-                      ...sessionData,
-                      notesHeadline: e.target.value,
-                    })
-                  }
-                  placeholder="Add Headline..."
-                  className="w-full text-2xl uppercase text-[var(--primary)] font-bold p-2 mb-4 focus:outline-none bg-transparent "
-                />
+                <div className="flex flex-row">
+                  <motion.input
+                    type="text"
+                    value={sessionData.notesHeadline || ""}
+                    onChange={(e) =>
+                      setSessionData({
+                        ...sessionData,
+                        notesHeadline: e.target.value,
+                      })
+                    }
+                    placeholder="Add Headline..."
+                    className={`p-2 text-[var(--primary)] outline-none text-2xl uppercase font-bold bg-transparent ${
+                      headlineError ? "" : ""
+                    }`}
+                    animate={
+                      headlineError
+                        ? {
+                            x: [-5, 5, -5, 5, 0], // shake
+                            textShadow: "0 0 8px #bf883c", // D&D glow flash
+                          }
+                        : { x: 0, textShadow: "0 0 0px transparent" }
+                    }
+                    transition={{ duration: 0.4 }}
+                  />
+                </div>
                 <textarea
                   value={sessionData.dmNotes || ""}
                   onChange={handleNotesChange}
