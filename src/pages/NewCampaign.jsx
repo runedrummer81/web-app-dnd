@@ -22,6 +22,8 @@ export default function NewCampaign() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [shake, setShake] = useState(false);
+
   const filteredTemplates = templates.filter((template) =>
     template.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -64,16 +66,16 @@ export default function NewCampaign() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
-  if (!openedIndex) return;
+    if (!openedIndex) return;
 
-  const selectedElement = document.getElementById(`template-${openedIndex}`);
-  if (selectedElement) {
-    selectedElement.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest", // keeps it inside the visible area without jumping too far
-    });
-  }
-}, [openedIndex]);
+    const selectedElement = document.getElementById(`template-${openedIndex}`);
+    if (selectedElement) {
+      selectedElement.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest", // keeps it inside the visible area without jumping too far
+      });
+    }
+  }, [openedIndex]);
 
   // 🔹 Lock scroll when modal is open
   useEffect(() => {
@@ -183,7 +185,11 @@ export default function NewCampaign() {
   };
 
   const saveCampaign = async () => {
-    if (openedIndex === null || !campaignName.trim()) return;
+    if (openedIndex === null || !campaignName.trim()) {
+      setShake(true);
+      return;
+    }
+
     if (!user) {
       console.error("User not authenticated!");
       return;
@@ -293,13 +299,14 @@ export default function NewCampaign() {
                 damping: 20,
               }}
             >
+
               <div className="border-2 border-[var(--secondary)] overflow-none flex">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search templates..."
-                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
+                  placeholder="Search modules..."
+                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition m"
                 />
               </div>
             </motion.div>
@@ -435,21 +442,44 @@ export default function NewCampaign() {
                 Name Campaign
               </h2>
 
-              <input
-                type="text"
-                value={campaignName}
-                onChange={(e) => setCampaignName(e.target.value)}
-                placeholder="Enter campaign name..."
-                className="w-full p-4 mb-6 bg-[#1F1E1A] border-2 border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[var(--primary)]/40 text-xl uppercase font-semibold tracking-wide focus:border-[var(--secondary)] focus:outline-none transition-all duration-300"
-                style={{
-                  boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
-                }}
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveCampaign();
-                  if (e.key === "Escape") setShowNamePopup(false);
-                }}
-              />
+              <motion.div
+                className="relative w-full mb-6"
+                animate={shake ? { x: [-10, 10, -8, 8, -5, 5, 0] } : { x: 0 }}
+                transition={{ duration: 0.4 }}
+                onAnimationComplete={() => setShake(false)}
+              >
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="Enter campaign name... (max 25 chars)"
+                  maxLength={25}
+                  className={`w-full p-4 bg-[#1F1E1A] border-2 text-[var(--primary)] placeholder-[var(--primary)]/40 text-xl uppercase font-semibold tracking-wide focus:outline-none transition-all duration-300 pr-14 ${
+                    shake
+                      ? "border-[var(--primary)] shadow-[var(--primary)]"
+                      : "border-[var(--secondary)]/40 focus:border-[var(--secondary)]"
+                  }`}
+                  style={{
+                    boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
+                  }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveCampaign();
+                    if (e.key === "Escape") setShowNamePopup(false);
+                  }}
+                />
+
+                {/* Character counter inside input */}
+                <span
+                  className={`absolute right-3 bottom-2 text-sm ${
+                    campaignName.length >= 25
+                      ? "text-red-400"
+                      : "text-[var(--secondary)]/70"
+                  }`}
+                >
+                  {campaignName.length}/25
+                </span>
+              </motion.div>
 
               <motion.div className="flex flex-col items-center gap-3 mt-6">
                 {/* Save Button with ActionButton */}
