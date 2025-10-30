@@ -5,38 +5,26 @@ export const RunSessionContext = createContext();
 
 export const useMapSync = () => {
   const context = useContext(MapSyncContext);
-  if (!context) {
-    throw new Error("useMapSync must be used within MapSyncProvider");
-  }
+  if (!context) throw new Error("useMapSync must be used within MapSyncProvider");
   return context;
 };
 
 export const MapSyncProvider = ({ children, isDMView = true }) => {
   const [mapState, setMapState] = useState({
     currentMapId: "world",
-    viewport: {
-      center: [1000, 1000],
-      zoom: 1,
-    },
+    viewportPercent: null, // procentuel visning
     markers: [],
     isInCombat: false,
-    weather: {
-      snow: false,
-      aurora: false,
-      timeOfDay: "day",
-    },
-    route: {
-      waypoints: [],
-      visibleToPlayers: false,
-    },
-    routeSettingMode: false, // ✅ ADD THIS
+    weather: { snow: false, aurora: false, timeOfDay: "day" },
+    route: { waypoints: [], visibleToPlayers: false },
+    routeSettingMode: false,
   });
 
-  const broadcastChannelRef = useRef(null);
+  const broadcastRef = useRef(null);
 
   useEffect(() => {
     const channel = new BroadcastChannel("dnd-session-sync");
-    broadcastChannelRef.current = channel;
+    broadcastRef.current = channel;
 
     channel.onmessage = (event) => {
       if (event.data.type === "MAP_STATE_UPDATE" && !isDMView) {
@@ -44,33 +32,22 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
       }
     };
 
-    return () => {
-      channel.close();
-    };
+    return () => channel.close();
   }, [isDMView]);
 
   const updateMapState = (updates) => {
-    setMapState((prev) => {
+    setMapState(prev => {
       const newState = { ...prev, ...updates };
-
-      if (isDMView && broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({
-          type: "MAP_STATE_UPDATE",
-          payload: newState,
-        });
+      if (isDMView && broadcastRef.current) {
+        broadcastRef.current.postMessage({ type: "MAP_STATE_UPDATE", payload: newState });
       }
-
       return newState;
     });
   };
 
-  const value = {
-    mapState,
-    updateMapState,
-    isDMView,
-  };
-
   return (
-    <MapSyncContext.Provider value={value}>{children}</MapSyncContext.Provider>
+    <MapSyncContext.Provider value={{ mapState, updateMapState, isDMView }}>
+      {children}
+    </MapSyncContext.Provider>
   );
 };

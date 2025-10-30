@@ -83,7 +83,7 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
           <div className="w-screen h-screen flex bg-black overflow-hidden">
             {/* Map Display - Left Side */}
             <div className=" lg:block lg:w-[65%] h-full">
-              <MapDisplay />
+              <MapDisplay className=" w-full h-full"/>
             </div>
 
             {/* DM Info Box - Right Side */}

@@ -6,34 +6,29 @@ export const MapEventsHandler = () => {
 
   useMapEvents({
     moveend: (e) => {
-      if (isDMView) {
-        const center = e.target.getCenter();
-        updateMapState({
-          viewport: {
-            center: [center.lat, center.lng],
-            zoom: e.target.getZoom(),
-          },
-        });
-      }
+      if (!isDMView) return;
+      const map = e.target;
+      updateMapState({
+        viewport: {
+          center: [map.getCenter().lat, map.getCenter().lng],
+          zoom: map.getZoom(),
+        },
+      });
     },
     zoomend: (e) => {
-      if (isDMView) {
-        const center = e.target.getCenter();
-        updateMapState({
-          viewport: {
-            center: [center.lat, center.lng],
-            zoom: e.target.getZoom(),
-          },
-        });
-      }
+      if (!isDMView) return;
+      const map = e.target;
+      updateMapState({
+        viewport: {
+          center: [map.getCenter().lat, map.getCenter().lng],
+          zoom: map.getZoom(),
+        },
+      });
     },
     mousedown: (e) => {
       if (!isDMView) return;
-
-      // Middle mouse button = add marker
       if (e.originalEvent.button === 1) {
         e.originalEvent.preventDefault();
-
         const newMarker = {
           id: Date.now(),
           position: [e.latlng.lat, e.latlng.lng],
@@ -47,8 +42,6 @@ export const MapEventsHandler = () => {
     },
     click: (e) => {
       if (!isDMView) return;
-
-      // If route setting mode is active, add waypoint
       if (mapState.routeSettingMode) {
         const newWaypoint = [e.latlng.lat, e.latlng.lng];
         updateMapState({
