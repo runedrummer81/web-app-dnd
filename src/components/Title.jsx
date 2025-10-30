@@ -69,7 +69,7 @@ export default function Title({ children, fallbackCampaignId }) {
         className="pt-4 select-none"
       >
         <h1
-          className={` text-2xl lg:text-3xl font-bold uppercase tracking-[0.3em] text-center ${"text-[var(--secondary)]"}`}
+          className={` text-l lg:text-2xl font-bold uppercase tracking-[0.1em] text-center ${"text-[var(--secondary)]"}`}
           style={{
             fontFamily: "EB Garamond, serif",
           }}

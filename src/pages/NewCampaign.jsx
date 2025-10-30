@@ -22,6 +22,8 @@ export default function NewCampaign() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [shake, setShake] = useState(false);
+
   const filteredTemplates = templates.filter((template) =>
     template.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -64,13 +66,16 @@ export default function NewCampaign() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: 0,
+    if (!openedIndex) return;
+
+    const selectedElement = document.getElementById(`template-${openedIndex}`);
+    if (selectedElement) {
+      selectedElement.scrollIntoView({
         behavior: "smooth",
+        block: "nearest", // keeps it inside the visible area without jumping too far
       });
     }
-  }, [filteredTemplates.length, searchQuery]);
+  }, [openedIndex]);
 
   // 🔹 Lock scroll when modal is open
   useEffect(() => {
@@ -107,17 +112,86 @@ export default function NewCampaign() {
     }
   };
 
-  // 🔹 Show popup when confirming
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (showLearnMore || showNamePopup) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpenedIndex((prev) => {
+          const currentIndex = filteredTemplates.findIndex(
+            (t) => t.id === prev
+          );
+          const nextIndex = (currentIndex + 1) % filteredTemplates.length;
+          return filteredTemplates[nextIndex]?.id || null;
+        });
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setOpenedIndex((prev) => {
+          const currentIndex = filteredTemplates.findIndex(
+            (t) => t.id === prev
+          );
+          const nextIndex =
+            currentIndex > 0 ? currentIndex - 1 : filteredTemplates.length - 1;
+          return filteredTemplates[nextIndex]?.id || null;
+        });
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (openedIndex !== null) {
+          setShowNamePopup(true);
+        }
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (showLearnMore) setShowLearnMore(false);
+        if (showNamePopup) setShowNamePopup(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [filteredTemplates, openedIndex, showLearnMore, showNamePopup]);
+
+  useEffect(() => {
+    if (!openedIndex || !scrollContainerRef.current) return;
+
+    const selectedElement = document.getElementById(`template-${openedIndex}`);
+    const container = scrollContainerRef.current;
+
+    if (selectedElement) {
+      const elementTop = selectedElement.offsetTop;
+      const elementBottom = elementTop + selectedElement.offsetHeight;
+      const containerScrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+
+      if (elementTop < containerScrollTop) {
+        container.scrollTo({ top: elementTop - 40, behavior: "smooth" });
+      } else if (elementBottom > containerScrollTop + containerHeight) {
+        container.scrollTo({
+          top: elementBottom - containerHeight + 40,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [openedIndex]);
+
   const handleConfirmClick = () => {
     if (openedIndex === null) return;
     setShowNamePopup(true);
   };
 
-  // 🔹 Save new campaign to Firestore
   const saveCampaign = async () => {
-    if (openedIndex === null || !campaignName.trim()) return;
+    if (openedIndex === null || !campaignName.trim()) {
+      setShake(true);
+      return;
+    }
+
     if (!user) {
-      console.error("🔥 User not authenticated!");
+      console.error("User not authenticated!");
       return;
     }
 
@@ -152,7 +226,7 @@ export default function NewCampaign() {
       localStorage.setItem("selectedCampaignId", campaignId);
       navigate("/session", { state: { campaignId, from: "/newcampaign" } });
     } catch (error) {
-      console.error("🔥 Error creating campaign:", error);
+      console.error("Error creating campaign:", error);
       alert("Failed to create campaign. Please try again.");
     } finally {
       setShowNamePopup(false);
@@ -225,19 +299,20 @@ export default function NewCampaign() {
                 damping: 20,
               }}
             >
+
               <div className="border-2 border-[var(--secondary)] overflow-none flex">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search templates..."
-                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
+                  placeholder="Search modules..."
+                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition m"
                 />
               </div>
             </motion.div>
             <motion.div
               ref={scrollContainerRef}
-              className="flex flex-col w-full h-100 overflow-y-auto border-[var(--primary)]/50 items-start justify-start"
+              className="flex flex-col w-full max-h-[55vh] overflow-y-auto border-[var(--primary)]/50 items-start justify-start"
               style={{
                 scrollSnapType: "y mandatory",
               }}
@@ -253,6 +328,7 @@ export default function NewCampaign() {
               <div className="relative snap-start gap-6 flex flex-col snap-y snap-mandatory scrollbar-custom w-full">
                 {filteredTemplates.map(({ id, title, image, learnMoreId }) => (
                   <motion.div
+                    id={`template-${id}`}
                     key={id}
                     className="group relative p-5 border-2 border-[var(--secondary)] hover:border-[var(--primary)] snap-start w-full"
                     onPointerEnter={() => startHoverTimer(id)}
@@ -366,21 +442,44 @@ export default function NewCampaign() {
                 Name Campaign
               </h2>
 
-              <input
-                type="text"
-                value={campaignName}
-                onChange={(e) => setCampaignName(e.target.value)}
-                placeholder="Enter campaign name..."
-                className="w-full p-4 mb-6 bg-[#1F1E1A] border-2 border-[var(--secondary)]/40 text-[var(--primary)] placeholder-[var(--primary)]/40 text-xl uppercase font-semibold tracking-wide focus:border-[var(--secondary)] focus:outline-none transition-all duration-300"
-                style={{
-                  boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
-                }}
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveCampaign();
-                  if (e.key === "Escape") setShowNamePopup(false);
-                }}
-              />
+              <motion.div
+                className="relative w-full mb-6"
+                animate={shake ? { x: [-10, 10, -8, 8, -5, 5, 0] } : { x: 0 }}
+                transition={{ duration: 0.4 }}
+                onAnimationComplete={() => setShake(false)}
+              >
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="Enter campaign name... (max 25 chars)"
+                  maxLength={25}
+                  className={`w-full p-4 bg-[#1F1E1A] border-2 text-[var(--primary)] placeholder-[var(--primary)]/40 text-xl uppercase font-semibold tracking-wide focus:outline-none transition-all duration-300 pr-14 ${
+                    shake
+                      ? "border-[var(--primary)] shadow-[var(--primary)]"
+                      : "border-[var(--secondary)]/40 focus:border-[var(--secondary)]"
+                  }`}
+                  style={{
+                    boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
+                  }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveCampaign();
+                    if (e.key === "Escape") setShowNamePopup(false);
+                  }}
+                />
+
+                {/* Character counter inside input */}
+                <span
+                  className={`absolute right-3 bottom-2 text-sm ${
+                    campaignName.length >= 25
+                      ? "text-red-400"
+                      : "text-[var(--secondary)]/70"
+                  }`}
+                >
+                  {campaignName.length}/25
+                </span>
+              </motion.div>
 
               <motion.div className="flex flex-col items-center gap-3 mt-6">
                 {/* Save Button with ActionButton */}

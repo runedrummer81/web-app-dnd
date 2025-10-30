@@ -261,10 +261,48 @@ export default function Session() {
       visibleSessions.push({ ...sessions[idx], offset });
   }
 
-  // Keep selectedSession in sync with centerIndex
+  //keystroke for arrow keys
   useEffect(() => {
     if (sessions[centerIndex]) setSelectedSession(sessions[centerIndex]);
   }, [centerIndex, sessions]);
+
+  useEffect(() => {
+    let scrollAccumulator = 0;
+    const SCROLL_THRESHOLD = 50;
+
+    const onWheel = (e) => {
+      scrollAccumulator += e.deltaY;
+
+      if (scrollAccumulator >= SCROLL_THRESHOLD) {
+        handleScroll("down");
+        scrollAccumulator = 0;
+        e.preventDefault();
+      } else if (scrollAccumulator <= -SCROLL_THRESHOLD) {
+        handleScroll("up");
+        scrollAccumulator = 0;
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [handleScroll]);
+
+  
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
+        handleScroll("up");
+        e.preventDefault();
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
+        handleScroll("down");
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleScroll]);
 
   return (
     <div
@@ -279,7 +317,7 @@ export default function Session() {
         transition={{ duration: 0.8 }}
       >
         <ArrowButton
-          label="+ New Session"
+          label="New Session"
           onClick={createNewSession}
           color="var(--primary)"
           size="lg"
@@ -706,3 +744,4 @@ mt-8 z-20"
     </div>
   );
 }
+
