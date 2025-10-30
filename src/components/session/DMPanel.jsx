@@ -14,12 +14,17 @@ import { db } from "../../firebase";
 import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
 
 export const DMPanel = ({
+  sessionId,
   sessionData,
   mapSetData,
   onMapSwitch,
   currentMapId,
   weather,
   onWeatherChange,
+  onEndSessionClick,  
+  quickNotes,         
+  setQuickNotes,
+  onEndCombat,      
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -28,9 +33,9 @@ export const DMPanel = ({
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-  const navigate = useNavigate();
+  
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
-  const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
+  // const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
   // Normal state tabs
   const normalTabs = [
@@ -308,7 +313,12 @@ export const DMPanel = ({
 
                   {/* END COMBAT BUTTON */}
                   <motion.button
-                    onClick={endCombat}
+                    onClick={() => {
+                    endCombat();                // stopper selve kampen
+                    setActiveTab("overview");
+                    onEndCombat?.();           // kalder callback (hvis givet)
+                  }}
+  
                     className="w-full mt-6 p-4 bg-gradient-to-r from-gray-700 to-gray-800 border-2 border-red-500/50 text-red-400 font-bold uppercase tracking-wider hover:border-red-400 transition-all"
                     whileHover={{
                       scale: 1.01,
@@ -746,26 +756,10 @@ export const DMPanel = ({
         </AnimatePresence>
       </div>
       <ConfirmEndSessionModal
-        show={showEndSessionConfirm}
-        onCancel={() => setShowEndSessionConfirm(false)}
-        onConfirm={async () => {
-          try {
-            // Save session notes
-            await updateDoc(doc(db, "Sessions", sessionData.id), {
-              sessionNotes: quickNotes,
-              endedAt: new Date(),
-            });
-
-            setShowEndSessionConfirm(false);
-            console.log("Session ended and notes saved!");
-
-            // Navigér videre til /session
-            navigate("/session");
-          } catch (err) {
-            console.error("Error ending session:", err);
-          }
-        }}
-      />
+  show={showEndSessionConfirm}
+  onCancel={() => setShowEndSessionConfirm(false)}
+  onConfirm={onEndSessionClick}
+/>
     </div>
   );
 };

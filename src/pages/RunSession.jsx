@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   MapSyncProvider,
   RunSessionContext,
@@ -10,14 +11,17 @@ import { PlayerDisplayButton } from "../components/session/PlayerDisplayButton";
 import { useMapSync } from "../components/session/MapSyncContext";
 import { ConfirmEndSessionModal } from "../components/session/ConfirmEndSessionModal";
 import { db } from "../firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import BorderRunSession from "../components/session/BorderRunSession";
 
 const DMPanelWrapper = ({
+  sessionId,
   sessionData,
   mapSetData,
   isPlayerWindowOpen,
   onEndSessionClick,
+  quickNotes,
+  setQuickNotes,
 }) => {
   const { mapState, updateMapState } = useMapSync();
 
@@ -34,8 +38,15 @@ const DMPanelWrapper = ({
     });
   };
 
+  const handleEndCombat = () => {
+  updateMapState({ currentMapId: "world", markers: [] });
+  // Vi returnerer 'overview' signal som DMPanel kan bruge
+};
+
+
   return (
     <DMPanel
+      sessionId={sessionId}
       sessionData={sessionData}
       mapSetData={mapSetData}
       onMapSwitch={handleMapSwitch}
@@ -44,16 +55,21 @@ const DMPanelWrapper = ({
       onWeatherChange={handleWeatherChange}
       isPlayerWindowOpen={isPlayerWindowOpen}
       onEndSessionClick={onEndSessionClick}
+      quickNotes={quickNotes}
+      setQuickNotes={setQuickNotes}
+      onEndCombat={handleEndCombat}
     />
   );
 };
 
 const RunSession = ({ sessionId, mapSetData }) => {
+  const navigate = useNavigate();
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playerWindowRef, setPlayerWindowRef] = useState(null);
   const [isPlayerWindowOpen, setIsPlayerWindowOpen] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
+  const [quickNotes, setQuickNotes] = useState([]);
 
   const openPlayerDisplay = () => {
     const playerWindow = window.open(
@@ -79,7 +95,9 @@ const RunSession = ({ sessionId, mapSetData }) => {
     // Listen for real-time updates from Firestore
     const unsub = onSnapshot(doc(db, "Sessions", sessionId), (snapshot) => {
       if (snapshot.exists()) {
-        setSessionData(snapshot.data());
+        const data = snapshot.data();
+        setSessionData(data);
+        setQuickNotes(data.sessionNotes || []);
         setLoading(false);
       } else {
         console.warn("Session not found in Firestore");
@@ -89,6 +107,44 @@ const RunSession = ({ sessionId, mapSetData }) => {
 
     return () => unsub();
   }, [sessionId]);
+
+  // DENNE ER NY - Handler for at afslutte session
+  const handleEndSession = async () => {
+    try {
+      console.log("🔚 Starting end session process...");
+
+      // 1. Luk player window først
+      if (playerWindowRef && !playerWindowRef.closed) {
+        console.log("🪟 Closing player window...");
+        playerWindowRef.close();
+      }
+      setPlayerWindowRef(null);
+      setIsPlayerWindowOpen(false);
+
+      // 2. Gem noter
+      console.log("💾 Saving session notes...");
+      await updateDoc(doc(db, "Sessions", sessionId), {
+        sessionNotes: quickNotes,
+        endedAt: new Date(),
+      });
+
+      // 3. Luk modal
+      console.log("❌ Closing modal...");
+      setShowEndSessionConfirm(false);
+
+      // 4. Vent lidt så cleanup kan køre
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // 5. Naviger
+      console.log("🚀 Navigating to /session...");
+      navigate("/session", { 
+        state: { campaignId: sessionData.campaignId },
+        replace: true // Brug replace så back-button ikke går til RunSession
+      });
+    } catch (err) {
+      console.error("❌ Error ending session:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -112,10 +168,7 @@ const RunSession = ({ sessionId, mapSetData }) => {
         <ConfirmEndSessionModal
           show={showEndSessionConfirm}
           onCancel={() => setShowEndSessionConfirm(false)}
-          onConfirm={async () => {
-            console.log("End session confirmed!");
-            setShowEndSessionConfirm(false);
-          }}
+          onConfirm={handleEndSession}
         />
         {/* Epic Player Display Button - Only show if not opened */}
         {!isPlayerWindowOpen && (
@@ -125,7 +178,7 @@ const RunSession = ({ sessionId, mapSetData }) => {
           <div className="w-screen h-screen flex bg-black overflow-hidden">
             {/* Map Display - Left Side */}
             <div className=" lg:block lg:w-[65%] h-full">
-              <MapDisplay />
+              <MapDisplay className=" w-full h-full"/>
             </div>
 
             {/* DM Info Box - Right Side */}
@@ -138,10 +191,13 @@ const RunSession = ({ sessionId, mapSetData }) => {
                 {/* DM Panel Content - Takes full space when button is hidden */}
                 <div className={`flex-1 overflow-hidden `}>
                   <DMPanelWrapper
+                    sessionId={sessionId}
                     sessionData={sessionData}
                     mapSetData={mapSetData}
                     isPlayerWindowOpen={isPlayerWindowOpen}
                     onEndSessionClick={() => setShowEndSessionConfirm(true)}
+                    quickNotes={quickNotes}
+                    setQuickNotes={setQuickNotes}
                   />
                 </div>
               </div>
