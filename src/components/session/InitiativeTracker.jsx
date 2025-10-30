@@ -31,19 +31,18 @@ export const InitiativeTracker = () => {
         isPlayer: doc.data().isPlayer || false,
         imageURL: doc.data().imageURL || "/placeholder.png",
       }));
-  
+
       setCreatures(data);
-  
+
       // only initialize order if it's empty (avoid overwriting)
       setInitiativeOrder((prev) => {
         if (prev.length > 0) return prev;
         return [...data].sort((a, b) => b.initiative - a.initiative);
       });
     };
-  
+
     fetchCreatures();
   }, [setInitiativeOrder]);
-  
 
   const enrichedInitiativeOrder = initiativeOrder.map((combatant) => {
     const creatureData = creatures.find((c) => c.id === combatant.id);
@@ -101,17 +100,20 @@ export const InitiativeTracker = () => {
         className="relative border-2 border-[var(--primary)] p-5 overflow-hidden min-h-[200px]"
       >
         {/* Background Image */}
-        {currentCombatant.imageURL && (
-          <div
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(${currentCombatant.imageURL})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(4px) brightness(0.4)",
-            }}
-          />
-        )}
+        {currentCombatant.imageURL &&
+          currentCombatant.imageURL !== "/placeholder.png" && (
+            <>
+              <div
+                className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+                style={{
+                  backgroundImage: `url('${currentCombatant.imageURL}')`,
+                  opacity: 0.3,
+                  filter: "blur(3px)",
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" />
+            </>
+          )}
 
         <div className="relative z-10 flex flex-row">
           <div className="w-2/3 space-y-4">
