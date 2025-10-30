@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useMapSync } from "./MapSyncContext";
 
 const CombatStateContext = createContext();
 
@@ -11,6 +12,8 @@ export const useCombatState = () => {
 };
 
 export const CombatStateProvider = ({ children }) => {
+  const { updateMapState } = useMapSync();
+
   const [combatActive, setCombatActive] = useState(false);
   const [initiativeOrder, setInitiativeOrder] = useState([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
@@ -21,48 +24,52 @@ export const CombatStateProvider = ({ children }) => {
     visible: false,
     color: "#d9ca89",
     opacity: 0.3,
-    size: 40, // pixels per grid square
+    size: 40,
   });
 
-  const startCombat = (encounter, playerInitiatives) => {
-    // Combine players and creatures
-    const combatants = [
-      ...playerInitiatives.map((init, index) => ({
-        id: `player-${index}`,
-        name: `Player ${index + 1}`,
-        initiative: init,
-        type: "player",
-        isPlayer: true,
-      })),
-      ...encounter.creatures.map((creature, index) => ({
-        id: `creature-${index}`,
-        name: creature.name,
-        initiative:
-          Math.floor(Math.random() * 20) + 1 + (creature.dexModifier || 0),
-        type: "creature",
-        isPlayer: false,
-        stats: creature,
-        currentHp: creature.hp,
-        maxHp: creature.hp,
-      })),
-    ];
+  const startCombat = (encounter, playerData, selectedCombatMap) => {
+    updateMapState({
+      currentMapId: selectedCombatMap.id,
+      markers: [],
+    });
 
-    // Sort by initiative (highest first)
+    const combatants = [];
+
+    // Add players
+    playerData.forEach((player, index) => {
+      combatants.push({
+        id: `player-${index}`,
+        name: player.name,
+        initiative: player.initiative,
+        isPlayer: true,
+        hp: 100,
+        maxHp: 100,
+      });
+    });
+
+    // Add creatures with rolled initiatives
+    encounter.creatures.forEach((creature, index) => {
+      const initiativeRoll = Math.floor(Math.random() * 20) + 1;
+      const initiative = initiativeRoll + (creature.dexModifier || 0);
+
+      combatants.push({
+        id: `creature-${index}`,
+        name: `${creature.name} ${index + 1}`,
+        initiative,
+        isPlayer: false,
+        hp: creature.hp,
+        maxHp: creature.hp,
+        ac: creature.ac,
+        stats: creature.stats,
+      });
+    });
+
     combatants.sort((a, b) => b.initiative - a.initiative);
 
     setInitiativeOrder(combatants);
     setCurrentTurnIndex(0);
-    setActiveEncounter(encounter);
     setCombatActive(true);
-    setGridSettings({ ...gridSettings, visible: true });
-    setCombatLog([
-      {
-        id: Date.now(),
-        type: "combat-start",
-        message: `Combat started: ${encounter.name}`,
-        timestamp: new Date().toLocaleTimeString(),
-      },
-    ]);
+    setActiveEncounter(encounter);
   };
 
   const endCombat = () => {
@@ -71,8 +78,8 @@ export const CombatStateProvider = ({ children }) => {
     setCurrentTurnIndex(0);
     setActiveEncounter(null);
     setGridSettings({ ...gridSettings, visible: false });
-    setCombatLog([
-      ...combatLog,
+    setCombatLog((prev) => [
+      ...prev,
       {
         id: Date.now(),
         type: "combat-end",
@@ -80,30 +87,6 @@ export const CombatStateProvider = ({ children }) => {
         timestamp: new Date().toLocaleTimeString(),
       },
     ]);
-  };
-
-  const nextTurn = () => {
-    const nextIndex = (currentTurnIndex + 1) % initiativeOrder.length;
-    if (nextIndex === 0) {
-      setCombatRound(combatRound + 1);
-      addToCombatLog({
-        type: "round-end",
-        message: `Round ${combatRound} ended. Starting Round ${
-          combatRound + 1
-        }`,
-      });
-    }
-    setCurrentTurnIndex(nextIndex);
-  };
-
-  const updateCreatureHp = (creatureId, newHp) => {
-    setInitiativeOrder((prev) =>
-      prev.map((combatant) =>
-        combatant.id === creatureId
-          ? { ...combatant, currentHp: Math.max(0, newHp) }
-          : combatant
-      )
-    );
   };
 
   const addToCombatLog = (entry) => {
@@ -118,10 +101,35 @@ export const CombatStateProvider = ({ children }) => {
     ]);
   };
 
+  const nextTurn = () => {
+    const nextIndex = (currentTurnIndex + 1) % initiativeOrder.length;
+    if (nextIndex === 0) {
+      setCombatRound((prev) => prev + 1);
+      addToCombatLog({
+        type: "round-end",
+        message: `Round ${combatRound} ended. Starting Round ${
+          combatRound + 1
+        }`,
+      });
+    }
+    setCurrentTurnIndex(nextIndex);
+  };
+
+  const updateCreatureHp = (creatureId, newHp) => {
+    setInitiativeOrder((prev) =>
+      prev.map((combatant) =>
+        combatant.id === creatureId
+          ? { ...combatant, hp: Math.max(0, newHp) }
+          : combatant
+      )
+    );
+  };
+
   const rollAttack = (attacker, attack, target) => {
     const attackRoll = Math.floor(Math.random() * 20) + 1;
     const totalAttack = attackRoll + (attack.toHit || 0);
-    const hit = totalAttack >= target.stats?.ac;
+    const targetAC = target.ac ?? target.stats?.ac ?? 0;
+    const hit = totalAttack >= targetAC;
 
     addToCombatLog({
       type: "attack",
@@ -134,11 +142,10 @@ export const CombatStateProvider = ({ children }) => {
     });
 
     if (hit) {
-      // Roll damage
       const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
       const totalDamage = damageRoll + (attack.damageBonus || 0);
 
-      updateCreatureHp(target.id, target.currentHp - totalDamage);
+      updateCreatureHp(target.id, target.hp - totalDamage);
 
       addToCombatLog({
         type: "damage",

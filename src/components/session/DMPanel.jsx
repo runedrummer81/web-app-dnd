@@ -165,7 +165,7 @@ export const DMPanel = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden">
+    <div className="h-full bg-[var(--dark-muted-bg)] text-gray-100 flex flex-col relative overflow-hidden">
       {/* Header with Book Marker Tabs */}
       <div className={`relative flex-shrink-0`}>
         {/* Bookmark Tabs - Flag shaped */}
@@ -289,7 +289,6 @@ export const DMPanel = ({
           />
         </motion.div>
       </div>
-
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-6 relative">
         <AnimatePresence mode="wait">
@@ -715,11 +714,17 @@ export const DMPanel = ({
                           </div>
                         </motion.div>
                       )}
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-[#bf883c] whitespace-pre-wrap px-4 pt-10"
+                      >
+                        {sessionData?.dmNotes || "No notes yet"}
+                      </motion.div>
                     </AnimatePresence>
                     {/* DM Notes */}
-                    <div className="text-[#bf883c] whitespace-pre-wrap px-4 pt-10">
-                      {sessionData?.dmNotes || "No notes yet"}
-                    </div>
                   </section>
                 </motion.div>
               )}
