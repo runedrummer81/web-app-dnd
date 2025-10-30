@@ -15,11 +15,14 @@ export const CombatStateProvider = ({ children }) => {
   const { updateMapState } = useMapSync();
 
   const [combatActive, setCombatActive] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(false);
   const [initiativeOrder, setInitiativeOrder] = useState([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [combatLog, setCombatLog] = useState([]);
   const [combatRound, setCombatRound] = useState(1);
   const [activeEncounter, setActiveEncounter] = useState(null);
+  const [selectedCombatMap, setSelectedCombatMap] = useState(null);
+  const [playerCount, setPlayerCount] = useState(4);
   const [gridSettings, setGridSettings] = useState({
     visible: false,
     color: "#d9ca89",
@@ -27,9 +30,9 @@ export const CombatStateProvider = ({ children }) => {
     size: 40,
   });
 
-  const startCombat = (encounter, playerData, selectedCombatMap) => {
+  const startCombat = (encounter, playerData, combatMap) => {
     updateMapState({
-      currentMapId: selectedCombatMap.id,
+      currentMapId: combatMap.id,
       markers: [],
     });
 
@@ -49,19 +52,22 @@ export const CombatStateProvider = ({ children }) => {
 
     // Add creatures with rolled initiatives
     encounter.creatures.forEach((creature, index) => {
-      const initiativeRoll = Math.floor(Math.random() * 20) + 1;
-      const initiative = initiativeRoll + (creature.dexModifier || 0);
+      for (let i = 0; i < (creature.count || 1); i++) {
+        const initiativeRoll = Math.floor(Math.random() * 20) + 1;
+        const initiative = initiativeRoll + (creature.dexModifier || 0);
 
-      combatants.push({
-        id: `creature-${index}`,
-        name: `${creature.name} ${index + 1}`,
-        initiative,
-        isPlayer: false,
-        hp: creature.hp,
-        maxHp: creature.hp,
-        ac: creature.ac,
-        stats: creature.stats,
-      });
+        combatants.push({
+          id: `creature-${index}-${i}`,
+          name: `${creature.name} ${i + 1}`,
+          initiative,
+          isPlayer: false,
+          hp: creature.hp,
+          maxHp: creature.hp,
+          ac: creature.ac,
+          stats: creature.stats,
+          imageURL: creature.imageURL,
+        });
+      }
     });
 
     combatants.sort((a, b) => b.initiative - a.initiative);
@@ -69,15 +75,87 @@ export const CombatStateProvider = ({ children }) => {
     setInitiativeOrder(combatants);
     setCurrentTurnIndex(0);
     setCombatActive(true);
+    setIsSetupMode(true);
     setActiveEncounter(encounter);
+    setSelectedCombatMap(combatMap);
+    setPlayerCount(playerData.length);
+
+    // Auto-spawn tokens in the MIDDLE of the map
+    const mapHeight = combatMap.height || 2000;
+    const mapWidth = combatMap.width || 2000;
+    const centerY = mapHeight / 2;
+    const centerX = mapWidth / 2;
+    const tokens = [];
+
+    // Spawn player tokens in a horizontal line above center
+    const playerY = centerY - 150; // 150px above center
+    const playerSpacing = 100; // Space between tokens
+    const playerStartX =
+      centerX - ((playerData.length - 1) * playerSpacing) / 2;
+
+    playerData.forEach((player, index) => {
+      tokens.push({
+        id: `token-player-${index}`,
+        name: player.name,
+        imageUrl: "https://via.placeholder.com/100?text=P",
+        position: [playerY, playerStartX + index * playerSpacing],
+        size: 60,
+        isPlayer: true,
+      });
+    });
+
+    // Spawn creature tokens in a horizontal line below center
+    const totalCreatures = encounter.creatures.reduce(
+      (sum, c) => sum + (c.count || 1),
+      0
+    );
+    const creatureY = centerY + 150; // 150px below center
+    const creatureSpacing = 100;
+    const creatureStartX =
+      centerX - ((totalCreatures - 1) * creatureSpacing) / 2;
+
+    let creatureIndex = 0;
+    encounter.creatures.forEach((creature) => {
+      const count = creature.count || 1;
+
+      for (let i = 0; i < count; i++) {
+        tokens.push({
+          id: `token-creature-${creatureIndex}`,
+          name: `${creature.name} ${i + 1}`,
+          imageUrl:
+            creature.imageURL || "https://via.placeholder.com/100?text=E",
+          position: [
+            creatureY,
+            creatureStartX + creatureIndex * creatureSpacing,
+          ],
+          size: 60,
+          isPlayer: false,
+          creatureData: creature,
+        });
+        creatureIndex++;
+      }
+    });
+
+    updateMapState({ tokens });
+  };
+
+  const exitSetupMode = () => {
+    setIsSetupMode(false);
   };
 
   const endCombat = () => {
     setCombatActive(false);
+    setIsSetupMode(false);
     setInitiativeOrder([]);
     setCurrentTurnIndex(0);
     setActiveEncounter(null);
+    setSelectedCombatMap(null);
+    setPlayerCount(4);
     setGridSettings({ ...gridSettings, visible: false });
+
+    // Clear tokens
+    updateMapState({ tokens: [] });
+
     setCombatLog((prev) => [
       ...prev,
       {
@@ -120,11 +198,11 @@ export const CombatStateProvider = ({ children }) => {
       const logs = [];
       const updated = prev.map((c) => {
         if (c.id !== id) return c;
-  
+
         const oldHp = c.currentHp ?? c.hp ?? c.maxHp;
         const clampedHp = Math.max(0, Math.min(newHp, c.maxHp));
         const diff = clampedHp - oldHp;
-  
+
         if (diff < 0) {
           logs.push({
             type: "damage",
@@ -140,17 +218,17 @@ export const CombatStateProvider = ({ children }) => {
             message: `${c.name} regained ${diff} HP.`,
           });
         }
-  
+
         if (clampedHp === 0 && oldHp > 0) {
           logs.push({
             type: "death",
             message: `${c.name} has fallen.`,
           });
         }
-  
+
         return { ...c, currentHp: clampedHp, isDead: clampedHp <= 0 };
       });
-  
+
       if (logs.length > 0) {
         setCombatLog((prev) => [
           ...prev,
@@ -162,21 +240,17 @@ export const CombatStateProvider = ({ children }) => {
           })),
         ]);
       }
-  
+
       return updated;
     });
   };
-  
-  
-  
-  
 
   const rollAttack = (attacker, attack, target) => {
     const attackRoll = Math.floor(Math.random() * 20) + 1;
     const totalAttack = attackRoll + (attack.toHit || 0);
     const targetAC = target.ac ?? target.stats?.ac ?? 0;
     const hit = totalAttack >= targetAC;
-  
+
     addToCombatLog({
       type: "attack",
       attacker: attacker.name,
@@ -186,32 +260,33 @@ export const CombatStateProvider = ({ children }) => {
       total: totalAttack,
       hit,
     });
-  
+
     if (!hit) return { hit: false, attackRoll: totalAttack };
-  
+
     const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
     const totalDamage = damageRoll + (attack.damageBonus || 0);
     const currentHp = target.currentHp ?? target.hp ?? target.maxHp;
-  
-    // Do NOT add damage log here
+
     updateCreatureHp(target.id, currentHp - totalDamage);
-  
+
     return { hit: true, attackRoll: totalAttack, damage: totalDamage };
   };
-  
-  
 
   return (
     <CombatStateContext.Provider
       value={{
         combatActive,
+        isSetupMode,
         initiativeOrder,
         currentTurnIndex,
         combatLog,
         combatRound,
         activeEncounter,
+        selectedCombatMap,
+        playerCount,
         gridSettings,
         startCombat,
+        exitSetupMode,
         endCombat,
         nextTurn,
         updateCreatureHp,

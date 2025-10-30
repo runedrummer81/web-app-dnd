@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { RouteManager } from "./RouteManager";
 import { SessionNotes } from "./SessionNotes";
@@ -6,6 +6,7 @@ import { DiceRoller } from "./DiceRoller";
 import { CombatTab } from "./CombatTab";
 import { InitiativeTracker } from "./InitiativeTracker";
 import { CombatHistory } from "./CombatHistory";
+import { MapControlsTab } from "./MapControlsTab";
 import { useMapSync } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,23 +23,43 @@ export const DMPanel = ({
   currentMapId,
   weather,
   onWeatherChange,
-  onEndSessionClick,  
-  quickNotes,         
+  onEndSessionClick,
+  quickNotes,
   setQuickNotes,
   onEndCombat,
   onRequestEndSessionConfirm      
 }) => {
   const { mapState, updateMapState } = useMapSync();
-  const { combatActive, endCombat } = useCombatState();
+  const { combatActive, isSetupMode, endCombat } = useCombatState();
   const [activeTab, setActiveTab] = useState("overview");
   const [notesOpen, setNotesOpen] = useState(true);
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
-  // const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
-  // Normal state tabs
+  // Handle tab switching when entering/exiting combat or setup mode
+  useEffect(() => {
+    if (combatActive) {
+      if (
+        isSetupMode &&
+        activeTab !== "mapcontrols" &&
+        activeTab !== "history" &&
+        activeTab !== "spellbook"
+      ) {
+        setActiveTab("mapcontrols");
+      } else if (
+        !isSetupMode &&
+        activeTab !== "initiative" &&
+        activeTab !== "history" &&
+        activeTab !== "spellbook" &&
+        activeTab !== "mapcontrols"
+      ) {
+        setActiveTab("initiative");
+      }
+    }
+  }, [combatActive, isSetupMode, activeTab]);
+  // Normal state tabs (NO map controls)
   const normalTabs = [
     {
       id: "overview",
@@ -106,7 +127,7 @@ export const DMPanel = ({
     },
   ];
 
-  // Combat state tabs
+  // Combat state tabs (WITH map controls)
   const combatTabs = [
     {
       id: "initiative",
@@ -145,6 +166,25 @@ export const DMPanel = ({
       ),
     },
     {
+      id: "mapcontrols",
+      label: "Map Controls",
+      icon: (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+      ),
+    },
+    {
       id: "history",
       label: "History",
       icon: (
@@ -163,16 +203,6 @@ export const DMPanel = ({
   ];
 
   const tabs = combatActive ? combatTabs : normalTabs;
-
-  // When entering combat, switch to initiative tab
-  if (
-    combatActive &&
-    activeTab !== "initiative" &&
-    activeTab !== "history" &&
-    activeTab !== "spellbook"
-  ) {
-    setActiveTab("initiative");
-  }
 
   const toggleWeather = (type) => {
     if (type === "timeOfDay") {
@@ -340,11 +370,10 @@ export const DMPanel = ({
                   {/* END COMBAT BUTTON */}
                   <motion.button
                     onClick={() => {
-                    endCombat();                // stopper selve kampen
-                    setActiveTab("overview");
-                    onEndCombat?.();           // kalder callback (hvis givet)
-                  }}
-  
+                      endCombat();
+                      setActiveTab("overview");
+                      onEndCombat?.();
+                    }}
                     className="w-full mt-6 p-4 bg-gradient-to-r from-gray-700 to-gray-800 border-2 border-red-500/50 text-red-400 font-bold uppercase tracking-wider hover:border-red-400 transition-all"
                     whileHover={{
                       scale: 1.01,
@@ -368,6 +397,19 @@ export const DMPanel = ({
                   transition={{ duration: 0.3 }}
                 >
                   <SpellBook />
+                </motion.div>
+              )}
+
+              {/* MAP CONTROLS TAB */}
+              {activeTab === "mapcontrols" && (
+                <motion.div
+                  key="mapcontrols"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MapControlsTab />
                 </motion.div>
               )}
 
@@ -759,7 +801,7 @@ export const DMPanel = ({
                           <div className="w-full">
                             <SessionNotes
                               initialNotes={quickNotes}
-                              onNotesChange={setQuickNotes} // <-- now DMPanel always knows current notes
+                              onNotesChange={setQuickNotes}
                             />
                           </div>
                         </motion.div>
@@ -775,7 +817,6 @@ export const DMPanel = ({
                         {sessionData?.dmNotes || "No notes yet"}
                       </motion.div>
                     </AnimatePresence>
-                    {/* DM Notes */}
                   </section>
                 </motion.div>
               )}
