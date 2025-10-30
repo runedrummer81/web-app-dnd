@@ -21,9 +21,10 @@ export const DMPanel = ({
   currentMapId,
   weather,
   onWeatherChange,
-  onEndSessionClick,  // NY LINJE
-  quickNotes,         // NY LINJE
-  setQuickNotes,      // NY LINJE
+  onEndSessionClick,  
+  quickNotes,         
+  setQuickNotes,
+  onEndCombat,      
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
@@ -312,7 +313,12 @@ export const DMPanel = ({
 
                   {/* END COMBAT BUTTON */}
                   <motion.button
-                    onClick={endCombat}
+                    onClick={() => {
+                    endCombat();                // stopper selve kampen
+                    setActiveTab("overview");
+                    onEndCombat?.();           // kalder callback (hvis givet)
+                  }}
+  
                     className="w-full mt-6 p-4 bg-gradient-to-r from-gray-700 to-gray-800 border-2 border-red-500/50 text-red-400 font-bold uppercase tracking-wider hover:border-red-400 transition-all"
                     whileHover={{
                       scale: 1.01,
