@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { InitiativeSetup } from "./InitiativeSetup";
+import InitiativeSetup from "./InitiativeSetup";
 import { useCombatState } from "./CombatStateContext";
 
 export const CombatTab = ({ sessionData }) => {
@@ -221,7 +221,7 @@ export const CombatTab = ({ sessionData }) => {
             className="text-center py-12 text-[#BF883C]/50 text-sm uppercase tracking-wider"
             style={{ fontFamily: "EB Garamond, serif" }}
           >
-            No encounters prepared - Click "Start Combat" above to test
+            No encounters prepared - Click Start Combat above to test
           </div>
         )}
       </div>
@@ -230,13 +230,13 @@ export const CombatTab = ({ sessionData }) => {
       <AnimatePresence>
         {showInitiativeSetup && (
           <InitiativeSetup
-            encounter={selectedEncounter}
+            sessionData={sessionData} // needed for encounters + combatMaps
             onClose={() => {
               setShowInitiativeSetup(false);
               setSelectedEncounter(null);
             }}
-            onStart={(playerInits) => {
-              startCombat(selectedEncounter, playerInits);
+            onStart={(selectedEncounter, playerData, selectedCombatMap) => {
+              startCombat(selectedEncounter, playerData, selectedCombatMap);
               setShowInitiativeSetup(false);
             }}
           />

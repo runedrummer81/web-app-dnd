@@ -6,6 +6,12 @@
   --dark-muted-bg: #141411;
   --dark-border: #403c29;
   --font: "EB Garamond", serif;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --yellow: #eab308;
+  --green: #22c55e;
+  --red: #ef4444;
+  --gray: #9ca3af;
 }
 
 body {
@@ -304,4 +310,18 @@ body,
   height: 100vh;
   overflow: hidden; /* Prevent internal scroll */
   position: relative;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px #d9ca89, 0 0 20px #d9ca89;
+  }
+  50% {
+    box-shadow: 0 0 10px #d9ca89, 0 0 20px #d9ca89;
+  }
+}
+
+.animate-glow {
+  animation: glow 1.5s infinite ease-in-out;
 }

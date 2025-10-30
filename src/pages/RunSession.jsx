@@ -9,6 +9,8 @@ import { DMPanel } from "../components/session/DMPanel";
 import { PlayerDisplayButton } from "../components/session/PlayerDisplayButton";
 import { useMapSync } from "../components/session/MapSyncContext";
 import { ConfirmEndSessionModal } from "../components/session/ConfirmEndSessionModal";
+import { db } from "../firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const DMPanelWrapper = ({
   sessionData,
@@ -45,7 +47,9 @@ const DMPanelWrapper = ({
   );
 };
 
-const RunSession = ({ sessionId, sessionData, mapSetData }) => {
+const RunSession = ({ sessionId, mapSetData }) => {
+  const [sessionData, setSessionData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [playerWindowRef, setPlayerWindowRef] = useState(null);
   const [isPlayerWindowOpen, setIsPlayerWindowOpen] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
@@ -68,6 +72,39 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
     };
   }, [playerWindowRef]);
 
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Listen for real-time updates from Firestore
+    const unsub = onSnapshot(doc(db, "Sessions", sessionId), (snapshot) => {
+      if (snapshot.exists()) {
+        setSessionData(snapshot.data());
+        setLoading(false);
+      } else {
+        console.warn("Session not found in Firestore");
+        setLoading(false);
+      }
+    });
+
+    return () => unsub();
+  }, [sessionId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-[var(--primary)]">
+        Loading session...
+      </div>
+    );
+  }
+
+  if (!sessionData) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-400">
+        Could not load session data.
+      </div>
+    );
+  }
+
   return (
     <RunSessionContext.Provider value={{ mapSetData }}>
       <MapSyncProvider isDMView={true}>
@@ -82,12 +119,12 @@ const RunSession = ({ sessionId, sessionData, mapSetData }) => {
         <CombatStateProvider>
           <div className="w-screen h-screen flex bg-black overflow-hidden">
             {/* Map Display - Left Side */}
-            <div className="w-full lg:w-[65%] xl:w-[67%] 2xl:w-[70%] h-full">
+            <div className=" lg:block lg:w-[65%] h-full">
               <MapDisplay />
             </div>
 
             {/* DM Info Box - Right Side */}
-            <div className="w-full lg:w-[35%] xl:w-[33%] 2xl:w-[30%] h-full relative bg-[#151612]">
+            <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
               {/* Art Deco Border Frame */}
               <div className="absolute inset-0 pointer-events-none z-50">
                 {/* Corner SVGs - Top Left */}

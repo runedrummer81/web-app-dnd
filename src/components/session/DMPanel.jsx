@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { RouteManager } from "./RouteManager";
 import { SessionNotes } from "./SessionNotes";
 import { DiceRoller } from "./DiceRoller";
@@ -25,9 +26,11 @@ export const DMPanel = ({
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, endCombat } = useCombatState();
   const [activeTab, setActiveTab] = useState("overview");
-  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(true);
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
+
+  const navigate = useNavigate();
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
@@ -79,8 +82,8 @@ export const DMPanel = ({
       ),
     },
     {
-      id: "encounters",
-      label: "Encounters",
+      id: "notes",
+      label: "Notes",
       icon: (
         <svg
           width="24"
@@ -177,7 +180,7 @@ export const DMPanel = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="h-full bg-[#151612] text-gray-100 flex flex-col relative overflow-hidden z-1">
+    <div className="h-full bg-[#151612] text-gray-100 flex flex-col overflow-hidden z-1">
       {/* Header with Book Marker Tabs */}
       <div
         className={`relative flex-shrink-0 ${isPlayerWindowOpen ? "" : "pt-6"}`}
@@ -249,7 +252,7 @@ export const DMPanel = ({
             />
 
             <motion.button
-              onClick={onEndSessionClick}
+              onClick={() => setShowEndSessionConfirm(true)}
               className="cursor-pointer relative flex flex-col items-center justify-center px-5 py-7 w-full
        bg-gradient-to-b from-[#3c0000] via-[#2a0000] to-[#1a0000]
        text-[#f8eac7] font-bold uppercase tracking-[0.25em]
@@ -384,65 +387,6 @@ export const DMPanel = ({
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  {/* SESSION NOTES */}
-                  <section className="relative border border-[#BF883C]/30 bg-[#151612]/50">
-                    <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-[#d9ca89]" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[#d9ca89]" />
-
-                    <button
-                      onClick={() => setNotesOpen(!notesOpen)}
-                      className="w-full p-4 hover:bg-[#1a1814]/50 transition-all duration-300 flex items-center justify-between group"
-                    >
-                      <h2
-                        className="text-base font-bold text-[#d9ca89] uppercase tracking-[0.2em]"
-                        style={{
-                          fontFamily: "EB Garamond, serif",
-                          textShadow: "0 0 12px rgba(217,202,137,0.4)",
-                        }}
-                      >
-                        Session Notes
-                      </h2>
-
-                      <motion.svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        className="text-[#BF883C]"
-                        animate={{ rotate: notesOpen ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <path
-                          d="M 5,7 L 10,12 L 15,7"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          fill="none"
-                          strokeLinecap="square"
-                        />
-                      </motion.svg>
-                    </button>
-
-                    <AnimatePresence>
-                      {notesOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden border-t border-[#BF883C]/20"
-                        >
-                          <div className="p-4">
-                            <SessionNotes
-                              initialNotes={quickNotes}
-                              onNotesChange={setQuickNotes} // <-- now DMPanel always knows current notes
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </section>
-
                   {/* TRAVEL ROUTES */}
                   <section className="relative border border-[#BF883C]/30 bg-[#151612]/50">
                     <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[#d9ca89]" />
@@ -789,48 +733,37 @@ export const DMPanel = ({
                 </motion.div>
               )}
 
-              {/* ENCOUNTERS TAB */}
-              {activeTab === "encounters" && (
+              {/* NOTES TAB */}
+              {activeTab === "notes" && (
                 <motion.div
-                  key="encounters"
+                  key="notes"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                   className="space-y-3"
                 >
-                  {sessionData?.encounters?.length > 0 ? (
-                    sessionData.encounters.map((encounter, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="relative p-4 border border-[#BF883C]/30 bg-[#151612]/50 hover:border-[#BF883C]/60 cursor-pointer transition-all"
-                        whileHover={{ x: 4 }}
-                      >
-                        <p
-                          className="font-bold text-[#d9ca89] uppercase tracking-[0.15em]"
-                          style={{
-                            fontFamily: "EB Garamond, serif",
-                            textShadow: "0 0 8px rgba(217,202,137,0.3)",
-                          }}
+                  {/* SESSION NOTES */}
+                  <section className="relative w-full bg-[#151612]/50">
+                    <AnimatePresence>
+                      {notesOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
                         >
-                          {encounter.name}
-                        </p>
-                        <p className="text-sm text-[#BF883C]/70 mt-1 uppercase tracking-wider">
-                          {encounter.difficulty || "Medium"}
-                        </p>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <p
-                      className="text-[#BF883C]/50 text-center py-8 uppercase tracking-wider"
-                      style={{ fontFamily: "EB Garamond, serif" }}
-                    >
-                      No encounters prepared
-                    </p>
-                  )}
+                          <div className="w-full">
+                            <SessionNotes
+                              initialNotes={quickNotes}
+                              onNotesChange={setQuickNotes} // <-- now DMPanel always knows current notes
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </section>
                 </motion.div>
               )}
 
@@ -858,10 +791,14 @@ export const DMPanel = ({
             // Save session notes
             await updateDoc(doc(db, "Sessions", sessionData.id), {
               sessionNotes: quickNotes,
+              endedAt: new Date(),
             });
 
             setShowEndSessionConfirm(false);
             console.log("Session ended and notes saved!");
+
+            // Navigér videre til /session
+            navigate("/session");
           } catch (err) {
             console.error("Error ending session:", err);
           }
