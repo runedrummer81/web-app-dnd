@@ -117,37 +117,66 @@ export const CombatStateProvider = ({ children }) => {
 
   const updateCreatureHp = (id, newHp) => {
     setInitiativeOrder((prev) => {
-      // Clamp HP so it never goes below 0 or above maxHp
-      const updated = prev.map((c) =>
-        c.id === id
-          ? { ...c, currentHp: Math.max(0, Math.min(newHp, c.maxHp)) }
-          : c
-      );
-
-      // Remove any non-player combatant whose HP is now 0
-      const filtered = updated.filter((c) => c.isPlayer || c.currentHp > 0);
-
-      // If we removed something before the current index, adjust the turn index
-      let adjustedIndex = currentTurnIndex;
-      if (
-        filtered.length < updated.length &&
-        currentTurnIndex >= filtered.length
-      ) {
-        adjustedIndex = 0;
+      const logs = [];
+      const updated = prev.map((c) => {
+        if (c.id !== id) return c;
+  
+        const oldHp = c.currentHp ?? c.hp ?? c.maxHp;
+        const clampedHp = Math.max(0, Math.min(newHp, c.maxHp));
+        const diff = clampedHp - oldHp;
+  
+        if (diff < 0) {
+          logs.push({
+            type: "damage",
+            target: c.name,
+            damage: Math.abs(diff),
+            message: `${c.name} took ${Math.abs(diff)} damage.`,
+          });
+        } else if (diff > 0) {
+          logs.push({
+            type: "healing",
+            target: c.name,
+            healing: diff,
+            message: `${c.name} regained ${diff} HP.`,
+          });
+        }
+  
+        if (clampedHp === 0 && oldHp > 0) {
+          logs.push({
+            type: "death",
+            message: `${c.name} has fallen.`,
+          });
+        }
+  
+        return { ...c, currentHp: clampedHp, isDead: clampedHp <= 0 };
+      });
+  
+      if (logs.length > 0) {
+        setCombatLog((prev) => [
+          ...prev,
+          ...logs.map((entry) => ({
+            id: Date.now() + Math.random(),
+            timestamp: new Date().toLocaleTimeString(),
+            round: combatRound,
+            ...entry,
+          })),
+        ]);
       }
-
-      // Update both initiative order and turn index
-      setCurrentTurnIndex(adjustedIndex);
-      return filtered;
+  
+      return updated;
     });
   };
+  
+  
+  
+  
 
   const rollAttack = (attacker, attack, target) => {
     const attackRoll = Math.floor(Math.random() * 20) + 1;
     const totalAttack = attackRoll + (attack.toHit || 0);
     const targetAC = target.ac ?? target.stats?.ac ?? 0;
     const hit = totalAttack >= targetAC;
-
+  
     addToCombatLog({
       type: "attack",
       attacker: attacker.name,
@@ -157,25 +186,20 @@ export const CombatStateProvider = ({ children }) => {
       total: totalAttack,
       hit,
     });
-
-    if (hit) {
-      const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
-      const totalDamage = damageRoll + (attack.damageBonus || 0);
-
-      updateCreatureHp(target.id, target.hp - totalDamage);
-
-      addToCombatLog({
-        type: "damage",
-        attacker: attacker.name,
-        target: target.name,
-        damage: totalDamage,
-      });
-
-      return { hit: true, attackRoll: totalAttack, damage: totalDamage };
-    }
-
-    return { hit: false, attackRoll: totalAttack };
+  
+    if (!hit) return { hit: false, attackRoll: totalAttack };
+  
+    const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
+    const totalDamage = damageRoll + (attack.damageBonus || 0);
+    const currentHp = target.currentHp ?? target.hp ?? target.maxHp;
+  
+    // Do NOT add damage log here
+    updateCreatureHp(target.id, currentHp - totalDamage);
+  
+    return { hit: true, attackRoll: totalAttack, damage: totalDamage };
   };
+  
+  
 
   return (
     <CombatStateContext.Provider
