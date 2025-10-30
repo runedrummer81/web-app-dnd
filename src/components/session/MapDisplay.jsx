@@ -3,11 +3,14 @@ import { MapContainer, ImageOverlay, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapSync, RunSessionContext } from "./MapSyncContext";
+import { useCombatState } from "./CombatStateContext";
 import { MapController } from "./MapController";
 import { MapEventsHandler } from "./MapEventsHandler";
 import { createGoldenMarker } from "./GoldenMarker";
 import { WeatherEffects } from "./WeatherEffects";
 import { RouteDisplay } from "./RouteDisplay";
+import { GridOverlay } from "./GridOverlay";
+import { TokenOverlay } from "./TokenOverlay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -21,6 +24,7 @@ L.Icon.Default.mergeOptions({
 
 export const MapDisplay = () => {
   const { mapState, updateMapState, isDMView } = useMapSync();
+  const { isSetupMode } = useCombatState();
   const runSessionContext = useContext(RunSessionContext);
   const mapSetData = runSessionContext?.mapSetData;
   const sessionData = runSessionContext?.sessionData;
@@ -42,13 +46,11 @@ export const MapDisplay = () => {
     if (mapState.currentMapId === "world")
       return { ...mapSetData.worldMap, isCombat: false };
 
-    // city map
     const cityMap = mapSetData.cityMaps?.find(
       (m) => m.id === mapState.currentMapId
     );
     if (cityMap) return { ...cityMap, isCombat: false };
 
-    // combat map (from session)
     const combatMap = sessionData?.combatMaps?.find(
       (m) => m.id === mapState.currentMapId
     );
@@ -63,13 +65,11 @@ export const MapDisplay = () => {
       };
     }
 
-    // fallback
     return { ...mapSetData.worldMap, isCombat: false };
   };
 
   const currentMap = getCurrentMap();
 
-  // map coordinate bounds (leaflet Simple CRS uses y,x as coordinates)
   const mapBounds = [
     [0, 0],
     [currentMap.height || 2000, currentMap.width || 2000],
@@ -80,11 +80,9 @@ export const MapDisplay = () => {
     (currentMap.width || 2000) / 2,
   ];
 
-  // Player view: scaled wrapper to match DM's exact container dimensions
   const [containerDimensions, setContainerDimensions] = useState(null);
 
   useEffect(() => {
-    // Calculate scaling for player view to match DM's container exactly
     if (isDMView || !mapState.dmContainerSize || !wrapperRef.current) {
       return;
     }
@@ -95,21 +93,32 @@ export const MapDisplay = () => {
 
     const scaleX = actualWidth / mapState.dmContainerSize.width;
     const scaleY = actualHeight / mapState.dmContainerSize.height;
-
-    // Use the smaller scale to maintain aspect ratio (letterbox if needed)
     const scale = Math.min(scaleX, scaleY);
 
     setContainerDimensions({
       width: mapState.dmContainerSize.width,
       height: mapState.dmContainerSize.height,
       scale: scale,
-      // Calculate centering offsets for letterboxing
       offsetX: (actualWidth - mapState.dmContainerSize.width * scale) / 2,
       offsetY: (actualHeight - mapState.dmContainerSize.height * scale) / 2,
     });
   }, [isDMView, mapState.dmContainerSize, wrapperRef]);
 
-  // Render the map container
+  // Get grid settings with defaults
+  const gridSettings = mapState.gridSettings || {
+    visible: false,
+    size: 40,
+    color: "#d9ca89",
+    opacity: 0.3,
+  };
+
+  const handleTokenMove = (tokenId, newPosition) => {
+    const updatedTokens = (mapState.tokens || []).map((token) =>
+      token.id === tokenId ? { ...token, position: newPosition } : token
+    );
+    updateMapState({ tokens: updatedTokens });
+  };
+
   const renderMapContainer = () => (
     <MapContainer
       center={mapCenter}
@@ -128,6 +137,28 @@ export const MapDisplay = () => {
       {currentMap.imageUrl && (
         <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
       )}
+
+      {/* Grid overlay - only show on combat maps */}
+      {currentMap.isCombat && (
+        <GridOverlay
+          gridSettings={gridSettings}
+          mapDimensions={{
+            width: currentMap.width,
+            height: currentMap.height,
+          }}
+          visible={gridSettings.visible}
+        />
+      )}
+
+      {/* Token Overlay */}
+      {currentMap.isCombat && (
+        <TokenOverlay
+          tokens={mapState.tokens || []}
+          onTokenMove={handleTokenMove}
+          isDMView={isDMView}
+        />
+      )}
+
       <MapController
         mapDimensions={{
           width: currentMap.width,
@@ -186,7 +217,6 @@ export const MapDisplay = () => {
       ref={wrapperRef}
       className="relative w-full h-full bg-black overflow-hidden"
     >
-      {/* Player view: scaled wrapper for pixel-perfect sync with DM */}
       {!isDMView && containerDimensions ? (
         <div
           style={{
@@ -202,10 +232,8 @@ export const MapDisplay = () => {
           {renderMapContainer()}
         </div>
       ) : isDMView ? (
-        /* DM view: normal full container */
         renderMapContainer()
       ) : (
-        /* Loading state for player view */
         <div className="flex items-center justify-center w-full h-full">
           <div className="text-white text-xl">Loading map...</div>
         </div>
