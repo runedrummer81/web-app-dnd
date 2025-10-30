@@ -41,12 +41,13 @@ export default function CreateEncounters() {
     setDeleteConfirm({ open: true, encounterId: id });
   };
 
-  const confirmDelete = async () => {
+    const confirmDelete = async () => {
     if (!deleteConfirm.encounterId) return;
 
     try {
       await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
       
+      // If we're currently editing this encounter, reset to "new encounter" mode
       if (currentEditingId === deleteConfirm.encounterId) {
         setCurrentEditingId(null);
         setEncounterName("");
@@ -530,7 +531,7 @@ ${
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 className={`relative overflow-hidden transition-all border p-2 m2 ${
                   expandedEncounterIds.includes(enc.id)
-                    ? "border-[var(--primary)] p-4 cursor-pointer shadow-[0_0_12px_var(--primary)]"
+                    ? "border-[var(--primary)] p-4 cursor-pointer"
                     : "border-[var(--secondary)] p-4 cursor-pointer"
                 }`}
               >
