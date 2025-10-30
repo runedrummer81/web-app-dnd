@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +45,6 @@ export default function EncounterBrowserModal({
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
         setAvailableEncounters(data);
-        
       } catch (err) {
         console.error("Error fetching encounters:", err);
       } finally {
@@ -50,16 +56,16 @@ export default function EncounterBrowserModal({
   }, [isOpen]);
 
   const filteredEncounters = availableEncounters.filter((enc) =>
-  enc.name.toLowerCase().includes(searchQuery.toLowerCase())
-);
-// Når modal åbnes, marker allerede tilføjede encounters som valgte
-useEffect(() => {
-  if (isOpen) {
-    setTempSelectedEncounters([...alreadySelectedEncounters]);
-  } else {
-    setTempSelectedEncounters([]);
-  }
-}, [isOpen, alreadySelectedEncounters]);
+    enc.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  // Når modal åbnes, marker allerede tilføjede encounters som valgte
+  useEffect(() => {
+    if (isOpen) {
+      setTempSelectedEncounters([...alreadySelectedEncounters]);
+    } else {
+      setTempSelectedEncounters([]);
+    }
+  }, [isOpen, alreadySelectedEncounters]);
 
   // Fetch creature images when encounters are loaded
   useEffect(() => {
@@ -102,24 +108,25 @@ useEffect(() => {
     return alreadySelectedEncounters.some((e) => e.id === encounterId);
   };
 
- // Toggle encounter selection
-const toggleEncounterSelection = (encounter) => {
-  const isSelected = tempSelectedEncounters.find(e => e.id === encounter.id);
-  if (isSelected) {
-    setTempSelectedEncounters(
-      tempSelectedEncounters.filter(e => e.id !== encounter.id)
+  // Toggle encounter selection
+  const toggleEncounterSelection = (encounter) => {
+    const isSelected = tempSelectedEncounters.find(
+      (e) => e.id === encounter.id
     );
-  } else {
-    setTempSelectedEncounters([...tempSelectedEncounters, encounter]);
-  }
-};
+    if (isSelected) {
+      setTempSelectedEncounters(
+        tempSelectedEncounters.filter((e) => e.id !== encounter.id)
+      );
+    } else {
+      setTempSelectedEncounters([...tempSelectedEncounters, encounter]);
+    }
+  };
 
-// Confirm - send hele arrayet tilbage
-const handleConfirm = () => {
-  onConfirm(tempSelectedEncounters);
-  handleClose();
-};
-
+  // Confirm - send hele arrayet tilbage
+  const handleConfirm = () => {
+    onConfirm(tempSelectedEncounters);
+    handleClose();
+  };
 
   // Handle close
   const handleClose = () => {
@@ -128,24 +135,23 @@ const handleConfirm = () => {
   };
 
   // Check if there are changes compared to already selected
-const hasSelectionChanged = () => {
-  if (tempSelectedEncounters.length !== alreadySelectedEncounters.length) {
-    return true; // forskelligt antal = ændring
-  }
-
-  const tempIds = tempSelectedEncounters.map((e) => e.id).sort();
-  const alreadyIds = alreadySelectedEncounters.map((e) => e.id).sort();
-
-  // Hvis bare ét ID ikke matcher → ændring
-  for (let i = 0; i < tempIds.length; i++) {
-    if (tempIds[i] !== alreadyIds[i]) {
-      return true;
+  const hasSelectionChanged = () => {
+    if (tempSelectedEncounters.length !== alreadySelectedEncounters.length) {
+      return true; // forskelligt antal = ændring
     }
-  }
 
-  return false;
-};
+    const tempIds = tempSelectedEncounters.map((e) => e.id).sort();
+    const alreadyIds = alreadySelectedEncounters.map((e) => e.id).sort();
 
+    // Hvis bare ét ID ikke matcher → ændring
+    for (let i = 0; i < tempIds.length; i++) {
+      if (tempIds[i] !== alreadyIds[i]) {
+        return true;
+      }
+    }
+
+    return false;
+  };
 
   if (!isOpen) return null;
 
@@ -171,24 +177,29 @@ const hasSelectionChanged = () => {
               <h3 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
                 Select Encounters
               </h3>
-              
-                <button
-              onClick={handleClose}
-              className="text-[var(--primary)] hover:text-white transition text-2xl w-8 h-8 flex items-center justify-center"
-            >
-              ✕
-            </button>
-              </div>
-            
 
-              <div className="flex justify-between w-full pr-10">
+              <button
+                onClick={handleClose}
+                className="text-[var(--primary)] hover:text-white transition text-2xl w-8 h-8 flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex justify-between w-full pr-10">
+              <div className="m-3 border border-[var(--secondary)] ">
                 <input
-                type="text"
-                placeholder="Search encounters..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="mt-3 w-100 bg-[#1C1B18] border border-[var(--secondary)]/40 rounded px-3 py-2 text-[var(--secondary)] placeholder-[var(--secondary)]/50 focus:outline-none focus:border-[var(--primary)]"
-              />
+                  type="text"
+                  placeholder="Search encounters..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() =>
+                    setTimeout(() => setIsSearchFocused(false), 200)
+                  }
+                  className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-90 placeholder:italic transition focus:placeholder-black"
+                />
+              </div>
               {tempSelectedEncounters.length > 0 && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
@@ -199,27 +210,27 @@ const hasSelectionChanged = () => {
                   {tempSelectedEncounters.length !== 1 ? "s" : ""} selected
                 </motion.p>
               )}
-                            
-            <ActionButton
-                              label="CREATE ENCOUNTER"
-                              onClick={() => navigate("/encounters")}
-                              color="var(--secondary)"
-                              bgColor="#f0d382"
-                              textColor="#1C1B18"
-                              size="sm"
-                              showGlow={false}
-                              showLeftArrow={false}
-                              showRightArrow={true}
-                              animate={false}
-                            className="mt-3 mr-3"/>
-            
-              </div>
-              
-            
+
+              <ActionButton
+                label="CREATE ENCOUNTER"
+                onClick={() => navigate("/encounters")}
+                color="var(--secondary)"
+                bgColor="#f0d382"
+                textColor="#1C1B18"
+                size="sm"
+                showGlow={false}
+                showLeftArrow={false}
+                showRightArrow={true}
+                animate={false}
+                className="mt-3 mr-3"
+              />
+            </div>
           </div>
 
           {/* Encounter List */}
-          <div className="flex-1 overflow-y-auto p-6"> {/*slettet min-h-[300px]*/}
+          <div className="flex-1 overflow-y-auto p-6">
+            {" "}
+            {/*slettet min-h-[300px]*/}
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-[var(--secondary)] text-lg">
@@ -233,13 +244,14 @@ const hasSelectionChanged = () => {
                   const isSelected = tempSelectedEncounters.find(
                     (e) => e.id === enc.id
                   );
-                  {filteredEncounters.length === 0 && !loading && (
-                    <div className="text-center text-[var(--secondary)]/60 mt-10">
-                      No encounters match your search.
-                    </div>
-                  )}
+                  {
+                    filteredEncounters.length === 0 && !loading && (
+                      <div className="text-center text-[var(--secondary)]/60 mt-10">
+                        No encounters match your search.
+                      </div>
+                    );
+                  }
 
-                  
                   const firstCreature =
                     enc.creatures && enc.creatures.length > 0
                       ? enc.creatures[0]
@@ -255,7 +267,7 @@ const hasSelectionChanged = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      onClick={() =>{
+                      onClick={() => {
                         toggleEncounterSelection(enc);
                       }}
                       className={`w-full text-left relative overflow-hidden border-2 transition-all duration-300 group ${
@@ -288,7 +300,7 @@ const hasSelectionChanged = () => {
                       {/* Content */}
                       <div className="relative z-10 p-4">
                         <div className="flex justify-between items-start mb-2">
-                           <p
+                          <p
                             className={`font-semibold text-lg ${
                               isAlreadyAdded
                                 ? "text-[var(--secondary)]"
@@ -299,8 +311,7 @@ const hasSelectionChanged = () => {
                           </p>
                           <div className="flex items-center gap-2">
                             {/* Selection checkmark */}
-                            {isSelected 
-                             && (
+                            {isSelected && (
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
@@ -316,7 +327,7 @@ const hasSelectionChanged = () => {
                               <span className="px-2 py-1 bg-green-600/80 text-white text-xs font-semibold uppercase">
                                 Added
                               </span>
-                            )} */} 
+                            )} */}
                           </div>
                         </div>
                         {enc.creatures && enc.creatures.length > 0 && (
@@ -361,8 +372,6 @@ const hasSelectionChanged = () => {
             >
               Cancel
             </button>
-            
-             
 
             <button
               onClick={handleConfirm}
