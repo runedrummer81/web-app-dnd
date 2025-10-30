@@ -38,6 +38,12 @@ const DMPanelWrapper = ({
     });
   };
 
+  const handleEndCombat = () => {
+  updateMapState({ currentMapId: "world", markers: [] });
+  // Vi returnerer 'overview' signal som DMPanel kan bruge
+};
+
+
   return (
     <DMPanel
       sessionId={sessionId}
@@ -51,6 +57,7 @@ const DMPanelWrapper = ({
       onEndSessionClick={onEndSessionClick}
       quickNotes={quickNotes}
       setQuickNotes={setQuickNotes}
+      onEndCombat={handleEndCombat}
     />
   );
 };
