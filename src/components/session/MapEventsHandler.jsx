@@ -5,26 +5,8 @@ export const MapEventsHandler = () => {
   const { mapState, updateMapState, isDMView } = useMapSync();
 
   useMapEvents({
-    moveend: (e) => {
-      if (!isDMView) return;
-      const map = e.target;
-      updateMapState({
-        viewport: {
-          center: [map.getCenter().lat, map.getCenter().lng],
-          zoom: map.getZoom(),
-        },
-      });
-    },
-    zoomend: (e) => {
-      if (!isDMView) return;
-      const map = e.target;
-      updateMapState({
-        viewport: {
-          center: [map.getCenter().lat, map.getCenter().lng],
-          zoom: map.getZoom(),
-        },
-      });
-    },
+    // FJERNET moveend og zoomend - det håndteres af MapController!
+    
     mousedown: (e) => {
       if (!isDMView) return;
       if (e.originalEvent.button === 1) {

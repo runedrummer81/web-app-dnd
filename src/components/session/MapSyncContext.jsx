@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 
 const MapSyncContext = createContext();
 export const RunSessionContext = createContext();
@@ -12,12 +12,14 @@ export const useMapSync = () => {
 export const MapSyncProvider = ({ children, isDMView = true }) => {
   const [mapState, setMapState] = useState({
     currentMapId: "world",
-    viewportPercent: null, // procentuel visning
+    viewport: null,
+    dmContainerSize: null,
     markers: [],
     isInCombat: false,
     weather: { snow: false, aurora: false, timeOfDay: "day" },
     route: { waypoints: [], visibleToPlayers: false },
     routeSettingMode: false,
+    viewportPercent: null,
   });
 
   const broadcastRef = useRef(null);
@@ -35,7 +37,8 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
     return () => channel.close();
   }, [isDMView]);
 
-  const updateMapState = (updates) => {
+  // useCallback forhindrer at updateMapState bliver genoprettet hver render
+  const updateMapState = useCallback((updates) => {
     setMapState(prev => {
       const newState = { ...prev, ...updates };
       if (isDMView && broadcastRef.current) {
@@ -43,7 +46,7 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
       }
       return newState;
     });
-  };
+  }, [isDMView]);
 
   return (
     <MapSyncContext.Provider value={{ mapState, updateMapState, isDMView }}>
