@@ -23,18 +23,49 @@ export const MapDisplay = () => {
   const { mapState, updateMapState, isDMView } = useMapSync();
   const runSessionContext = useContext(RunSessionContext);
   const mapSetData = runSessionContext?.mapSetData;
+  const sessionData = runSessionContext?.sessionData; // Added this line
   const mapRef = useRef(null);
   const wrapperRef = useRef(null);
 
   const getCurrentMap = () => {
+    // Debug logs
+    console.log("Current Map ID:", mapState.currentMapId);
+    console.log("Combat Maps:", sessionData?.combatMaps);
+
     if (!mapSetData) {
       return { id: "default", name: "Default Map", imageUrl: null, width: 2000, height: 2000 };
     }
 
     if (mapState.currentMapId === "world") return mapSetData.worldMap;
 
-    const cityMap = mapSetData.cityMaps?.find(m => m.id === mapState.currentMapId);
-    return cityMap || mapSetData.worldMap;
+    // Check city maps
+    const cityMap = mapSetData.cityMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (cityMap) {
+      console.log("Found City Map:", cityMap);
+      return cityMap;
+    }
+
+    // Check combat maps - NEW SECTION
+    const combatMap = sessionData?.combatMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (combatMap) {
+      console.log("Found Combat Map:", combatMap);
+      // Convert combat map format to map format
+      return {
+        id: combatMap.id,
+        name: combatMap.name || combatMap.title || "Combat Map",
+        imageUrl: combatMap.image, // Combat maps use 'image' not 'imageUrl'
+        width: combatMap.width || 2000,
+        height: combatMap.height || 2000,
+      };
+    }
+
+    // Fallback to world map
+    console.log("Falling back to world map");
+    return mapSetData.worldMap;
   };
 
   const currentMap = getCurrentMap();
@@ -42,6 +73,7 @@ export const MapDisplay = () => {
     [0, 0],
     [currentMap.height || 2000, currentMap.width || 2000],
   ];
+
   const mapCenter = [
     (currentMap.height || 2000) / 2,
     (currentMap.width || 2000) / 2,

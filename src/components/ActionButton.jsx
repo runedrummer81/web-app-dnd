@@ -22,7 +22,7 @@ export default function ActionButton({
   // Size configurations
   const sizeConfig = {
     sm: {
-      textSize: "text-lg",
+      textSize: "text-1xl",
       padding: "px-3 py-1",
       arrowHeight: "h-[50px]",
       arrowOffset: "24px",
