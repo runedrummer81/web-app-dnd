@@ -64,13 +64,16 @@ export default function NewCampaign() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [filteredTemplates.length, searchQuery]);
+  if (!openedIndex) return;
+
+  const selectedElement = document.getElementById(`template-${openedIndex}`);
+  if (selectedElement) {
+    selectedElement.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest", // keeps it inside the visible area without jumping too far
+    });
+  }
+}, [openedIndex]);
 
   // 🔹 Lock scroll when modal is open
   useEffect(() => {
@@ -107,17 +110,82 @@ export default function NewCampaign() {
     }
   };
 
-  // 🔹 Show popup when confirming
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (showLearnMore || showNamePopup) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpenedIndex((prev) => {
+          const currentIndex = filteredTemplates.findIndex(
+            (t) => t.id === prev
+          );
+          const nextIndex = (currentIndex + 1) % filteredTemplates.length;
+          return filteredTemplates[nextIndex]?.id || null;
+        });
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setOpenedIndex((prev) => {
+          const currentIndex = filteredTemplates.findIndex(
+            (t) => t.id === prev
+          );
+          const nextIndex =
+            currentIndex > 0 ? currentIndex - 1 : filteredTemplates.length - 1;
+          return filteredTemplates[nextIndex]?.id || null;
+        });
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (openedIndex !== null) {
+          setShowNamePopup(true);
+        }
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (showLearnMore) setShowLearnMore(false);
+        if (showNamePopup) setShowNamePopup(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [filteredTemplates, openedIndex, showLearnMore, showNamePopup]);
+
+  useEffect(() => {
+    if (!openedIndex || !scrollContainerRef.current) return;
+
+    const selectedElement = document.getElementById(`template-${openedIndex}`);
+    const container = scrollContainerRef.current;
+
+    if (selectedElement) {
+      const elementTop = selectedElement.offsetTop;
+      const elementBottom = elementTop + selectedElement.offsetHeight;
+      const containerScrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+
+      if (elementTop < containerScrollTop) {
+        container.scrollTo({ top: elementTop - 40, behavior: "smooth" });
+      } else if (elementBottom > containerScrollTop + containerHeight) {
+        container.scrollTo({
+          top: elementBottom - containerHeight + 40,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [openedIndex]);
+
   const handleConfirmClick = () => {
     if (openedIndex === null) return;
     setShowNamePopup(true);
   };
 
-  // 🔹 Save new campaign to Firestore
   const saveCampaign = async () => {
     if (openedIndex === null || !campaignName.trim()) return;
     if (!user) {
-      console.error("🔥 User not authenticated!");
+      console.error("User not authenticated!");
       return;
     }
 
@@ -152,7 +220,7 @@ export default function NewCampaign() {
       localStorage.setItem("selectedCampaignId", campaignId);
       navigate("/session", { state: { campaignId, from: "/newcampaign" } });
     } catch (error) {
-      console.error("🔥 Error creating campaign:", error);
+      console.error("Error creating campaign:", error);
       alert("Failed to create campaign. Please try again.");
     } finally {
       setShowNamePopup(false);
@@ -237,7 +305,7 @@ export default function NewCampaign() {
             </motion.div>
             <motion.div
               ref={scrollContainerRef}
-              className="flex flex-col w-full h-100 overflow-y-auto border-[var(--primary)]/50 items-start justify-start"
+              className="flex flex-col w-full max-h-[55vh] overflow-y-auto border-[var(--primary)]/50 items-start justify-start"
               style={{
                 scrollSnapType: "y mandatory",
               }}
@@ -253,6 +321,7 @@ export default function NewCampaign() {
               <div className="relative snap-start gap-6 flex flex-col snap-y snap-mandatory scrollbar-custom w-full">
                 {filteredTemplates.map(({ id, title, image, learnMoreId }) => (
                   <motion.div
+                    id={`template-${id}`}
                     key={id}
                     className="group relative p-5 border-2 border-[var(--secondary)] hover:border-[var(--primary)] snap-start w-full"
                     onPointerEnter={() => startHoverTimer(id)}

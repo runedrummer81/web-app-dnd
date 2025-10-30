@@ -92,6 +92,13 @@ export default function LoadPage() {
     [centerIndex, campaigns.length]
   );
 
+  const handleCampaignClick = useCallback((campaignId) => {
+    const clickedIndex = campaigns.findIndex((camp) => camp.id === campaignId);
+    if (clickedIndex !== -1) {
+      setCenterIndex(clickedIndex);
+    }
+  }, [campaigns]);
+
   useEffect(() => {
     let scrollAccumulator = 0;
     const SCROLL_THRESHOLD = 50;
@@ -180,7 +187,9 @@ export default function LoadPage() {
                     damping: 25,
                     delay: Math.abs(camp.offset) * 0.1,
                   }}
-                  className="w-96"
+                  className="w-96 cursor-pointer"
+                  onClick={() => handleCampaignClick(camp.id)}
+                  whileHover={!isCenter ? { scale: 0.9, opacity: 0.7 } : {}}
                 >
                   <SelectedItem
                     isSelected={isCenter}

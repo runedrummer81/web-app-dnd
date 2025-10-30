@@ -53,7 +53,7 @@ export default function Nav() {
   return (
     <>
       <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)] pt-5">
-        <div className="absolute flex gap-20">
+        <div className="absolute flex gap-10">
           {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
         {!banned && (
           <button
