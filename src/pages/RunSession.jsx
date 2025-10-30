@@ -22,6 +22,7 @@ const DMPanelWrapper = ({
   onEndSessionClick,
   quickNotes,
   setQuickNotes,
+  onRequestEndSessionConfirm,
 }) => {
   const { mapState, updateMapState } = useMapSync();
 
@@ -44,6 +45,9 @@ const DMPanelWrapper = ({
 };
 
 
+
+
+
   return (
     <DMPanel
       sessionId={sessionId}
@@ -58,6 +62,7 @@ const DMPanelWrapper = ({
       quickNotes={quickNotes}
       setQuickNotes={setQuickNotes}
       onEndCombat={handleEndCombat}
+      onRequestEndSessionConfirm={onRequestEndSessionConfirm}
     />
   );
 };
@@ -80,6 +85,8 @@ const RunSession = ({ sessionId, mapSetData }) => {
     setPlayerWindowRef(playerWindow);
     setIsPlayerWindowOpen(true);
   };
+
+  const handleShowEndSessionConfirm = () => setShowEndSessionConfirm(true);
 
   useEffect(() => {
     return () => {
@@ -195,9 +202,10 @@ const RunSession = ({ sessionId, mapSetData }) => {
                     sessionData={sessionData}
                     mapSetData={mapSetData}
                     isPlayerWindowOpen={isPlayerWindowOpen}
-                    onEndSessionClick={() => setShowEndSessionConfirm(true)}
+                    onEndSessionClick={handleShowEndSessionConfirm}
                     quickNotes={quickNotes}
                     setQuickNotes={setQuickNotes}
+                    onRequestEndSessionConfirm={handleShowEndSessionConfirm}
                   />
                 </div>
               </div>
