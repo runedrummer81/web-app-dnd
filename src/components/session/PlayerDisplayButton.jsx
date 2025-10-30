@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import SelectedItem from "../SelectedItem";
+import ActionButton from "../ActionButton";
 
 export const PlayerDisplayButton = ({ onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -11,19 +11,23 @@ export const PlayerDisplayButton = ({ onClick }) => {
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.05 }}
         transition={{ duration: 0.2 }}
       >
-        <SelectedItem
+        <ActionButton
           onClick={onClick}
-          isSelected={true}
-          showArrow={false}
+          label="OPEN PLAYER DISPLAY"
+          isize="sm"
+          color="var(--secondary)"
+          bgColor="var(--primary"
+          textColor="var(--dark-muted-bg)"
+          showLeftArrow={false}
+          showRightArrow={false}
+          showGlow={false}
           animate={true}
-          className="w-full text-center cursor-pointer bg-[var(--dark-muted-bg)]"
-        >
-          <div className="flex flex-col items-center">
-            <div className="text-sm uppercase ">Open Player Display</div>
-          </div>
-        </SelectedItem>
+          animationDelay={0.2}
+          className="w-full text-center cursor-pointer "
+        ></ActionButton>
       </motion.div>
     </div>
   );

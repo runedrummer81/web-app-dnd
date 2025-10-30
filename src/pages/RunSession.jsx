@@ -107,7 +107,7 @@ const RunSession = ({ sessionId, mapSetData }) => {
   }
 
   return (
-    <RunSessionContext.Provider value={{ mapSetData }}>
+    <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
       <MapSyncProvider isDMView={true}>
         <ConfirmEndSessionModal
           show={showEndSessionConfirm}

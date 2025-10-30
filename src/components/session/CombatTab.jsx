@@ -81,7 +81,7 @@ export const CombatTab = ({ sessionData }) => {
   return (
     <div className="space-y-6 p-4">
       {/* Big Start Combat Button */}
-      <div className="w-fit mx-auto">
+      <motion.div className="w-fit mx-auto" whileHover={{ scale: 1.05 }}>
         <ActionButton
           label="START COMBAT"
           onClick={() => {
@@ -99,7 +99,7 @@ export const CombatTab = ({ sessionData }) => {
           animationDelay={0.2}
           className="w-fit"
         />
-      </div>
+      </motion.div>
 
       <motion.div
         className={`h-[2px] w-100 mt-2 mx-auto bg-gradient-to-r ${"from-transparent via-[var(--secondary)] to-transparent"}`}
