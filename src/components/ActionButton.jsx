@@ -56,7 +56,7 @@ export default function ActionButton({
 
   return (
     <motion.div
-      className={`relative flex items-center justify-center ${borderClasses} px-1.5 py-1 ${className}`}
+      className={`relative flex items-center justify-center w-fit ${borderClasses} px-1.5 py-1 ${className}`}
       style={{
         borderColor: color,
         boxShadow: showGlow ? `0 0 30px ${shadowColor}` : "none",
@@ -84,7 +84,7 @@ export default function ActionButton({
             className={`${config.arrowHeight} w-auto rotate-180`}
           >
             <defs>
-              <style>{`.st0 { fill: none; stroke: ${color}; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+              <style>{`.st0 { fill: none; stroke: ${color}; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
             </defs>
             <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
             <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />
@@ -150,7 +150,7 @@ export default function ActionButton({
             className={`${config.arrowHeight} w-auto`}
           >
             <defs>
-              <style>{`.st0 { fill: none; stroke: ${color}; stroke-width: 4px; stroke-miterlimit: 10; }`}</style>
+              <style>{`.st0 { fill: none; stroke: ${color}; stroke-width: 2px; stroke-miterlimit: 10; }`}</style>
             </defs>
             <polyline className="st0" points="1.4 66.8 34.5 33.8 1.4 .7" />
             <polyline className="st0" points="17.9 17.2 1.4 33.8 17.9 50.3" />

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
-  // Get encounters and combat maps from session data
+// Get encounters and combat maps from session data
+export default function InitiativeSetup({ sessionData, onStart, onClose }) {
   const encounters = sessionData?.encounters || [];
   const combatMaps = sessionData?.combatMaps || [];
 
@@ -19,13 +19,13 @@ export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
 
   // Initialize with first encounter and map if available
   useEffect(() => {
-    if (encounters.length > 0 && !selectedEncounter) {
-      setSelectedEncounter(encounters[0]);
+    if (encounters.length > 0) {
+      setSelectedEncounter((prev) => prev || encounters[0]);
     }
-    if (combatMaps.length > 0 && !selectedCombatMap) {
-      setSelectedCombatMap(combatMaps[0]);
+    if (combatMaps.length > 0) {
+      setSelectedCombatMap((prev) => prev || combatMaps[0]);
     }
-  }, [encounters, combatMaps]);
+  }, [sessionData]);
 
   const handlePlayerCountChange = (count) => {
     setPlayerCount(count);
@@ -112,82 +112,74 @@ export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
           </h2>
           <div className="h-[2px] w-48 mx-auto mb-8 bg-gradient-to-r from-transparent via-[#BF883C] to-transparent" />
 
-          {/* Encounter Selection */}
-          <div className="mb-6">
-            <label
-              className="block text-[#d9ca89] font-bold mb-3 text-sm uppercase tracking-wider"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              Select Encounter
-            </label>
-            {encounters.length === 0 ? (
-              <div className="p-4 border-2 border-red-500/30 bg-red-900/10">
-                <p className="text-red-400 text-sm">
-                  No encounters available. Please add encounters to your session
-                  first.
-                </p>
-              </div>
-            ) : (
-              <select
-                value={selectedEncounter?.id || ""}
-                onChange={(e) => {
-                  const encounter = encounters.find(
-                    (enc) => enc.id === e.target.value
-                  );
-                  setSelectedEncounter(encounter);
-                }}
-                className="w-full bg-[#1a1814] border-2 border-[#BF883C]/30 text-[#d9ca89] p-3 text-lg font-bold focus:outline-none focus:border-[#d9ca89] transition-all"
-                style={{ fontFamily: "EB Garamond, serif" }}
-              >
-                {encounters.map((encounter) => (
-                  <option key={encounter.id} value={encounter.id}>
-                    {encounter.name} - {encounter.difficulty} (
-                    {encounter.creatures?.length || 0} creatures)
-                  </option>
-                ))}
-              </select>
-            )}
+          {/* Encounter-selection */}
+          <h2 className="text-[var(--primary)] text-sm:2xl md:text-2xl uppercase tracking-widest text-left pb-2">
+            Select Encounter
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {encounters.map((encounter) => {
+              const creatureImage = encounter.creatures?.[0]?.imageURL;
+              const isSelected = selectedEncounter?.id === encounter.id;
 
-            {/* Encounter Info Display */}
-            {selectedEncounter && (
-              <div className="mt-3 p-4 border-2 border-[#BF883C]/30 bg-[#1a1814]/50">
-                <p
-                  className="text-[#d9ca89] font-bold text-lg mb-2"
-                  style={{ fontFamily: "EB Garamond, serif" }}
+              return (
+                <div
+                  key={encounter.id}
+                  onClick={() => setSelectedEncounter(encounter)}
+                  className={`cursor-pointer border-2 p-4 transition-all transform hover:scale-103 hover:shadow-xl relative overflow-hidden ${
+                    isSelected
+                      ? "border-[#d9ca89] bg-[#2a261e]/50 animate-glow"
+                      : "border-[#BF883C]/30 bg-[#1a1814]/40"
+                  }`}
                 >
-                  {selectedEncounter.name}
-                </p>
-                <p
-                  className="text-[#BF883C]/70 text-sm uppercase tracking-wider mb-2"
-                  style={{ fontFamily: "EB Garamond, serif" }}
-                >
-                  {selectedEncounter.difficulty} •{" "}
-                  {selectedEncounter.creatures?.length || 0} Creatures
-                </p>
-                {selectedEncounter.creatures && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedEncounter.creatures.map((creature, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-[#BF883C]/20 text-[#d9ca89] px-2 py-1 border border-[#BF883C]/40"
-                      >
-                        {creature.name}
-                      </span>
-                    ))}
+                  {/* Creature Image on Right */}
+                  {creatureImage && (
+                    <div
+                      className="absolute top-0 right-0 h-full w-1/2 bg-cover bg-center pointer-events-none"
+                      style={{
+                        backgroundImage: `url(${creatureImage})`,
+                        maskImage:
+                          "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%)",
+                        WebkitMaskImage:
+                          "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%)",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskRepeat: "no-repeat",
+                        maskSize: "cover",
+                        WebkitMaskSize: "cover",
+                      }}
+                    ></div>
+                  )}
+
+                  {/* Encounter Info */}
+                  <div className="relative z-10">
+                    <p className="font-bold text-lg text-[var(--primary)]">
+                      {encounter.name}
+                    </p>
+                    <p className="text-sm text-[var(--secondary)]">
+                      {encounter.difficulty} •{" "}
+                      {encounter.creatures?.length || 0} Creatures
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {encounter.creatures?.map((creature, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs bg-transparent text-[var(--secondary)] px-2 py-1 border border-[var(--primary)]"
+                        >
+                          {creature.name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Combat Map Selection */}
-          <div className="mb-6">
-            <label
-              className="block text-[#d9ca89] font-bold mb-3 text-sm uppercase tracking-wider"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
+          <div className="mb-6 mt-15">
+            <h2 className="text-[var(--primary)] text-sm:2xl md:text-2xl uppercase tracking-widest text-left pb-2">
               Select Combat Map
-            </label>
+            </h2>
+
             {combatMaps.length === 0 ? (
               <div className="p-4 border-2 border-red-500/30 bg-red-900/10">
                 <p className="text-red-400 text-sm">
@@ -196,32 +188,38 @@ export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
                 </p>
               </div>
             ) : (
-              <select
-                value={selectedCombatMap?.id || ""}
-                onChange={(e) => {
-                  const map = combatMaps.find((m) => m.id === e.target.value);
-                  setSelectedCombatMap(map);
-                }}
-                className="w-full bg-[#1a1814] border-2 border-[#BF883C]/30 text-[#d9ca89] p-3 text-lg font-bold focus:outline-none focus:border-[#d9ca89] transition-all"
-                style={{ fontFamily: "EB Garamond, serif" }}
-              >
-                {combatMaps.map((map) => (
-                  <option key={map.id} value={map.id}>
-                    {map.name}
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {combatMaps.map((map) => {
+                  const isSelected = selectedCombatMap?.id === map.id;
+
+                  return (
+                    <div
+                      key={map.id}
+                      onClick={() => setSelectedCombatMap(map)}
+                      className={`cursor-pointer border-2 border-[var(--primary)]  overflow-hidden transition-all transform ${
+                        isSelected
+                          ? "border-[var(--primary)] shadow-xl scale-103 animate-glow"
+                          : "border-[var(--secondary)] hover:scale-103"
+                      } relative`}
+                    >
+                      {/* Map Image */}
+                      <img
+                        src={map.image}
+                        alt={map.name}
+                        className="w-full h-40 md:h-48 lg:h-56 object-cover"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 
           {/* Player Count */}
-          <div className="mb-6">
-            <label
-              className="block text-[#d9ca89] font-bold mb-3 text-sm uppercase tracking-wider"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
+          <div className="mb-6 mt-15">
+            <h2 className="text-[var(--primary)] text-sm:2xl md:text-2xl uppercase tracking-widest text-left pb-2">
               Number of Players
-            </label>
+            </h2>
             <div className="flex gap-3">
               {[1, 2, 3, 4, 5].map((count) => (
                 <motion.button
@@ -244,12 +242,6 @@ export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
 
           {/* Player Names and Initiatives */}
           <div className="mb-6">
-            <label
-              className="block text-[#d9ca89] font-bold mb-3 text-sm uppercase tracking-wider"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              Player Details
-            </label>
             <div className="space-y-3">
               {players.map((player, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -364,4 +356,4 @@ export const InitiativeSetup = ({ sessionData, onClose, onStart }) => {
       </motion.div>
     </motion.div>
   );
-};
+}
