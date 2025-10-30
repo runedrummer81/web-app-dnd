@@ -1,13 +1,24 @@
 import { Marker } from "react-leaflet";
 import L from "leaflet";
 import { useMapSync } from "./MapSyncContext";
+import { useCombatState } from "./CombatStateContext";
 
 export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
   const { mapState } = useMapSync();
+  const { initiativeOrder, currentTurnIndex } = useCombatState();
+
+  // Get the current combatant whose turn it is
+  const currentCombatant = initiativeOrder[currentTurnIndex];
 
   // Create custom token icon
-  const createTokenIcon = (imageUrl, size, isPlayer = false) => {
-    const tokenSize = size || 40;
+  const createTokenIcon = (token, isActiveTurn) => {
+    const tokenSize = token.size || 60;
+    const borderColor = token.isPlayer ? "#4ade80" : "#ef4444";
+
+    // Add glow if it's this token's turn
+    const glowStyle = isActiveTurn
+      ? `box-shadow: 0 0 20px 8px ${borderColor}, 0 0 40px 12px ${borderColor}80;`
+      : "";
 
     return L.divIcon({
       className: "custom-token",
@@ -16,14 +27,16 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
           width: ${tokenSize}px;
           height: ${tokenSize}px;
           border-radius: 50%;
-          border: 3px solid ${isPlayer ? "#4ade80" : "#ef4444"};
+          border: 3px solid ${borderColor};
           overflow: hidden;
           background: black;
           box-shadow: 0 0 10px rgba(0,0,0,0.5);
           cursor: ${isDMView ? "grab" : "default"};
+          ${glowStyle}
+          transition: box-shadow 0.3s ease;
         ">
           <img 
-            src="${imageUrl}" 
+            src="${token.imageUrl}" 
             style="
               width: 100%;
               height: 100%;
@@ -38,27 +51,31 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
     });
   };
 
+  // Check if a token matches the current turn
+  const isTokenActiveTurn = (token) => {
+    if (!currentCombatant) return false;
+
+    // Match token name to combatant name
+    return token.name === currentCombatant.name;
+  };
+
   return (
     <>
       {tokens.map((token) => {
-        const icon = createTokenIcon(
-          token.imageUrl,
-          token.size || 60,
-          token.isPlayer
-        );
+        const isActiveTurn = isTokenActiveTurn(token);
+        const icon = createTokenIcon(token, isActiveTurn);
 
         return (
           <Marker
             key={token.id}
             position={token.position}
             icon={icon}
-            draggable={isDMView} // Always draggable for DM, not just in setup mode
+            draggable={isDMView}
             eventHandlers={{
               dragend: (e) => {
                 if (isDMView && onTokenMove) {
                   const marker = e.target;
                   const position = marker.getLatLng();
-                  // No snapping - use exact position
                   onTokenMove(token.id, [position.lat, position.lng]);
                 }
               },
