@@ -299,14 +299,17 @@ export default function NewCampaign() {
                 damping: 20,
               }}
             >
-
-              <div className="border-2 border-[var(--secondary)] overflow-none flex">
+              <div className="border-2 border-[var(--secondary)] overflow-none flex items-center">
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search modules..."
-                  className="text-[var(--primary)] p-3 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition m"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() =>
+                    setTimeout(() => setIsSearchFocused(false), 200)
+                  }
+                  className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-full placeholder:italic transition"
                 />
               </div>
             </motion.div>
