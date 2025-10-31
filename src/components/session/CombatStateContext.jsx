@@ -29,6 +29,10 @@ export const CombatStateProvider = ({ children }) => {
     opacity: 0.3,
     size: 40,
   });
+  const [combatTransition, setCombatTransition] = useState({
+    isVisible: false,
+    type: null,
+  });
 
   useEffect(() => {
     updateMapState({
@@ -37,137 +41,140 @@ export const CombatStateProvider = ({ children }) => {
       combatRound,
     });
   }, [initiativeOrder, currentTurnIndex, combatRound]);
+  useEffect(() => {
+    updateMapState({
+      combatTransition,
+    });
+  }, [combatTransition]);
 
   const startCombat = (encounter, playerData, combatMap) => {
     console.log("🎲 Starting combat with encounter:", encounter);
 
-    updateMapState({
-      currentMapId: combatMap.id,
-      markers: [],
-    });
+    // TRIGGER ENTER COMBAT TRANSITION
+    setCombatTransition({ isVisible: true, type: "enter" });
 
-    const combatants = [];
-
-    // Add players
-    playerData.forEach((player, index) => {
-      combatants.push({
-        id: `player-${index}`,
-        name: player.name,
-        initiative: player.initiative,
-        isPlayer: true,
-        hp: 100,
-        maxHp: 100,
+    // Wait for transition to start before setting up combat
+    setTimeout(() => {
+      updateMapState({
+        currentMapId: combatMap.id,
+        markers: [],
       });
-    });
 
-    // Add creatures with rolled initiatives - EXPLICIT COUNT HANDLING
-    encounter.creatures.forEach((creature, creatureTypeIndex) => {
-      // Make sure we have a count - default to 1 if not present
-      const creatureCount = parseInt(creature.count) || 1;
-      console.log(`📊 Adding ${creatureCount}x ${creature.name}`);
+      const combatants = [];
 
-      for (let i = 0; i < creatureCount; i++) {
-        const initiativeRoll = Math.floor(Math.random() * 20) + 1;
-        const initiative = initiativeRoll + (creature.dexModifier || 0);
-
+      // Add players
+      playerData.forEach((player, index) => {
         combatants.push({
-          id: `creature-${creatureTypeIndex}-${i}`,
-          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
-          initiative,
-          isPlayer: false,
-          hp: creature.hp,
-          maxHp: creature.hp,
-          ac: creature.ac,
-          stats: creature.stats,
-          imageURL: creature.imageURL,
+          id: `player-${index}`,
+          name: player.name,
+          initiative: player.initiative,
+          isPlayer: true,
+          hp: 100,
+          maxHp: 100,
         });
-      }
-    });
-
-    console.log("📋 Total combatants created:", combatants.length);
-    combatants.sort((a, b) => b.initiative - a.initiative);
-
-    setInitiativeOrder(combatants);
-    setCurrentTurnIndex(0);
-    setCombatActive(true);
-    setIsSetupMode(true);
-    setActiveEncounter(encounter);
-    setSelectedCombatMap(combatMap);
-    setPlayerCount(playerData.length);
-
-    // Auto-spawn tokens in the MIDDLE of the map
-    const mapHeight = combatMap.height || 2000;
-    const mapWidth = combatMap.width || 2000;
-    const centerY = mapHeight / 2;
-    const centerX = mapWidth / 2;
-    const tokens = [];
-
-    // Spawn player tokens in a horizontal line above center
-    const playerY = centerY - 150;
-    const playerSpacing = 100;
-    const playerStartX =
-      centerX - ((playerData.length - 1) * playerSpacing) / 2;
-
-    playerData.forEach((player, index) => {
-      tokens.push({
-        id: `token-player-${index}`,
-        name: player.name,
-        imageUrl: "https://via.placeholder.com/100?text=P",
-        position: [playerY, playerStartX + index * playerSpacing],
-        size: 60,
-        isPlayer: true,
       });
-    });
 
-    // Calculate total creature count for spacing
-    // Calculate total creature count for spacing
-    const totalCreatureCount = encounter.creatures.reduce((sum, c) => {
-      return sum + (parseInt(c.count) || 1);
-    }, 0);
+      // Add creatures with rolled initiatives
+      encounter.creatures.forEach((creature, creatureTypeIndex) => {
+        const creatureCount = parseInt(creature.count) || 1;
+        console.log(`📊 Adding ${creatureCount}x ${creature.name}`);
 
-    console.log("🐉 Total creature tokens to spawn:", totalCreatureCount);
+        for (let i = 0; i < creatureCount; i++) {
+          const initiativeRoll = Math.floor(Math.random() * 20) + 1;
+          const initiative = initiativeRoll + (creature.dexModifier || 0);
 
-    // Dynamic spacing based on creature count
-    let creatureSpacing = 100; // default spacing
-    if (totalCreatureCount > 10) {
-      creatureSpacing = 80; // closer together for 11-15 creatures
-    }
-    if (totalCreatureCount > 15) {
-      creatureSpacing = 60; // even closer for 16-20 creatures
-    }
-    if (totalCreatureCount > 20) {
-      creatureSpacing = 50; // very close for 20+ creatures
-    }
+          combatants.push({
+            id: `creature-${creatureTypeIndex}-${i}`,
+            name:
+              creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
+            initiative,
+            isPlayer: false,
+            hp: creature.hp,
+            maxHp: creature.hp,
+            ac: creature.ac,
+            stats: creature.stats,
+            imageURL: creature.imageURL,
+          });
+        }
+      });
 
-    // Spawn creature tokens in a horizontal line below center
-    const creatureY = centerY + 150;
-    const creatureStartX =
-      centerX - ((totalCreatureCount - 1) * creatureSpacing) / 2;
+      console.log("📋 Total combatants created:", combatants.length);
+      combatants.sort((a, b) => b.initiative - a.initiative);
 
-    let globalCreatureIndex = 0;
-    encounter.creatures.forEach((creature, creatureTypeIndex) => {
-      const creatureCount = parseInt(creature.count) || 1;
+      setInitiativeOrder(combatants);
+      setCurrentTurnIndex(0);
+      setCombatActive(true);
+      setIsSetupMode(true);
+      setActiveEncounter(encounter);
+      setSelectedCombatMap(combatMap);
+      setPlayerCount(playerData.length);
 
-      for (let i = 0; i < creatureCount; i++) {
+      // Auto-spawn tokens
+      const mapHeight = combatMap.height || 2000;
+      const mapWidth = combatMap.width || 2000;
+      const centerY = mapHeight / 2;
+      const centerX = mapWidth / 2;
+      const tokens = [];
+
+      // Player tokens
+      const playerY = centerY - 150;
+      const playerSpacing = 100;
+      const playerStartX =
+        centerX - ((playerData.length - 1) * playerSpacing) / 2;
+
+      playerData.forEach((player, index) => {
         tokens.push({
-          id: `token-creature-${creatureTypeIndex}-${i}`,
-          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
-          imageUrl:
-            creature.imageURL || "https://via.placeholder.com/100?text=E",
-          position: [
-            creatureY,
-            creatureStartX + globalCreatureIndex * creatureSpacing,
-          ],
+          id: `token-player-${index}`,
+          name: player.name,
+          imageUrl: "https://via.placeholder.com/100?text=P",
+          position: [playerY, playerStartX + index * playerSpacing],
           size: 60,
-          isPlayer: false,
-          creatureData: creature,
+          isPlayer: true,
         });
-        globalCreatureIndex++;
-      }
-    });
+      });
 
-    console.log("🎭 Total tokens created:", tokens.length);
-    updateMapState({ tokens });
+      // Creature tokens
+      const totalCreatureCount = encounter.creatures.reduce((sum, c) => {
+        return sum + (parseInt(c.count) || 1);
+      }, 0);
+
+      console.log("🐉 Total creature tokens to spawn:", totalCreatureCount);
+
+      let creatureSpacing = 100;
+      if (totalCreatureCount > 10) creatureSpacing = 80;
+      if (totalCreatureCount > 15) creatureSpacing = 60;
+      if (totalCreatureCount > 20) creatureSpacing = 50;
+
+      const creatureY = centerY + 150;
+      const creatureStartX =
+        centerX - ((totalCreatureCount - 1) * creatureSpacing) / 2;
+
+      let globalCreatureIndex = 0;
+      encounter.creatures.forEach((creature, creatureTypeIndex) => {
+        const creatureCount = parseInt(creature.count) || 1;
+
+        for (let i = 0; i < creatureCount; i++) {
+          tokens.push({
+            id: `token-creature-${creatureTypeIndex}-${i}`,
+            name:
+              creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
+            imageUrl:
+              creature.imageURL || "https://via.placeholder.com/100?text=E",
+            position: [
+              creatureY,
+              creatureStartX + globalCreatureIndex * creatureSpacing,
+            ],
+            size: 60,
+            isPlayer: false,
+            creatureData: creature,
+          });
+          globalCreatureIndex++;
+        }
+      });
+
+      console.log("🎭 Total tokens created:", tokens.length);
+      updateMapState({ tokens });
+    }, 300); // Small delay for transition to start
   };
 
   const exitSetupMode = () => {
@@ -175,27 +182,32 @@ export const CombatStateProvider = ({ children }) => {
   };
 
   const endCombat = () => {
-    setCombatActive(false);
-    setIsSetupMode(false);
-    setInitiativeOrder([]);
-    setCurrentTurnIndex(0);
-    setActiveEncounter(null);
-    setSelectedCombatMap(null);
-    setPlayerCount(4);
-    setGridSettings({ ...gridSettings, visible: false });
+    // TRIGGER EXIT COMBAT TRANSITION
+    setCombatTransition({ isVisible: true, type: "exit" });
 
-    // Clear tokens
-    updateMapState({ tokens: [] });
+    // Wait for transition before actually ending combat
+    setTimeout(() => {
+      setCombatActive(false);
+      setIsSetupMode(false);
+      setInitiativeOrder([]);
+      setCurrentTurnIndex(0);
+      setActiveEncounter(null);
+      setSelectedCombatMap(null);
+      setPlayerCount(4);
+      setGridSettings({ ...gridSettings, visible: false });
 
-    setCombatLog((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        type: "combat-end",
-        message: "Combat ended",
-        timestamp: new Date().toLocaleTimeString(),
-      },
-    ]);
+      updateMapState({ tokens: [] });
+
+      setCombatLog((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          type: "combat-end",
+          message: "Combat ended",
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
+    }, 2200); // Wait for exit animation to complete
   };
 
   const addToCombatLog = (entry) => {
@@ -214,7 +226,6 @@ export const CombatStateProvider = ({ children }) => {
     let nextIndex = (currentTurnIndex + 1) % initiativeOrder.length;
     let attempts = 0;
 
-    // Skip dead creatures (with a safety limit to avoid infinite loop)
     while (
       initiativeOrder[nextIndex]?.isDead &&
       attempts < initiativeOrder.length
@@ -223,13 +234,11 @@ export const CombatStateProvider = ({ children }) => {
       attempts++;
     }
 
-    // If we've gone through all combatants and they're all dead, stay on current
     if (attempts >= initiativeOrder.length) {
       console.log("All combatants are dead!");
       return;
     }
 
-    // Check if we've wrapped around to start a new round
     if (nextIndex === 0 || nextIndex < currentTurnIndex) {
       setCombatRound((prev) => prev + 1);
       addToCombatLog({
@@ -269,7 +278,6 @@ export const CombatStateProvider = ({ children }) => {
           });
         }
 
-        // Track who killed who
         if (clampedHp === 0 && oldHp > 0) {
           const killer = initiativeOrder[currentTurnIndex];
           logs.push({
@@ -349,6 +357,9 @@ export const CombatStateProvider = ({ children }) => {
         addToCombatLog,
         rollAttack,
         setGridSettings,
+        // ADD THESE TWO:
+        combatTransition,
+        setCombatTransition,
       }}
     >
       {children}

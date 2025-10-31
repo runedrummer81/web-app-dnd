@@ -44,6 +44,10 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
     initiativeOrder: [],
     currentTurnIndex: 0,
     combatRound: 1,
+    combatTransition: {
+      isVisible: false,
+      type: null,
+    },
   });
 
   const broadcastChannelRef = useRef(null);

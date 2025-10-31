@@ -4,9 +4,30 @@ import { db } from "../firebase";
 import {
   MapSyncProvider,
   RunSessionContext,
+  useMapSync,
 } from "../components/session/MapSyncContext";
 import { CombatStateProvider } from "../components/session/CombatStateContext";
 import { MapDisplay } from "../components/session/MapDisplay";
+import { CombatTransition } from "../components/session/CombatTransition";
+
+// NEW: Wrapper to show transitions from synced state
+const PlayerTransitionWrapper = ({ children }) => {
+  const { mapState } = useMapSync();
+
+  return (
+    <>
+      {children}
+      {/* Show transition from synced mapState */}
+      <CombatTransition
+        type={mapState.combatTransition?.type}
+        isVisible={mapState.combatTransition?.isVisible || false}
+        onComplete={() => {
+          // Player doesn't control transitions, just watches them
+        }}
+      />
+    </>
+  );
+};
 
 export const PlayerView = () => {
   const [mapSetData, setMapSetData] = useState(null);
@@ -84,11 +105,12 @@ export const PlayerView = () => {
       <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
         <MapSyncProvider isDMView={false}>
           <CombatStateProvider>
-            {" "}
-            {/* ← Added this wrapper! */}
-            <div className="w-full h-full bg-black">
-              <MapDisplay />
-            </div>
+            {/* NEW: Wrap with PlayerTransitionWrapper to show transitions */}
+            <PlayerTransitionWrapper>
+              <div className="w-full h-full bg-black">
+                <MapDisplay />
+              </div>
+            </PlayerTransitionWrapper>
           </CombatStateProvider>
         </MapSyncProvider>
       </RunSessionContext.Provider>
