@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useMapSync } from "./MapSyncContext";
 
 const CombatStateContext = createContext();
@@ -29,6 +29,14 @@ export const CombatStateProvider = ({ children }) => {
     opacity: 0.3,
     size: 40,
   });
+
+  useEffect(() => {
+    updateMapState({
+      initiativeOrder,
+      currentTurnIndex,
+      combatRound,
+    });
+  }, [initiativeOrder, currentTurnIndex, combatRound]);
 
   const startCombat = (encounter, playerData, combatMap) => {
     console.log("🎲 Starting combat with encounter:", encounter);
@@ -203,8 +211,26 @@ export const CombatStateProvider = ({ children }) => {
   };
 
   const nextTurn = () => {
-    const nextIndex = (currentTurnIndex + 1) % initiativeOrder.length;
-    if (nextIndex === 0) {
+    let nextIndex = (currentTurnIndex + 1) % initiativeOrder.length;
+    let attempts = 0;
+
+    // Skip dead creatures (with a safety limit to avoid infinite loop)
+    while (
+      initiativeOrder[nextIndex]?.isDead &&
+      attempts < initiativeOrder.length
+    ) {
+      nextIndex = (nextIndex + 1) % initiativeOrder.length;
+      attempts++;
+    }
+
+    // If we've gone through all combatants and they're all dead, stay on current
+    if (attempts >= initiativeOrder.length) {
+      console.log("All combatants are dead!");
+      return;
+    }
+
+    // Check if we've wrapped around to start a new round
+    if (nextIndex === 0 || nextIndex < currentTurnIndex) {
       setCombatRound((prev) => prev + 1);
       addToCombatLog({
         type: "round-end",
@@ -213,6 +239,7 @@ export const CombatStateProvider = ({ children }) => {
         }`,
       });
     }
+
     setCurrentTurnIndex(nextIndex);
   };
 
@@ -242,10 +269,16 @@ export const CombatStateProvider = ({ children }) => {
           });
         }
 
+        // Track who killed who
         if (clampedHp === 0 && oldHp > 0) {
+          const killer = initiativeOrder[currentTurnIndex];
           logs.push({
             type: "death",
-            message: `${c.name} has fallen.`,
+            target: c.name,
+            killer: killer?.name || "Unknown",
+            message: `${c.name} has been slain by ${
+              killer?.name || "Unknown"
+            }!`,
           });
         }
 

@@ -1,21 +1,20 @@
+import { useState } from "react";
 import { Marker } from "react-leaflet";
 import L from "leaflet";
 import { useMapSync } from "./MapSyncContext";
-import { useCombatState } from "./CombatStateContext";
 
 export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
   const { mapState } = useMapSync();
-  const { initiativeOrder, currentTurnIndex } = useCombatState();
 
-  // Get the current combatant whose turn it is
+  // Get initiative order from mapState (synced via broadcast)
+  const initiativeOrder = mapState.initiativeOrder || [];
+  const currentTurnIndex = mapState.currentTurnIndex || 0;
   const currentCombatant = initiativeOrder[currentTurnIndex];
 
-  // Create custom token icon
-  const createTokenIcon = (token, isActiveTurn) => {
+  const createTokenIcon = (token, isActiveTurn, isDead) => {
     const tokenSize = token.size || 60;
     const borderColor = token.isPlayer ? "#4ade80" : "#ef4444";
 
-    // Add glow if it's this token's turn
     const glowStyle = isActiveTurn
       ? `box-shadow: 0 0 20px 8px ${borderColor}, 0 0 40px 12px ${borderColor}80;`
       : "";
@@ -27,23 +26,28 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
           width: ${tokenSize}px;
           height: ${tokenSize}px;
           border-radius: 50%;
-          border: 3px solid ${borderColor};
+          border: 3px solid ${isDead ? "#666" : borderColor};
           overflow: hidden;
-          background: black;
+          background: ${isDead ? "#333" : "black"};
           box-shadow: 0 0 10px rgba(0,0,0,0.5);
-          cursor: ${isDMView ? "grab" : "default"};
+          cursor: ${isDMView ? "pointer" : "default"};
           ${glowStyle}
           transition: box-shadow 0.3s ease;
+          opacity: ${isDead ? "0.6" : "1"};
         ">
-          <img 
-            src="${token.imageUrl}" 
-            style="
-              width: 100%;
-              height: 100%;
-              object-fit: cover;
-              pointer-events: none;
-            "
-          />
+          ${
+            isDead
+              ? '<div style="font-size: 40px; display: flex; align-items: center; justify-content: center; height: 100%;">💀</div>'
+              : `<img 
+                src="${token.imageUrl}" 
+                style="
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  pointer-events: none;
+                "
+              />`
+          }
         </div>
       `,
       iconSize: [tokenSize, tokenSize],
@@ -51,29 +55,41 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
     });
   };
 
-  // Check if a token matches the current turn
   const isTokenActiveTurn = (token) => {
     if (!currentCombatant) return false;
-
-    // Match token name to combatant name
     return token.name === currentCombatant.name;
+  };
+
+  // Check if token is dead from synced initiative order
+  const isTokenDead = (token) => {
+    const combatant = initiativeOrder.find((c) => c.name === token.name);
+    return combatant?.isDead || false;
   };
 
   return (
     <>
       {tokens.map((token) => {
         const isActiveTurn = isTokenActiveTurn(token);
-        const icon = createTokenIcon(token, isActiveTurn);
+        const isDead = isTokenDead(token);
+        const icon = createTokenIcon(token, isActiveTurn, isDead);
 
         return (
           <Marker
             key={token.id}
             position={token.position}
             icon={icon}
-            draggable={isDMView}
+            draggable={isDMView && !isDead}
             eventHandlers={{
+              click: () => {
+                if (isDMView) {
+                  const event = new CustomEvent("tokenClicked", {
+                    detail: { token },
+                  });
+                  window.dispatchEvent(event);
+                }
+              },
               dragend: (e) => {
-                if (isDMView && onTokenMove) {
+                if (isDMView && onTokenMove && !isDead) {
                   const marker = e.target;
                   const position = marker.getLatLng();
                   onTokenMove(token.id, [position.lat, position.lng]);
