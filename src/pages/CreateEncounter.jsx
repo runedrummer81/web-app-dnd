@@ -14,6 +14,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import DeletePopup from "../components/DeletePopup";
 
 export default function CreateEncounters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -771,47 +772,22 @@ ${
           </motion.div>
         )}
       </AnimatePresence>
-      <AnimatePresence>
-        {deleteConfirm.open && (
-          <motion.div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-[var(--dark-muted-bg)] border border-[var(--secondary)] p-8 text-center shadow-xl max-w-sm mx-auto"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <h3 className="text-2xl text-[var(--primary)] font-bold mb-4">
-                Delete Encounter?
-              </h3>
-              <p className="text-[var(--secondary)] mb-6">
-                Are you sure you want to delete this encounter?
-              </p>
-              <div className="flex justify-center gap-6">
-                <button
-                  onClick={confirmDelete}
-                  className="px-6 py-2 bg-red-600 hover:bg-red-500 text-black font-bold transition hover:cursor-pointer"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() =>
-                    setDeleteConfirm({ open: false, encounterId: null })
-                  }
-                  className="px-6 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-black font-bold transition hover:cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+<AnimatePresence>
+  {deleteConfirm.open && (
+    <motion.div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <DeletePopup
+        confirmDelete={confirmDelete}
+        setDeleteConfirm={setDeleteConfirm}
+      />
+    </motion.div>
+  )}
+</AnimatePresence>
+
     </motion.div>
   );
 }
