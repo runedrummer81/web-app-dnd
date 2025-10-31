@@ -13,6 +13,8 @@ import { ConfirmEndSessionModal } from "../components/session/ConfirmEndSessionM
 import { db } from "../firebase";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import BorderRunSession from "../components/session/BorderRunSession";
+import { CombatTransition } from "../components/session/CombatTransition";
+import { useCombatState } from "../components/session/CombatStateContext";
 
 const DMPanelWrapper = ({
   sessionId,
@@ -40,13 +42,8 @@ const DMPanelWrapper = ({
   };
 
   const handleEndCombat = () => {
-  updateMapState({ currentMapId: "world", markers: [] });
-  // Vi returnerer 'overview' signal som DMPanel kan bruge
-};
-
-
-
-
+    updateMapState({ currentMapId: "world", markers: [] });
+  };
 
   return (
     <DMPanel
@@ -64,6 +61,22 @@ const DMPanelWrapper = ({
       onEndCombat={handleEndCombat}
       onRequestEndSessionConfirm={onRequestEndSessionConfirm}
     />
+  );
+};
+
+// NEW: Wrapper component that can use useCombatState
+const CombatWrapper = ({ children }) => {
+  const { combatTransition, setCombatTransition } = useCombatState();
+
+  return (
+    <>
+      {children}
+      <CombatTransition
+        type={combatTransition.type}
+        isVisible={combatTransition.isVisible}
+        onComplete={() => setCombatTransition({ isVisible: false, type: null })}
+      />
+    </>
   );
 };
 
@@ -99,7 +112,6 @@ const RunSession = ({ sessionId, mapSetData }) => {
   useEffect(() => {
     if (!sessionId) return;
 
-    // Listen for real-time updates from Firestore
     const unsub = onSnapshot(doc(db, "Sessions", sessionId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -115,12 +127,10 @@ const RunSession = ({ sessionId, mapSetData }) => {
     return () => unsub();
   }, [sessionId]);
 
-  // DENNE ER NY - Handler for at afslutte session
   const handleEndSession = async () => {
     try {
       console.log("🔚 Starting end session process...");
 
-      // 1. Luk player window først
       if (playerWindowRef && !playerWindowRef.closed) {
         console.log("🪟 Closing player window...");
         playerWindowRef.close();
@@ -128,25 +138,21 @@ const RunSession = ({ sessionId, mapSetData }) => {
       setPlayerWindowRef(null);
       setIsPlayerWindowOpen(false);
 
-      // 2. Gem noter
       console.log("💾 Saving session notes...");
       await updateDoc(doc(db, "Sessions", sessionId), {
         sessionNotes: quickNotes,
         endedAt: new Date(),
       });
 
-      // 3. Luk modal
       console.log("❌ Closing modal...");
       setShowEndSessionConfirm(false);
 
-      // 4. Vent lidt så cleanup kan køre
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // 5. Naviger
       console.log("🚀 Navigating to /session...");
-      navigate("/session", { 
+      navigate("/session", {
         state: { campaignId: sessionData.campaignId },
-        replace: true // Brug replace så back-button ikke går til RunSession
+        replace: true,
       });
     } catch (err) {
       console.error("❌ Error ending session:", err);
@@ -172,45 +178,44 @@ const RunSession = ({ sessionId, mapSetData }) => {
   return (
     <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
       <MapSyncProvider isDMView={true}>
-        <ConfirmEndSessionModal
-          show={showEndSessionConfirm}
-          onCancel={() => setShowEndSessionConfirm(false)}
-          onConfirm={handleEndSession}
-        />
-        {/* Epic Player Display Button - Only show if not opened */}
-        {!isPlayerWindowOpen && (
-          <PlayerDisplayButton onClick={openPlayerDisplay} />
-        )}
         <CombatStateProvider>
-          <div className="w-screen h-screen flex bg-black overflow-hidden">
-            {/* Map Display - Left Side */}
-            <div className=" lg:block lg:w-[65%] h-full">
-              <MapDisplay className=" w-full h-full"/>
-            </div>
+          {/* NOW the CombatWrapper can use useCombatState */}
+          <CombatWrapper>
+            <ConfirmEndSessionModal
+              show={showEndSessionConfirm}
+              onCancel={() => setShowEndSessionConfirm(false)}
+              onConfirm={handleEndSession}
+            />
+            {!isPlayerWindowOpen && (
+              <PlayerDisplayButton onClick={openPlayerDisplay} />
+            )}
+            <div className="w-screen h-screen flex bg-black overflow-hidden">
+              {/* Map Display - Left Side */}
+              <div className="lg:block lg:w-[65%] h-full">
+                <MapDisplay className="w-full h-full" />
+              </div>
 
-            {/* DM Info Box - Right Side */}
-            <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
-              {/* Art Deco Border Frame */}
-              <BorderRunSession />
+              {/* DM Info Box - Right Side */}
+              <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
+                <BorderRunSession />
 
-              {/* Content inside the border frame */}
-              <div className={`absolute inset-0 flex flex-col `}>
-                {/* DM Panel Content - Takes full space when button is hidden */}
-                <div className={`flex-1 overflow-hidden `}>
-                  <DMPanelWrapper
-                    sessionId={sessionId}
-                    sessionData={sessionData}
-                    mapSetData={mapSetData}
-                    isPlayerWindowOpen={isPlayerWindowOpen}
-                    onEndSessionClick={handleShowEndSessionConfirm}
-                    quickNotes={quickNotes}
-                    setQuickNotes={setQuickNotes}
-                    onRequestEndSessionConfirm={handleShowEndSessionConfirm}
-                  />
+                <div className="absolute inset-0 flex flex-col">
+                  <div className="flex-1 overflow-hidden">
+                    <DMPanelWrapper
+                      sessionId={sessionId}
+                      sessionData={sessionData}
+                      mapSetData={mapSetData}
+                      isPlayerWindowOpen={isPlayerWindowOpen}
+                      onEndSessionClick={handleShowEndSessionConfirm}
+                      quickNotes={quickNotes}
+                      setQuickNotes={setQuickNotes}
+                      onRequestEndSessionConfirm={handleShowEndSessionConfirm}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </CombatWrapper>
         </CombatStateProvider>
       </MapSyncProvider>
     </RunSessionContext.Provider>
