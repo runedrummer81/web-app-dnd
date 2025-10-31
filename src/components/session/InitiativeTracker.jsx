@@ -242,20 +242,21 @@ export const InitiativeTracker = () => {
             displayedCombatant.imageURL !== "/placeholder.png" && (
               <>
                 <div
-                  className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+                  className="absolute top-0 right-0 h-full w-80 bg-cover bg-no-repeat"
                   style={{
                     backgroundImage: `url('${displayedCombatant.imageURL}')`,
-                    opacity: displayedCombatant.isDead ? 0.05 : 0.15,
-                    filter: "blur(3px)",
+                    backgroundPosition: "center center",
+                    opacity: displayedCombatant.isDead ? 0.05 : 0.6,
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/85 to-black/60" />
+
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/100 to-transparent pointer-events-none" />
               </>
             )}
 
           <div className="relative z-10">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-[var(--primary)]/30">
+            <div className="flex justify-between items-center p-4 ">
               <div>
                 <div className="flex items-center gap-3">
                   <h3
@@ -325,11 +326,11 @@ export const InitiativeTracker = () => {
 
             {/* CREATURE CONTROLS */}
             {!displayedCombatant.isPlayer && (
-              <div className="grid grid-cols-2 gap-4 p-4">
+              <div className="grid grid-cols-2 gap-6 p-4">
                 {/* LEFT COLUMN */}
                 <div className="space-y-4">
                   {/* HP & Quick Stats */}
-                  <div className="bg-black/40 border border-[var(--primary)]/30 p-4">
+                  <div className="">
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <p className="text-xs text-[var(--secondary)] uppercase mb-1">
@@ -374,11 +375,11 @@ export const InitiativeTracker = () => {
                           updateCreatureHp(displayedCombatant.id, newHp);
                           setHpChange(0);
                         }}
-                        className="flex-1 py-2 bg-red-700 hover:bg-red-600 text-white font-bold text-sm uppercase border border-red-500"
+                        className="flex-1 py-2 text-[var(--combat)]  font-black text-xs uppercase "
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        − Damage
+                        Damage
                       </motion.button>
                       <input
                         type="number"
@@ -389,8 +390,9 @@ export const InitiativeTracker = () => {
                           const value = Number(e.target.value);
                           setHpChange(isNaN(value) ? 0 : value);
                         }}
-                        className="w-16 border-2 border-[var(--primary)] bg-black/50 text-[var(--primary)] text-center text-base font-bold outline-none py-2"
+                        className="no-arrows w-16 border-2 border-[var(--primary)] bg-black/50 text-[var(--primary)] text-center text-base font-bold outline-none py-2"
                       />
+
                       <motion.button
                         onClick={() => {
                           const currentHp =
@@ -402,41 +404,47 @@ export const InitiativeTracker = () => {
                           updateCreatureHp(displayedCombatant.id, newHp);
                           setHpChange(0);
                         }}
-                        className="flex-1 py-2 bg-green-700 hover:bg-green-600 text-white font-bold text-sm uppercase border border-green-500"
+                        className="flex-1 py-2 text-green-600 font-black text-xs uppercase "
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        + Heal
+                        Heal
                       </motion.button>
                     </div>
                   </div>
 
                   {/* Stats/Traits Tabs */}
-                  <div className="bg-black/40 border border-[var(--primary)]/30">
-                    <div className="flex border-b border-[var(--primary)]/30">
+                  <div className="bg-black/40">
+                    <div className="flex gap-4">
                       <button
-                        onClick={() => setActiveTab("stats")}
-                        className={`flex-1 py-2 text-sm font-bold uppercase ${
+                        onClick={() =>
+                          setActiveTab(activeTab === "stats" ? null : "stats")
+                        }
+                        className={`flex-1 py-2 text-sm border-1 font-bold uppercase border-[var(--secondary)] ${
                           activeTab === "stats"
-                            ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                            : "text-[var(--secondary)] hover:text-[var(--primary)]"
+                            ? "bg-[var(--primary)] text-[var(--dark-muted-bg)] border-[var(--primary)]"
+                            : "text-[var(--secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)]"
                         }`}
                       >
                         Stats
                       </button>
-                      {displayedCombatant.traits &&
-                        displayedCombatant.traits.length > 0 && (
-                          <button
-                            onClick={() => setActiveTab("traits")}
-                            className={`flex-1 py-2 text-sm font-bold uppercase border-l border-[var(--primary)]/30 ${
-                              activeTab === "traits"
-                                ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                                : "text-[var(--secondary)] hover:text-[var(--primary)]"
-                            }`}
-                          >
-                            Traits
-                          </button>
-                        )}
+
+                      {displayedCombatant.traits?.length > 0 && (
+                        <button
+                          onClick={() =>
+                            setActiveTab(
+                              activeTab === "traits" ? null : "traits"
+                            )
+                          }
+                          className={`flex-1 py-2 text-sm border-1 font-bold uppercase border-[var(--secondary)] ${
+                            activeTab === "traits"
+                              ? "bg-[var(--primary)] text-[var(--dark-muted-bg)] border-[var(--primary)]"
+                              : "text-[var(--secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)]"
+                          }`}
+                        >
+                          Traits
+                        </button>
+                      )}
                     </div>
 
                     <div className="p-3 max-h-60 overflow-y-auto">
@@ -472,13 +480,13 @@ export const InitiativeTracker = () => {
                       )}
 
                       {activeTab === "traits" && displayedCombatant.traits && (
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-3">
                           {displayedCombatant.traits.map((trait, idx) => (
-                            <div key={idx}>
-                              <p className="text-[var(--primary)] font-bold text-sm mb-1">
+                            <div key={idx} className="text-center">
+                              <p className="text-xs text-[var(--secondary)] uppercase mb-1">
                                 {trait.name}
                               </p>
-                              <p className="text-[var(--secondary)] text-sm leading-relaxed">
+                              <p className="text-sm font-bold text-[var(--primary)]">
                                 {trait.description}
                               </p>
                             </div>
@@ -565,8 +573,8 @@ export const InitiativeTracker = () => {
                 </div>
 
                 {/* RIGHT COLUMN - Actions */}
-                <div className="bg-black/40 border border-[var(--primary)]/30 p-3">
-                  <h4 className="text-[var(--primary)] font-bold uppercase text-sm mb-3 pb-2 border-b border-[var(--primary)]/30">
+                <div className="">
+                  <h4 className="text-[var(--secondary)] uppercase text-xs pb-2">
                     Actions
                   </h4>
                   <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
@@ -579,12 +587,9 @@ export const InitiativeTracker = () => {
                         const isAttack = toHit !== 0 || damageDice;
 
                         return (
-                          <div
-                            key={idx}
-                            className="border border-[var(--primary)]/40 bg-black/30 p-3 hover:border-[var(--primary)] transition"
-                          >
+                          <div key={idx} className="  transition">
                             <div className="flex items-start justify-between gap-2 mb-2">
-                              <p className="text-[var(--primary)] font-bold uppercase text-base flex-1">
+                              <p className="text-[var(--primary)] font-black uppercase text-base flex-1">
                                 {action.name}
                               </p>
                               {isAttack &&
@@ -592,11 +597,11 @@ export const InitiativeTracker = () => {
                                 !displayedCombatant.isDead && (
                                   <motion.button
                                     onClick={() => handleAttackRoll(action)}
-                                    className="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold uppercase border border-red-500 whitespace-nowrap"
+                                    className="px-3 py-1 bg-[var(--combat)] text-white text-xs font-bold uppercase "
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                   >
-                                    ⚔️ Attack
+                                    Attack
                                   </motion.button>
                                 )}
                             </div>

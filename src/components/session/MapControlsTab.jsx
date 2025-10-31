@@ -1,10 +1,15 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMapSync, RunSessionContext } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { useContext, useState, useEffect } from "react";
 import ActionButton from "../ActionButton";
 
-export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, updateMapState } = useMapSync();
+export const MapControlsTab = ({
+  onStartCombat,
+  weather = {},
+  onWeatherChange,
+}) => {
+  const { mapState, updateMapState } = useMapSync();
   const { isSetupMode, exitSetupMode, activeEncounter, playerCount } =
     useCombatState();
   const runSessionContext = useContext(RunSessionContext);
@@ -48,9 +53,9 @@ export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, update
       });
     }
   }, []); // run once on mount
-  
 
   const [recentColors, setRecentColors] = useState([]);
+  const [weatherOpen, setWeatherOpen] = useState(false);
 
   // Initialize recentColors with the current color
   useEffect(() => {
@@ -94,9 +99,29 @@ export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, update
 
   const handleStartCombat = () => {
     if (isSetupMode) exitSetupMode();
-    if (onStartCombat) onStartCombat(); // this now works!
+    if (onStartCombat) onStartCombat();
   };
-  
+
+  const toggleWeather = (type) => {
+    if (type === "timeOfDay") {
+      onWeatherChange({
+        ...weather,
+        timeOfDay: weather.timeOfDay === "day" ? "night" : "day",
+        aurora: weather.timeOfDay === "day" ? weather.aurora : false,
+      });
+    } else {
+      onWeatherChange({
+        ...weather,
+        [type]: !weather[type],
+      });
+    }
+  };
+
+  const activeWeatherCount = [
+    weather.timeOfDay === "night",
+    weather.snow,
+    weather.aurora,
+  ].filter(Boolean).length;
 
   if (!currentMap.isCombat) {
     return (
@@ -265,38 +290,10 @@ export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, update
             </div>
           </section>
 
-          
-
-          {/* Grid Opacity */}
-          <section>
-            <h3 className="text-[var(--secondary)] uppercase tracking-wider text-sm">
-              Grid Opacity
-            </h3>
-            <div>
-              <div className="text-center">
-                <span className="text-2xl font-bold text-[var(--primary)]">
-                  {Math.round(gridSettings.opacity * 100)}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.1"
-                max="1"
-                step="0.1"
-                value={gridSettings.opacity}
-                onChange={handleOpacityChange}
-                className="w-full h-1 bg-[var(--secondary)]/30 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
-              />
-            </div>
-          </section>
-
           {/* Grid Color */}
           <section>
-            <h3 className="text-[var(--secondary)] uppercase mb-3 text-sm">
-              Grid Color
-            </h3>
             <div className="flex flex-row justify-between">
-              <div className="flex flex-row gap-3 mb-3">
+              <div className="flex flex-row gap-3">
                 <input
                   type="color"
                   value={gridSettings.color}
@@ -356,8 +353,167 @@ export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, update
               </div>
             </div>
           </section>
+          {/* Grid Opacity */}
+          <section>
+            <div>
+              <div className="text-center">
+                <span className="text-2xl font-bold text-[var(--primary)]">
+                  {Math.round(gridSettings.opacity * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.1"
+                value={gridSettings.opacity}
+                onChange={handleOpacityChange}
+                className="w-full h-1 bg-[var(--secondary)]/30 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
+              />
+            </div>
+          </section>
         </motion.div>
       )}
+
+      {/* ATMOSPHERE & WEATHER */}
+      <section className="relative">
+        <button
+          onClick={() => setWeatherOpen(!weatherOpen)}
+          className="w-full p-4 transition-all duration-300 flex items-center justify-between group"
+        >
+          <div className="text-left">
+            <h2
+              className={`text-base font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                weatherOpen
+                  ? "text-[var(--primary)]"
+                  : "text-[var(--secondary)]"
+              }`}
+            >
+              Atmosphere & Weather
+            </h2>
+            {activeWeatherCount > 0 && (
+              <p className="text-xs text-[#BF883C]/70 uppercase tracking-wider mt-1">
+                {activeWeatherCount} effect
+                {activeWeatherCount > 1 ? "s" : ""} active
+              </p>
+            )}
+          </div>
+
+          <motion.svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            className="text-[#BF883C] transition-colors duration-300"
+            animate={{ rotate: weatherOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <path
+              d="M 5,7 L 10,12 L 15,7"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="square"
+            />
+          </motion.svg>
+        </button>
+
+        <AnimatePresence>
+          {weatherOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Day/Night Button */}
+                  <motion.button
+                    onClick={() => toggleWeather("timeOfDay")}
+                    className={`p-4 border transition-all duration-300 border-[var(--secondary)] ${
+                      weather.timeOfDay === "night"
+                        ? "bg-blue-900/20"
+                        : "bg-yellow-500/20"
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div
+                      className="text-sm font-bold uppercase tracking-wider"
+                      style={{
+                        fontFamily: "EB Garamond, serif",
+                        color:
+                          weather.timeOfDay === "night" ? "#93c5fd" : "#fef08a",
+                      }}
+                    >
+                      {weather.timeOfDay === "night" ? "Night" : "Day"}
+                    </div>
+                  </motion.button>
+
+                  {/* Snow Button */}
+                  <motion.button
+                    onClick={() => toggleWeather("snow")}
+                    className={`p-4 border transition-all duration-300 border-[var(--secondary)] ${
+                      weather.snow ? "bg-blue-100/20" : "bg-[#151612]/50"
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div
+                      className="text-sm font-bold uppercase tracking-wider"
+                      style={{
+                        fontFamily: "EB Garamond, serif",
+                        color: weather.snow ? "#f0f9ff" : "#BF883C",
+                      }}
+                    >
+                      Snow {weather.snow ? "On" : "Off"}
+                    </div>
+                  </motion.button>
+
+                  {/* Aurora Button */}
+                  <motion.button
+                    onClick={() => toggleWeather("aurora")}
+                    disabled={weather.timeOfDay === "day"}
+                    className={`p-4 border transition-all duration-300 col-span-2 ${
+                      weather.timeOfDay === "day"
+                        ? "border-gray-700 bg-gray-800/20 opacity-50 cursor-not-allowed"
+                        : weather.aurora
+                        ? "border-purple-400 bg-purple-500/20"
+                        : "border-[#BF883C]/30 bg-[#151612]/50"
+                    }`}
+                    whileHover={
+                      weather.timeOfDay !== "day" ? { scale: 1.02 } : {}
+                    }
+                    whileTap={
+                      weather.timeOfDay !== "day" ? { scale: 0.98 } : {}
+                    }
+                  >
+                    <div
+                      className="text-sm font-bold uppercase tracking-wider"
+                      style={{
+                        fontFamily: "EB Garamond, serif",
+                        color:
+                          weather.timeOfDay === "day"
+                            ? "#6b7280"
+                            : weather.aurora
+                            ? "#c4b5fd"
+                            : "#BF883C",
+                      }}
+                    >
+                      {weather.timeOfDay === "day"
+                        ? "Aurora (Night Only)"
+                        : weather.aurora
+                        ? "Aurora On"
+                        : "Aurora Off"}
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
 
       {/* Token Management */}
       <section className="border-t border-[var(--secondary)]/30 pt-6">
