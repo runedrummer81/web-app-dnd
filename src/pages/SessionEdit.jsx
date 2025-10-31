@@ -1,22 +1,20 @@
-// SessionEdit.jsx - D&D STYLED VERSION
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { getAuth } from "firebase/auth";
 import {
   doc,
   getDoc,
   updateDoc,
+  setDoc,
   collection,
   getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import DiceThrower from "../components/DiceThrower";
 import MapBrowserModal from "../components/MapBrowserModal";
 import EncounterBrowserModal from "../components/EncounterBrowserModal";
 import { motion } from "framer-motion";
 import ArrowButton from "../components/ArrowButton";
-import { useRef } from "react";
 import UnsavedModal from "../components/UnsavedModal";
 
 export default function SessionEdit() {
@@ -27,9 +25,9 @@ export default function SessionEdit() {
   const [visibleEncounters, setVisibleEncounters] = useState(5);
 
   const [sessionData, setSessionData] = useState(null);
+  const [isDraft, setIsDraft] = useState(false);
   const [encounters, setEncounters] = useState([]);
   const [combatMaps, setCombatMaps] = useState([]);
-  const [worldMap, setWorldMap] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showEncounterModal, setShowEncounterModal] = useState(false);
   const [creatureImages, setCreatureImages] = useState({});
@@ -68,10 +66,34 @@ export default function SessionEdit() {
   );
 
   const sessionId = location.state?.sessionId;
+  const draftData = location.state?.isDraft ? location.state : null;
 
   useEffect(() => {
+    // Hvis det er en draft
+    if (draftData && draftData.isDraft) {
+      console.log("📝 Creating new draft session");
+      setIsDraft(true);
+      
+      const newSessionData = {
+        title: `Session ${draftData.sessNr}`,
+        campaignId: draftData.campaignId,
+        sessNr: draftData.sessNr,
+        dmNotes: "",
+        notesHeadline: "",
+        encounters: [],
+        combatMaps: [],
+      };
+      
+      setSessionData(newSessionData);
+      setOriginalSessionData(newSessionData);
+      setEncounters([]);
+      setCombatMaps([]);
+      return;
+    }
+
+    // Hvis det er en eksisterende session
     if (!sessionId) {
-      console.warn("No sessionId found — redirect ");
+      console.warn("No sessionId found — redirect");
       navigate("/session");
       return;
     }
@@ -82,24 +104,11 @@ export default function SessionEdit() {
         const sessionSnap = await getDoc(sessionRef);
         if (sessionSnap.exists()) {
           const data = sessionSnap.data();
-
           setSessionData(data);
-          setOriginalSessionData(data); // gem originalen
+          setOriginalSessionData(data);
           setEncounters(data.encounters || []);
           setCombatMaps(data.combatMaps || []);
-
-          if (data.campaignId) {
-            const campaignRef = doc(db, "Campaigns", data.campaignId);
-            const campaignSnap = await getDoc(campaignRef);
-            const templateId = campaignSnap.data().templateId;
-            if (templateId) {
-              const templateRef = doc(db, "Templates", templateId);
-              const templateSnap = await getDoc(templateRef);
-              if (templateSnap.exists()) {
-                setWorldMap(templateSnap.data().worldMap || null);
-              }
-            }
-          }
+          setIsDraft(false);
         }
       } catch (err) {
         console.error("couldn't find session:", err);
@@ -107,7 +116,7 @@ export default function SessionEdit() {
     }
 
     fetchSession();
-  }, [sessionId, navigate]);
+  }, [sessionId, draftData, navigate]);
 
   useEffect(() => {
     async function fetchCreatureImages() {
@@ -144,8 +153,20 @@ export default function SessionEdit() {
     }
   }, [encounters]);
 
-  // Track changes når data ændres
+  // Track changes - KUN hvis IKKE draft
   useEffect(() => {
+    if (isDraft) {
+      // For drafts, kun marker som changed hvis de faktisk har lavet noget
+      const hasContent = 
+        (sessionData?.dmNotes && sessionData.dmNotes.trim() !== "") ||
+        (sessionData?.notesHeadline && sessionData.notesHeadline.trim() !== "") ||
+        encounters.length > 0 ||
+        combatMaps.length > 0;
+      
+      setHasUnsavedChanges(hasContent);
+      return;
+    }
+
     if (!originalSessionData) return;
 
     const notesChanged = sessionData?.dmNotes !== originalSessionData.dmNotes;
@@ -161,9 +182,9 @@ export default function SessionEdit() {
     const changed =
       notesChanged || headlineChanged || encountersChanged || mapsChanged;
     setHasUnsavedChanges(changed);
-  }, [sessionData, encounters, combatMaps, originalSessionData]);
+  }, [sessionData, encounters, combatMaps, originalSessionData, isDraft]);
 
-  // Lyt efter navigation attempts fra Nav
+  // Navigation listener
   useEffect(() => {
     const handleNavigationEvent = () => {
       if (hasUnsavedChanges) {
@@ -201,24 +222,57 @@ export default function SessionEdit() {
 
   const handleSave = async () => {
     if (!sessionData.notesHeadline || sessionData.notesHeadline.trim() === "") {
-      // Trigger shake + flash
       setHeadlineError(true);
-      setTimeout(() => setHeadlineError(false), 600); // reset after animation
+      setTimeout(() => setHeadlineError(false), 600);
       return;
     }
 
     try {
-      const sessionRef = doc(db, "Sessions", sessionId);
+      // Hvis det er en draft, opret ny session
+      if (isDraft) {
+        const newSessionId = `${sessionData.campaignId}_sess_${sessionData.sessNr
+          .toString()
+          .padStart(3, "0")}`;
 
-      await updateDoc(sessionRef, {
-        dmNotes: sessionData.dmNotes,
-        notesHeadline: sessionData.notesHeadline,
-        encounters,
-        combatMaps,
-        lastEdited: new Date(),
-      });
+        await setDoc(doc(db, "Sessions", newSessionId), {
+          title: sessionData.title,
+          campaignId: sessionData.campaignId,
+          sessNr: sessionData.sessNr,
+          dmNotes: sessionData.dmNotes,
+          notesHeadline: sessionData.notesHeadline,
+          encounters,
+          combatMaps,
+          createdAt: new Date(),
+          lastEdited: new Date(),
+        });
 
-      console.log("Session saved");
+        // Opdater campaign sessions count
+        const campaignRef = doc(db, "Campaigns", sessionData.campaignId);
+        const q = query(
+          collection(db, "Sessions"),
+          where("campaignId", "==", sessionData.campaignId)
+        );
+        const snapshot = await getDocs(q);
+        await updateDoc(campaignRef, {
+          sessionsCount: snapshot.docs.length + 1,
+          lastOpened: new Date(),
+        });
+
+        console.log("✅ New session created:", newSessionId);
+      } else {
+        // Opdater eksisterende session
+        const sessionRef = doc(db, "Sessions", sessionId);
+        await updateDoc(sessionRef, {
+          dmNotes: sessionData.dmNotes,
+          notesHeadline: sessionData.notesHeadline,
+          encounters,
+          combatMaps,
+          lastEdited: new Date(),
+        });
+
+        console.log("✅ Session updated:", sessionId);
+      }
+
       navigate("/session", {
         state: {
           campaignId: sessionData.campaignId,
@@ -226,14 +280,13 @@ export default function SessionEdit() {
         },
       });
     } catch (err) {
-      console.error("error:", err);
+      console.error("❌ Error saving session:", err);
     }
   };
 
-  //Modal handlers
   const handleSaveAndNavigate = async () => {
     await handleSave();
-    setShowUnsavedModal(false); // Navigate sker allerede i handleSave
+    setShowUnsavedModal(false);
   };
 
   const handleContinueWithoutSaving = () => {
@@ -244,13 +297,6 @@ export default function SessionEdit() {
     }
   };
 
-  // if (!sessionData)
-  //   return (
-  //     <p className="text-center mt-20 text-[var(--primary)]">
-  //       Loading session...
-  //     </p>
-  //   );
-
   const displayedMaps = combatMaps.slice(0, 3);
   const extraMapsCount = combatMaps.length - 3;
 
@@ -260,12 +306,11 @@ export default function SessionEdit() {
 
       const containerTop =
         encountersContainerRef.current.getBoundingClientRect().top;
-      const availableHeight = window.innerHeight - containerTop - 20; // adjust padding if needed
+      const availableHeight = window.innerHeight - containerTop - 20;
 
-      const cardHeight = 140; // approximate height of each card
+      const cardHeight = 140;
       let count = Math.max(1, Math.floor(availableHeight / cardHeight));
 
-      // Make it odd
       if (count % 2 === 0) {
         count = Math.max(1, count - 1);
       }
@@ -287,8 +332,18 @@ export default function SessionEdit() {
         </p>
       ) : (
         <>
+          {/* Draft indicator */}
+          {isDraft && (
+            <motion.div 
+              className="text-[var(--secondary)] text-center text-sm italic"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              ✨ Creating new session - remember to save!
+            </motion.div>
+          )}
+
           <div className="flex gap-8 flex-1">
-            {" "}
             {/* Notes Section */}
             <motion.section
               className="flex flex-col flex-1"
@@ -297,18 +352,15 @@ export default function SessionEdit() {
               transition={{ duration: 0.6 }}
             >
               <div className="flex justify-between items-center mb-2 select-none">
-                <h3 className="text-lg uppercase tracking-widest ">Notes</h3>
+                <h3 className="text-lg uppercase tracking-widest">Notes</h3>
               </div>
 
               <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 overflow-hidden text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
-                {" "}
-                {/* Corner Arrows */}
-                <>
-                  <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-                  <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-                  <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-                  <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-                </>
+                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
+                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
+                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
+                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+                
                 <div className="flex flex-row">
                   <motion.input
                     type="text"
@@ -320,14 +372,12 @@ export default function SessionEdit() {
                       })
                     }
                     placeholder="Add Headline..."
-                    className={`p-2 text-[var(--primary)] outline-none text-2xl uppercase font-bold bg-transparent ${
-                      headlineError ? "" : ""
-                    }`}
+                    className={`p-2 text-[var(--primary)] outline-none text-2xl uppercase font-bold bg-transparent`}
                     animate={
                       headlineError
                         ? {
-                            x: [-5, 5, -5, 5, 0], // shake
-                            textShadow: "0 0 8px #bf883c", // D&D glow flash
+                            x: [-5, 5, -5, 5, 0],
+                            textShadow: "0 0 8px #bf883c",
                           }
                         : { x: 0, textShadow: "0 0 0px transparent" }
                     }
@@ -342,21 +392,23 @@ export default function SessionEdit() {
                 />
               </div>
             </motion.section>
-            {/* Right Column */}
+
+            {/* Right Column - Encounters & Maps */}
             <motion.section className="flex flex-col overflow-y-auto max-h-full">
-              {/* Encounters */}
+              {/* Encounters section - samme som før */}
               <div className="mb-6">
-                <div className="flex justify-between items-center ">
+                <div className="flex justify-between items-center">
                   <h3 className="text-lg uppercase tracking-widest select-none">
                     Encounters
                   </h3>
                   <button
                     onClick={() => setShowEncounterModal(true)}
-                    className="text-4xl leading-none transition hover:text-[var(--primary)] "
+                    className="text-4xl leading-none transition hover:text-[var(--primary)]"
                   >
                     +
                   </button>
                 </div>
+                
                 <div className="relative flex flex-col overflow-hidden">
                   <div
                     className="overflow-y-auto flex-1"
@@ -585,7 +637,7 @@ export default function SessionEdit() {
           <div className="flex justify-end">
             <div className="col-span-3 flex justify-between items-center">
               <ArrowButton
-                label="Save Session"
+                label={isDraft ? "Create Session" : "Save Session"}
                 onClick={handleSave}
                 size="md"
                 color="var(--primary)"

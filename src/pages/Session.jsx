@@ -158,55 +158,36 @@ export default function Session() {
     location.pathname,
   ]);
 
-  // Create a new session (keeps your existing behavior)
-  const createNewSession = async () => {
-    if (!campaignId) return;
-    try {
-      const q = query(
-        collection(db, "Sessions"),
-        where("campaignId", "==", campaignId)
-      );
-      const snapshot = await getDocs(q);
-      const existingSessions = snapshot.docs.map((d) => d.data());
-      const highestSessNr = existingSessions.reduce(
-        (max, s) => Math.max(max, s.sessNr || 0),
-        0
-      );
-      const nextSessNr = highestSessNr + 1;
+  // Find createNewSession funktionen og erstat med:
+const createNewSession = async () => {
+  if (!campaignId) return;
+  try {
+    const q = query(
+      collection(db, "Sessions"),
+      where("campaignId", "==", campaignId)
+    );
+    const snapshot = await getDocs(q);
+    const existingSessions = snapshot.docs.map((d) => d.data());
+    const highestSessNr = existingSessions.reduce(
+      (max, s) => Math.max(max, s.sessNr || 0),
+      0
+    );
+    const nextSessNr = highestSessNr + 1;
 
-      const sessionId = `${campaignId}_sess_${nextSessNr
-        .toString()
-        .padStart(3, "0")}`;
-
-      const newSession = {
-        title: `Session ${nextSessNr}`,
+    // Navigate med draft data i stedet for at oprette session
+    navigate("/session-edit", { 
+      state: { 
+        isDraft: true,
         campaignId,
         sessNr: nextSessNr,
-        dmNotes: "",
-        encounters: [],
-        combatMaps: [],
-        createdAt: new Date(),
-      };
+      } 
+    });
+  } catch (err) {
+    console.error("🔥 Fejl ved oprettelse af ny session:", err);
+  }
+};
 
-      await setDoc(doc(db, "Sessions", sessionId), newSession);
-
-      const campaignRef = doc(db, "Campaigns", campaignId);
-      await updateDoc(campaignRef, {
-        sessionsCount: (existingSessions?.length || 0) + 1,
-        lastOpened: new Date(),
-      });
-
-      // Update local state and select it
-      setSessions((prev) => [{ id: sessionId, ...newSession }, ...prev]);
-      setSelectedSession({ id: sessionId, ...newSession });
-      setCenterIndex(0);
-      navigate("/session-edit", { state: { sessionId } });
-    } catch (err) {
-      console.error("🔥 Fejl ved oprettelse af ny session:", err);
-    }
-  };
-
-  // Add this function after createNewSession
+// Add this function after createNewSession
   const runSession = (sessionId) => {
     navigate(`/run-session/${sessionId}`, {
       state: { campaignId },
