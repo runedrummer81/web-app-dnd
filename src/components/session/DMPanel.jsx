@@ -424,9 +424,12 @@ export const DMPanel = ({
                   <MapControlsTab
   onStartCombat={() => {
     setActiveTab("initiative");
-    setCombatStarted(true); // mark combat as started
+    setCombatStarted(true);
   }}
+  weather={weather}
+  onWeatherChange={onWeatherChange}
 />
+
 
 
                 </motion.div>
