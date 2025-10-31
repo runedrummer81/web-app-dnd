@@ -1,74 +1,83 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
+import { spellsData } from "../../data/spells";
+import { useMapSync } from "./MapSyncContext";
 
 export default function SpellBook() {
-  const [spells, setSpells] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [draggedSpell, setDraggedSpell] = useState(null);
+  const { updateMapState, mapState } = useMapSync();
 
-  useEffect(() => {
-    const fetchSpells = async () => {
-      try {
-        const spellsCollection = collection(db, "Spells");
-        const querySnapshot = await getDocs(spellsCollection);
+  // Listen for spell drop on map - creates PREVIEW effect
+  React.useEffect(() => {
+    const handleSpellDrop = (event) => {
+      if (!draggedSpell) return;
 
-        const spellList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+      const { position } = event.detail;
 
-        setSpells(spellList);
-      } catch (error) {
-        console.error("Error fetching spells:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
+      console.log("🔮 Spell dropped at position:", position);
+
+      // Create PREVIEW spell effect
+      const previewEffect = {
+        id: `spell-preview-${Date.now()}`,
+        name: draggedSpell.name,
+        position: position,
+        radius: 100,
+        effectURL: draggedSpell.effectURL,
+        color: draggedSpell.color,
+        isPreview: true, // Mark as preview
+      };
+
+      console.log("🔮 Creating preview effect:", previewEffect);
+
+      // Set as preview (only one preview at a time)
+      updateMapState({
+        spellEffectPreview: previewEffect,
+      });
+
+      setDraggedSpell(null);
     };
 
-    fetchSpells();
-  }, []);
+    window.addEventListener("spellDropped", handleSpellDrop);
+    return () => window.removeEventListener("spellDropped", handleSpellDrop);
+  }, [draggedSpell, updateMapState]);
 
-  // Filter spells based on search term
-  const filteredSpells = spells.filter((spell) =>
+  const filteredSpells = spellsData.filter((spell) =>
     spell.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDragStart = (spell, e) => {
+    console.log("🔮 Dragging spell:", spell);
+    setDraggedSpell(spell);
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("spell", JSON.stringify(spell));
+
+    const img = e.target.querySelector("img");
+    if (img) {
+      e.dataTransfer.setDragImage(img, 40, 40);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
-      {/* Search bar */}
+      <div className="bg-[var(--primary)]/10 border border-[var(--primary)]/30 p-3 rounded">
+        <p className="text-xs text-[var(--secondary)] uppercase">
+          🔥 Drag spell icons onto the combat map to place effects
+        </p>
+      </div>
+
       <div className="mb-4">
         <input
           type="text"
           placeholder="Search spells..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2  text-[#d9ca89] placeholder-[var(--secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          className="w-full p-2 bg-black/40 border border-[var(--primary)]/30 text-[#d9ca89] placeholder-[var(--secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
         />
       </div>
 
-      {loading ? (
-        <div
-          className="text-center py-12 text-[#BF883C]/50 text-sm uppercase tracking-wider"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          Loading spells...
-        </div>
-      ) : error ? (
-        <div
-          className="text-center py-12 text-red-400 text-sm"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          Error: {error}
-        </div>
-      ) : filteredSpells.length === 0 ? (
-        <div
-          className="text-center py-12 text-[#BF883C]/50 text-sm uppercase tracking-wider"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
+      {filteredSpells.length === 0 ? (
+        <div className="text-center py-12 text-[#BF883C]/50 text-sm uppercase tracking-wider">
           No spells found.
         </div>
       ) : (
@@ -79,15 +88,19 @@ export default function SpellBook() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex flex-col items-center p-2 active:border-2 active:border-[var(--primary)]"
+              draggable
+              onDragStart={(e) => handleDragStart(spell, e)}
+              onDragEnd={() => setDraggedSpell(null)}
+              className="flex flex-col items-center p-2 border-2 border-transparent hover:border-[var(--primary)] transition cursor-grab active:cursor-grabbing"
             >
               <img
-                className="h-20 w-20 object-cover"
-                src={spell.imageURL}
-                alt={spell.name || "Spell image"}
+                className="h-20 w-20 object-cover pointer-events-none"
+                src={spell.iconURL}
+                alt={spell.name}
+                draggable={false}
               />
               <p className="mt-2 text-sm font-bold text-[#d9ca89] uppercase text-center">
-                {spell.name || spell.id}
+                {spell.name}
               </p>
             </motion.div>
           ))}

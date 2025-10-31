@@ -1,5 +1,11 @@
 import { useRef, useContext, useEffect, useState } from "react";
-import { MapContainer, ImageOverlay, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  ImageOverlay,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapSync, RunSessionContext } from "./MapSyncContext";
@@ -11,6 +17,7 @@ import { WeatherEffects } from "./WeatherEffects";
 import { RouteDisplay } from "./RouteDisplay";
 import { GridOverlay } from "./GridOverlay";
 import { TokenOverlay } from "./TokenOverlay";
+import { SpellEffectOverlay } from "./SpellEffectOverlay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -21,6 +28,56 @@ L.Icon.Default.mergeOptions({
   shadowUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+// Component to handle spell drop events
+const SpellDropHandler = ({ isDMView }) => {
+  const map = useMapEvents({});
+
+  useEffect(() => {
+    if (!isDMView) return;
+
+    const mapContainer = map.getContainer();
+
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    };
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+
+      try {
+        const spellData = e.dataTransfer.getData("spell");
+        if (!spellData) return;
+
+        // Get the map coordinates from the drop position
+        const containerPoint = map.mouseEventToContainerPoint(e);
+        const latLng = map.containerPointToLatLng(containerPoint);
+
+        // Dispatch event with the position
+        const dropEvent = new CustomEvent("spellDropped", {
+          detail: {
+            position: [latLng.lat, latLng.lng],
+            spell: JSON.parse(spellData),
+          },
+        });
+        window.dispatchEvent(dropEvent);
+      } catch (error) {
+        console.error("Error handling spell drop:", error);
+      }
+    };
+
+    mapContainer.addEventListener("dragover", handleDragOver);
+    mapContainer.addEventListener("drop", handleDrop);
+
+    return () => {
+      mapContainer.removeEventListener("dragover", handleDragOver);
+      mapContainer.removeEventListener("drop", handleDrop);
+    };
+  }, [map, isDMView]);
+
+  return null;
+};
 
 export const MapDisplay = () => {
   const { mapState, updateMapState, isDMView } = useMapSync();
@@ -104,7 +161,6 @@ export const MapDisplay = () => {
     });
   }, [isDMView, mapState.dmContainerSize, wrapperRef]);
 
-  // Get grid settings with defaults
   const gridSettings = mapState.gridSettings || {
     visible: false,
     size: 40,
@@ -134,11 +190,12 @@ export const MapDisplay = () => {
       maxBounds={mapBounds}
       maxBoundsViscosity={1.0}
     >
+      {/* 1. Base map image */}
       {currentMap.imageUrl && (
         <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
       )}
 
-      {/* Grid overlay - only show on combat maps */}
+      {/* 2. Grid overlay (on combat maps) */}
       {currentMap.isCombat && (
         <GridOverlay
           gridSettings={gridSettings}
@@ -150,7 +207,36 @@ export const MapDisplay = () => {
         />
       )}
 
-      {/* Token Overlay */}
+      {/* 3. SPELL EFFECTS - Renders BENEATH tokens */}
+      {currentMap.isCombat && (
+        <SpellEffectOverlay
+          effects={mapState.spellEffects || []}
+          onEffectMove={(id, position) => {
+            updateMapState({
+              spellEffects: (mapState.spellEffects || []).map((e) =>
+                e.id === id ? { ...e, position } : e
+              ),
+            });
+          }}
+          onEffectResize={(id, radius) => {
+            updateMapState({
+              spellEffects: (mapState.spellEffects || []).map((e) =>
+                e.id === id ? { ...e, radius } : e
+              ),
+            });
+          }}
+          onEffectRemove={(id) => {
+            updateMapState({
+              spellEffects: (mapState.spellEffects || []).filter(
+                (e) => e.id !== id
+              ),
+            });
+          }}
+          isDMView={isDMView}
+        />
+      )}
+
+      {/* 4. TOKENS - Renders ON TOP of spell effects */}
       {currentMap.isCombat && (
         <TokenOverlay
           tokens={mapState.tokens || []}
@@ -159,6 +245,10 @@ export const MapDisplay = () => {
         />
       )}
 
+      {/* 5. Spell drop handler - enables dragging spells onto map */}
+      <SpellDropHandler isDMView={isDMView} />
+
+      {/* 6. Map controller and events */}
       <MapController
         mapDimensions={{
           width: currentMap.width,
@@ -168,6 +258,7 @@ export const MapDisplay = () => {
       />
       <MapEventsHandler />
 
+      {/* 7. Markers */}
       {mapState.markers.map((marker) => (
         <Marker
           key={marker.id}
@@ -196,6 +287,7 @@ export const MapDisplay = () => {
         </Marker>
       ))}
 
+      {/* 8. Route display */}
       <RouteDisplay
         route={mapState.route}
         isDMView={isDMView}
