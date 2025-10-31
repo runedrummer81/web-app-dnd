@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export const CombatTransition = ({ type, isVisible, onComplete }) => {
   const [stage, setStage] = useState(0);
-
+  // random comment
   useEffect(() => {
     if (!isVisible) return;
 
