@@ -116,10 +116,17 @@ export default function InitiativeSetup({ sessionData, onStart, onClose }) {
           <h2 className="text-[var(--primary)] text-sm:2xl md:text-2xl uppercase tracking-widest text-left pb-2">
             Select Encounter
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {encounters.map((encounter) => {
               const creatureImage = encounter.creatures?.[0]?.imageURL;
               const isSelected = selectedEncounter?.id === encounter.id;
+
+              // Calculate total creature count
+              const totalCreatures =
+                encounter.creatures?.reduce(
+                  (sum, c) => sum + (c.count || 1),
+                  0
+                ) || 0;
 
               return (
                 <div
@@ -154,9 +161,9 @@ export default function InitiativeSetup({ sessionData, onStart, onClose }) {
                     <p className="font-bold text-lg text-[var(--primary)]">
                       {encounter.name}
                     </p>
-                    <p className="text-sm text-[var(--secondary)]">
-                      {encounter.difficulty} •{" "}
-                      {encounter.creatures?.length || 0} Creatures
+                    <p className="text-sm text-[var(--secondary)] mb-2">
+                      Total: {totalCreatures} creature
+                      {totalCreatures !== 1 ? "s" : ""}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {encounter.creatures?.map((creature, idx) => (
@@ -164,7 +171,7 @@ export default function InitiativeSetup({ sessionData, onStart, onClose }) {
                           key={idx}
                           className="text-xs bg-transparent text-[var(--secondary)] px-2 py-1 border border-[var(--primary)]"
                         >
-                          {creature.name}
+                          {creature.name} × {creature.count || 1}
                         </span>
                       ))}
                     </div>

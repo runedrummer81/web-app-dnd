@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { RouteManager } from "./RouteManager";
 import { SessionNotes } from "./SessionNotes";
@@ -6,12 +6,14 @@ import { DiceRoller } from "./DiceRoller";
 import { CombatTab } from "./CombatTab";
 import { InitiativeTracker } from "./InitiativeTracker";
 import { CombatHistory } from "./CombatHistory";
+import { MapControlsTab } from "./MapControlsTab";
 import { useMapSync } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
+// import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
+import SpellBook from "./Spells";
 
 export const DMPanel = ({
   sessionId,
@@ -21,23 +23,43 @@ export const DMPanel = ({
   currentMapId,
   weather,
   onWeatherChange,
-  onEndSessionClick,  
-  quickNotes,         
+  onEndSessionClick,
+  quickNotes,
   setQuickNotes,
-  onEndCombat,      
+  onEndCombat,
+  onRequestEndSessionConfirm,
 }) => {
   const { mapState, updateMapState } = useMapSync();
-  const { combatActive, endCombat } = useCombatState();
+  const { combatActive, isSetupMode, endCombat } = useCombatState();
   const [activeTab, setActiveTab] = useState("overview");
   const [notesOpen, setNotesOpen] = useState(true);
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-  
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
-  // const [quickNotes, setQuickNotes] = useState(sessionData?.sessionNotes || []);
 
-  // Normal state tabs
+  // Handle tab switching when entering/exiting combat or setup mode
+  useEffect(() => {
+    if (combatActive) {
+      if (
+        isSetupMode &&
+        activeTab !== "mapcontrols" &&
+        activeTab !== "history" &&
+        activeTab !== "spellbook"
+      ) {
+        setActiveTab("mapcontrols");
+      } else if (
+        !isSetupMode &&
+        activeTab !== "initiative" &&
+        activeTab !== "history" &&
+        activeTab !== "spellbook" &&
+        activeTab !== "mapcontrols"
+      ) {
+        setActiveTab("initiative");
+      }
+    }
+  }, [combatActive, isSetupMode, activeTab]);
+  // Normal state tabs (NO map controls)
   const normalTabs = [
     {
       id: "overview",
@@ -105,7 +127,7 @@ export const DMPanel = ({
     },
   ];
 
-  // Combat state tabs
+  // Combat state tabs (WITH map controls)
   const combatTabs = [
     {
       id: "initiative",
@@ -120,6 +142,45 @@ export const DMPanel = ({
           strokeWidth="2"
         >
           <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: "spellbook",
+      label: "Spellbook",
+      icon: (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M20 22H6.5A2.5 2.5 0 0 1 4 19.5V5.5A2.5 2.5 0 0 1 6.5 3H20v19z" />
+          <path d="M6.5 3v14" />
+        </svg>
+      ),
+    },
+    {
+      id: "mapcontrols",
+      label: "Map Controls",
+      icon: (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
         </svg>
       ),
     },
@@ -142,11 +203,6 @@ export const DMPanel = ({
   ];
 
   const tabs = combatActive ? combatTabs : normalTabs;
-
-  // When entering combat, switch to initiative tab
-  if (combatActive && activeTab !== "initiative" && activeTab !== "history") {
-    setActiveTab("initiative");
-  }
 
   const toggleWeather = (type) => {
     if (type === "timeOfDay") {
@@ -226,7 +282,7 @@ export const DMPanel = ({
           ))}
           {/* END SESSION TAB */}
           <motion.button
-            onClick={() => setShowEndSessionConfirm(true)}
+            onClick={onRequestEndSessionConfirm}
             className="relative flex-1 py-4 transition-all duration-300 
   bg-gradient-to-b from-red-700 to-red-900 
   hover:from-red-600 hover:to-red-800 
@@ -295,7 +351,7 @@ export const DMPanel = ({
         </motion.div>
       </div>
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-6 relative">
+      <div className="flex-1 overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* COMBAT STATE TABS */}
           {combatActive ? (
@@ -314,11 +370,10 @@ export const DMPanel = ({
                   {/* END COMBAT BUTTON */}
                   <motion.button
                     onClick={() => {
-                    endCombat();                // stopper selve kampen
-                    setActiveTab("overview");
-                    onEndCombat?.();           // kalder callback (hvis givet)
-                  }}
-  
+                      endCombat();
+                      setActiveTab("overview");
+                      onEndCombat?.();
+                    }}
                     className="w-full mt-6 p-4 bg-gradient-to-r from-gray-700 to-gray-800 border-2 border-red-500/50 text-red-400 font-bold uppercase tracking-wider hover:border-red-400 transition-all"
                     whileHover={{
                       scale: 1.01,
@@ -329,6 +384,32 @@ export const DMPanel = ({
                   >
                     End Combat
                   </motion.button>
+                </motion.div>
+              )}
+
+              {/* SPELLBOOK TAB */}
+              {activeTab === "spellbook" && (
+                <motion.div
+                  key="spellbook"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <SpellBook />
+                </motion.div>
+              )}
+
+              {/* MAP CONTROLS TAB */}
+              {activeTab === "mapcontrols" && (
+                <motion.div
+                  key="mapcontrols"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MapControlsTab />
                 </motion.div>
               )}
 
@@ -710,6 +791,7 @@ export const DMPanel = ({
                     <AnimatePresence>
                       {notesOpen && (
                         <motion.div
+                          key="session-notes"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -719,12 +801,13 @@ export const DMPanel = ({
                           <div className="w-full">
                             <SessionNotes
                               initialNotes={quickNotes}
-                              onNotesChange={setQuickNotes} // <-- now DMPanel always knows current notes
+                              onNotesChange={setQuickNotes}
                             />
                           </div>
                         </motion.div>
                       )}
                       <motion.div
+                        key="dm-notes"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -734,7 +817,6 @@ export const DMPanel = ({
                         {sessionData?.dmNotes || "No notes yet"}
                       </motion.div>
                     </AnimatePresence>
-                    {/* DM Notes */}
                   </section>
                 </motion.div>
               )}
@@ -755,11 +837,11 @@ export const DMPanel = ({
           )}
         </AnimatePresence>
       </div>
-      <ConfirmEndSessionModal
-  show={showEndSessionConfirm}
-  onCancel={() => setShowEndSessionConfirm(false)}
-  onConfirm={onEndSessionClick}
-/>
+      {/* <ConfirmEndSessionModal
+        show={showEndSessionConfirm}
+        onCancel={() => setShowEndSessionConfirm(false)}
+        onConfirm={onEndSessionClick}
+      /> */}
     </div>
   );
 };

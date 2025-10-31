@@ -15,11 +15,14 @@ export const CombatStateProvider = ({ children }) => {
   const { updateMapState } = useMapSync();
 
   const [combatActive, setCombatActive] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(false);
   const [initiativeOrder, setInitiativeOrder] = useState([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [combatLog, setCombatLog] = useState([]);
   const [combatRound, setCombatRound] = useState(1);
   const [activeEncounter, setActiveEncounter] = useState(null);
+  const [selectedCombatMap, setSelectedCombatMap] = useState(null);
+  const [playerCount, setPlayerCount] = useState(4);
   const [gridSettings, setGridSettings] = useState({
     visible: false,
     color: "#d9ca89",
@@ -27,9 +30,11 @@ export const CombatStateProvider = ({ children }) => {
     size: 40,
   });
 
-  const startCombat = (encounter, playerData, selectedCombatMap) => {
+  const startCombat = (encounter, playerData, combatMap) => {
+    console.log("🎲 Starting combat with encounter:", encounter);
+
     updateMapState({
-      currentMapId: selectedCombatMap.id,
+      currentMapId: combatMap.id,
       markers: [],
     });
 
@@ -47,37 +52,133 @@ export const CombatStateProvider = ({ children }) => {
       });
     });
 
-    // Add creatures with rolled initiatives
-    encounter.creatures.forEach((creature, index) => {
-      const initiativeRoll = Math.floor(Math.random() * 20) + 1;
-      const initiative = initiativeRoll + (creature.dexModifier || 0);
+    // Add creatures with rolled initiatives - EXPLICIT COUNT HANDLING
+    encounter.creatures.forEach((creature, creatureTypeIndex) => {
+      // Make sure we have a count - default to 1 if not present
+      const creatureCount = parseInt(creature.count) || 1;
+      console.log(`📊 Adding ${creatureCount}x ${creature.name}`);
 
-      combatants.push({
-        id: `creature-${index}`,
-        name: `${creature.name} ${index + 1}`,
-        initiative,
-        isPlayer: false,
-        hp: creature.hp,
-        maxHp: creature.hp,
-        ac: creature.ac,
-        stats: creature.stats,
-      });
+      for (let i = 0; i < creatureCount; i++) {
+        const initiativeRoll = Math.floor(Math.random() * 20) + 1;
+        const initiative = initiativeRoll + (creature.dexModifier || 0);
+
+        combatants.push({
+          id: `creature-${creatureTypeIndex}-${i}`,
+          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
+          initiative,
+          isPlayer: false,
+          hp: creature.hp,
+          maxHp: creature.hp,
+          ac: creature.ac,
+          stats: creature.stats,
+          imageURL: creature.imageURL,
+        });
+      }
     });
 
+    console.log("📋 Total combatants created:", combatants.length);
     combatants.sort((a, b) => b.initiative - a.initiative);
 
     setInitiativeOrder(combatants);
     setCurrentTurnIndex(0);
     setCombatActive(true);
+    setIsSetupMode(true);
     setActiveEncounter(encounter);
+    setSelectedCombatMap(combatMap);
+    setPlayerCount(playerData.length);
+
+    // Auto-spawn tokens in the MIDDLE of the map
+    const mapHeight = combatMap.height || 2000;
+    const mapWidth = combatMap.width || 2000;
+    const centerY = mapHeight / 2;
+    const centerX = mapWidth / 2;
+    const tokens = [];
+
+    // Spawn player tokens in a horizontal line above center
+    const playerY = centerY - 150;
+    const playerSpacing = 100;
+    const playerStartX =
+      centerX - ((playerData.length - 1) * playerSpacing) / 2;
+
+    playerData.forEach((player, index) => {
+      tokens.push({
+        id: `token-player-${index}`,
+        name: player.name,
+        imageUrl: "https://via.placeholder.com/100?text=P",
+        position: [playerY, playerStartX + index * playerSpacing],
+        size: 60,
+        isPlayer: true,
+      });
+    });
+
+    // Calculate total creature count for spacing
+    // Calculate total creature count for spacing
+    const totalCreatureCount = encounter.creatures.reduce((sum, c) => {
+      return sum + (parseInt(c.count) || 1);
+    }, 0);
+
+    console.log("🐉 Total creature tokens to spawn:", totalCreatureCount);
+
+    // Dynamic spacing based on creature count
+    let creatureSpacing = 100; // default spacing
+    if (totalCreatureCount > 10) {
+      creatureSpacing = 80; // closer together for 11-15 creatures
+    }
+    if (totalCreatureCount > 15) {
+      creatureSpacing = 60; // even closer for 16-20 creatures
+    }
+    if (totalCreatureCount > 20) {
+      creatureSpacing = 50; // very close for 20+ creatures
+    }
+
+    // Spawn creature tokens in a horizontal line below center
+    const creatureY = centerY + 150;
+    const creatureStartX =
+      centerX - ((totalCreatureCount - 1) * creatureSpacing) / 2;
+
+    let globalCreatureIndex = 0;
+    encounter.creatures.forEach((creature, creatureTypeIndex) => {
+      const creatureCount = parseInt(creature.count) || 1;
+
+      for (let i = 0; i < creatureCount; i++) {
+        tokens.push({
+          id: `token-creature-${creatureTypeIndex}-${i}`,
+          name: creatureCount > 1 ? `${creature.name} ${i + 1}` : creature.name,
+          imageUrl:
+            creature.imageURL || "https://via.placeholder.com/100?text=E",
+          position: [
+            creatureY,
+            creatureStartX + globalCreatureIndex * creatureSpacing,
+          ],
+          size: 60,
+          isPlayer: false,
+          creatureData: creature,
+        });
+        globalCreatureIndex++;
+      }
+    });
+
+    console.log("🎭 Total tokens created:", tokens.length);
+    updateMapState({ tokens });
+  };
+
+  const exitSetupMode = () => {
+    setIsSetupMode(false);
   };
 
   const endCombat = () => {
     setCombatActive(false);
+    setIsSetupMode(false);
     setInitiativeOrder([]);
     setCurrentTurnIndex(0);
     setActiveEncounter(null);
+    setSelectedCombatMap(null);
+    setPlayerCount(4);
     setGridSettings({ ...gridSettings, visible: false });
+
+    // Clear tokens
+    updateMapState({ tokens: [] });
+
     setCombatLog((prev) => [
       ...prev,
       {
@@ -117,28 +218,53 @@ export const CombatStateProvider = ({ children }) => {
 
   const updateCreatureHp = (id, newHp) => {
     setInitiativeOrder((prev) => {
-      // Clamp HP so it never goes below 0 or above maxHp
-      const updated = prev.map((c) =>
-        c.id === id
-          ? { ...c, currentHp: Math.max(0, Math.min(newHp, c.maxHp)) }
-          : c
-      );
+      const logs = [];
+      const updated = prev.map((c) => {
+        if (c.id !== id) return c;
 
-      // Remove any non-player combatant whose HP is now 0
-      const filtered = updated.filter((c) => c.isPlayer || c.currentHp > 0);
+        const oldHp = c.currentHp ?? c.hp ?? c.maxHp;
+        const clampedHp = Math.max(0, Math.min(newHp, c.maxHp));
+        const diff = clampedHp - oldHp;
 
-      // If we removed something before the current index, adjust the turn index
-      let adjustedIndex = currentTurnIndex;
-      if (
-        filtered.length < updated.length &&
-        currentTurnIndex >= filtered.length
-      ) {
-        adjustedIndex = 0;
+        if (diff < 0) {
+          logs.push({
+            type: "damage",
+            target: c.name,
+            damage: Math.abs(diff),
+            message: `${c.name} took ${Math.abs(diff)} damage.`,
+          });
+        } else if (diff > 0) {
+          logs.push({
+            type: "healing",
+            target: c.name,
+            healing: diff,
+            message: `${c.name} regained ${diff} HP.`,
+          });
+        }
+
+        if (clampedHp === 0 && oldHp > 0) {
+          logs.push({
+            type: "death",
+            message: `${c.name} has fallen.`,
+          });
+        }
+
+        return { ...c, currentHp: clampedHp, isDead: clampedHp <= 0 };
+      });
+
+      if (logs.length > 0) {
+        setCombatLog((prev) => [
+          ...prev,
+          ...logs.map((entry) => ({
+            id: Date.now() + Math.random(),
+            timestamp: new Date().toLocaleTimeString(),
+            round: combatRound,
+            ...entry,
+          })),
+        ]);
       }
 
-      // Update both initiative order and turn index
-      setCurrentTurnIndex(adjustedIndex);
-      return filtered;
+      return updated;
     });
   };
 
@@ -158,36 +284,32 @@ export const CombatStateProvider = ({ children }) => {
       hit,
     });
 
-    if (hit) {
-      const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
-      const totalDamage = damageRoll + (attack.damageBonus || 0);
+    if (!hit) return { hit: false, attackRoll: totalAttack };
 
-      updateCreatureHp(target.id, target.hp - totalDamage);
+    const damageRoll = Math.floor(Math.random() * attack.damageDice) + 1;
+    const totalDamage = damageRoll + (attack.damageBonus || 0);
+    const currentHp = target.currentHp ?? target.hp ?? target.maxHp;
 
-      addToCombatLog({
-        type: "damage",
-        attacker: attacker.name,
-        target: target.name,
-        damage: totalDamage,
-      });
+    updateCreatureHp(target.id, currentHp - totalDamage);
 
-      return { hit: true, attackRoll: totalAttack, damage: totalDamage };
-    }
-
-    return { hit: false, attackRoll: totalAttack };
+    return { hit: true, attackRoll: totalAttack, damage: totalDamage };
   };
 
   return (
     <CombatStateContext.Provider
       value={{
         combatActive,
+        isSetupMode,
         initiativeOrder,
         currentTurnIndex,
         combatLog,
         combatRound,
         activeEncounter,
+        selectedCombatMap,
+        playerCount,
         gridSettings,
         startCombat,
+        exitSetupMode,
         endCombat,
         nextTurn,
         updateCreatureHp,
