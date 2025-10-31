@@ -1,34 +1,63 @@
 import { motion } from "framer-motion";
 import { useMapSync, RunSessionContext } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
+import ActionButton from "../ActionButton";
 
-export const MapControlsTab = () => {
-  const { mapState, updateMapState } = useMapSync();
+export const MapControlsTab = ({ onStartCombat }) => {  const { mapState, updateMapState } = useMapSync();
   const { isSetupMode, exitSetupMode, activeEncounter, playerCount } =
     useCombatState();
   const runSessionContext = useContext(RunSessionContext);
   const sessionData = runSessionContext?.sessionData;
 
-  // Get current map to check if it's a combat map
+  // Determine current map type
   const getCurrentMap = () => {
     if (mapState.currentMapId === "world") return { isCombat: false };
-
     const combatMap = sessionData?.combatMaps?.find(
       (m) => m.id === mapState.currentMapId
     );
-    if (combatMap) return { isCombat: true };
-
-    return { isCombat: false };
+    return { isCombat: !!combatMap };
   };
 
   const currentMap = getCurrentMap();
+
   const gridSettings = mapState.gridSettings || {
-    visible: false,
-    size: 40,
+    visible: true,
+    size: 60,
     color: "#d9ca89",
     opacity: 0.3,
   };
+
+  useEffect(() => {
+    if (mapState.gridSettings?.visible === false) {
+      updateMapState({
+        gridSettings: { ...mapState.gridSettings, visible: true },
+      });
+    }
+  }, []); // run once on mount
+
+  useEffect(() => {
+    const current = mapState.gridSettings || {};
+    if (!current.visible || !current.size) {
+      updateMapState({
+        gridSettings: {
+          ...current,
+          visible: true,
+          size: 60, // medium default
+        },
+      });
+    }
+  }, []); // run once on mount
+  
+
+  const [recentColors, setRecentColors] = useState([]);
+
+  // Initialize recentColors with the current color
+  useEffect(() => {
+    if (gridSettings.color && !recentColors.includes(gridSettings.color)) {
+      setRecentColors((prev) => [gridSettings.color, ...prev].slice(0, 4));
+    }
+  }, []); // run once on mount
 
   const handleUpdateGrid = (newGridSettings) => {
     updateMapState({ gridSettings: newGridSettings });
@@ -44,7 +73,13 @@ export const MapControlsTab = () => {
   };
 
   const handleColorChange = (e) => {
-    handleUpdateGrid({ ...gridSettings, color: e.target.value });
+    const newColor = e.target.value;
+    handleUpdateGrid({ ...gridSettings, color: newColor });
+
+    setRecentColors((prev) => {
+      const updated = [newColor, ...prev.filter((c) => c !== newColor)];
+      return updated.slice(0, 4);
+    });
   };
 
   const toggleGrid = () => {
@@ -58,10 +93,10 @@ export const MapControlsTab = () => {
   };
 
   const handleStartCombat = () => {
-    if (isSetupMode) {
-      exitSetupMode();
-    }
+    if (isSetupMode) exitSetupMode();
+    if (onStartCombat) onStartCombat(); // this now works!
   };
+  
 
   if (!currentMap.isCombat) {
     return (
@@ -87,53 +122,43 @@ export const MapControlsTab = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="px-8 space-y-5">
       {/* Setup Mode Banner */}
       {isSetupMode && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-900/30 border-2 border-blue-500 p-4 mb-6"
+          className="flex flex-col items-center"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-300 font-bold uppercase tracking-wider text-sm mb-1">
-                Setup Mode
-              </p>
-              <p className="text-blue-200/70 text-xs">
-                Tokens have been placed. Adjust positions and grid as needed.
-              </p>
-            </div>
-            <motion.button
-              onClick={handleStartCombat}
-              className="bg-gradient-to-r from-red-700 to-red-600 text-white border-2 border-yellow-400 px-6 py-3 font-bold uppercase tracking-wider"
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 0 20px rgba(239,68,68,0.6)",
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Start Combat
-            </motion.button>
-          </div>
+          <ActionButton
+            onClick={handleStartCombat}
+            size="lg"
+            label="Start Combat"
+            color="var(--secondary)"
+            bgColor="var(--primary)"
+            textColor="var(--dark-muted-bg)"
+            showLeftArrow
+            showRightArrow
+            showGlow={false}
+            animate
+            animationDelay={0.2}
+          />
         </motion.div>
       )}
 
       {/* Grid Toggle */}
       <section>
-        <h3 className="text-[var(--primary)] font-bold uppercase tracking-wider mb-4 text-sm">
+        <h3 className="text-[var(--secondary)] uppercase mb-3 text-sm">
           Grid System
         </h3>
 
         <motion.button
           onClick={toggleGrid}
-          className={`w-full px-6 py-4 rounded font-medium transition-all ${
+          className={`w-full px-6 py-4 font-medium transition-all ${
             gridSettings.visible
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+              ? "border-2 border-[var(--secondary)] bg-[var(--primary)] text-[var(--dark-muted-bg)]"
+              : "border-2 border-[var(--secondary)] hover:border-[var(--primary)] text-[var(--secondary)]"
           }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-between">
             <span className="uppercase tracking-wider">
@@ -157,7 +182,7 @@ export const MapControlsTab = () => {
         </motion.button>
       </section>
 
-      {/* Grid Settings - Only show when enabled */}
+      {/* Grid Settings */}
       {gridSettings.visible && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -167,108 +192,88 @@ export const MapControlsTab = () => {
         >
           {/* Grid Size */}
           <section>
-            <h3 className="text-[var(--primary)] font-bold uppercase tracking-wider mb-3 text-sm">
+            <h3 className="text-[var(--secondary)] uppercase mb-3 text-sm">
               Grid Size
             </h3>
-            <div className="bg-gray-800/50 p-4 rounded border border-[var(--secondary)]/30">
-              <div className="text-center mb-4">
-                <span className="text-3xl font-bold text-[var(--primary)]">
-                  {gridSettings.size}px
-                </span>
-                <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">
-                  ≈ {Math.round(gridSettings.size / 20)} feet per square
-                </p>
-              </div>
+            <div>
+              <div className="flex flex-row justify-between mb-4">
+                <div className="flex flex-row gap-2 items-center">
+                  <motion.button
+                    onClick={() => handleSizeChange(-5)}
+                    className="bg-[var(--secondary)] px-3 py-2 text-[var(--dark-muted-bg)] font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    -5
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleSizeChange(-1)}
+                    className="bg-[var(--secondary)] h-10 w-10 px-3 py-2 text-[var(--dark-muted-bg)] font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    -1
+                  </motion.button>
+                </div>
 
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                <motion.button
-                  onClick={() => handleSizeChange(-5)}
-                  className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-white font-medium"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  -5
-                </motion.button>
-                <motion.button
-                  onClick={() => handleSizeChange(-1)}
-                  className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-white font-medium"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  -1
-                </motion.button>
-                <motion.button
-                  onClick={() => handleSizeChange(1)}
-                  className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-white font-medium"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  +1
-                </motion.button>
-                <motion.button
-                  onClick={() => handleSizeChange(5)}
-                  className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-white font-medium"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  +5
-                </motion.button>
+                <div className="text-center mb-4">
+                  <span className="text-3xl font-bold text-[var(--primary)]">
+                    {gridSettings.size}
+                  </span>
+                  <p className="text-xs text-[var(--secondary)] mt-1 uppercase tracking-wider">
+                    ≈ 5 feet per square
+                  </p>
+                </div>
+
+                <div className="flex flex-row gap-2 items-center">
+                  <motion.button
+                    onClick={() => handleSizeChange(1)}
+                    className="bg-[var(--secondary)] h-10 w-10 px-3 py-2 text-[var(--dark-muted-bg)]"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    +1
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleSizeChange(5)}
+                    className="bg-[var(--secondary)] px-3 py-2 text-[var(--dark-muted-bg)] font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    +5
+                  </motion.button>
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, size: 40 })
-                  }
-                  className={`px-3 py-2 rounded font-medium text-sm ${
-                    gridSettings.size === 40
-                      ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Small
-                </motion.button>
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, size: 60 })
-                  }
-                  className={`px-3 py-2 rounded font-medium text-sm ${
-                    gridSettings.size === 60
-                      ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Medium
-                </motion.button>
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, size: 80 })
-                  }
-                  className={`px-3 py-2 rounded font-medium text-sm ${
-                    gridSettings.size === 80
-                      ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Large
-                </motion.button>
+                {[40, 60, 80].map((size, i) => (
+                  <motion.button
+                    key={size}
+                    onClick={() => handleUpdateGrid({ ...gridSettings, size })}
+                    className={`px-3 py-2 uppercase font-medium text-sm ${
+                      gridSettings.size === size
+                        ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
+                        : "border-2 border-[var(--secondary)] text-[var(--secondary)]"
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {["Small", "Medium", "Large"][i]}
+                  </motion.button>
+                ))}
               </div>
             </div>
           </section>
 
+          
+
           {/* Grid Opacity */}
           <section>
-            <h3 className="text-[var(--primary)] font-bold uppercase tracking-wider mb-3 text-sm">
+            <h3 className="text-[var(--secondary)] uppercase tracking-wider text-sm">
               Grid Opacity
             </h3>
-            <div className="bg-gray-800/50 p-4 rounded border border-[var(--secondary)]/30">
-              <div className="text-center mb-3">
+            <div>
+              <div className="text-center">
                 <span className="text-2xl font-bold text-[var(--primary)]">
                   {Math.round(gridSettings.opacity * 100)}%
                 </span>
@@ -280,125 +285,82 @@ export const MapControlsTab = () => {
                 step="0.1"
                 value={gridSettings.opacity}
                 onChange={handleOpacityChange}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
+                className="w-full h-1 bg-[var(--secondary)]/30 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
               />
             </div>
           </section>
 
           {/* Grid Color */}
           <section>
-            <h3 className="text-[var(--primary)] font-bold uppercase tracking-wider mb-3 text-sm">
+            <h3 className="text-[var(--secondary)] uppercase mb-3 text-sm">
               Grid Color
             </h3>
-            <div className="bg-gray-800/50 p-4 rounded border border-[var(--secondary)]/30">
-              <div className="flex gap-3 mb-3">
+            <div className="flex flex-row justify-between">
+              <div className="flex flex-row gap-3 mb-3">
                 <input
                   type="color"
                   value={gridSettings.color}
                   onChange={handleColorChange}
-                  className="w-16 h-16 rounded cursor-pointer border-2 border-gray-600"
+                  className="w-22 h-22 cursor-pointer border-2 border-[var(--primary)] p-1 appearance-none"
                 />
                 <div className="flex-1 flex items-center">
-                  <span className="text-[var(--secondary)] uppercase tracking-wider text-sm">
+                  <span
+                    className="uppercase tracking-wider text-sm"
+                    style={{ color: gridSettings.color }}
+                  >
                     {gridSettings.color}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, color: "#d9ca89" })
-                  }
-                  className="w-full h-12 rounded border-2 border-gray-600 hover:border-[var(--primary)] transition-colors"
-                  style={{ backgroundColor: "#d9ca89" }}
-                  title="Gold"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                />
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, color: "#ffffff" })
-                  }
-                  className="w-full h-12 rounded border-2 border-gray-600 hover:border-[var(--primary)] transition-colors"
-                  style={{ backgroundColor: "#ffffff" }}
-                  title="White"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                />
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, color: "#000000" })
-                  }
-                  className="w-full h-12 rounded border-2 border-gray-600 hover:border-[var(--primary)] transition-colors"
-                  style={{ backgroundColor: "#000000" }}
-                  title="Black"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                />
-                <motion.button
-                  onClick={() =>
-                    handleUpdateGrid({ ...gridSettings, color: "#ff0000" })
-                  }
-                  className="w-full h-12 rounded border-2 border-gray-600 hover:border-[var(--primary)] transition-colors"
-                  style={{ backgroundColor: "#ff0000" }}
-                  title="Red"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                />
+              {/* Color Palette */}
+              <div className="flex flex-col gap-2">
+                {/* Preset Colors */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { color: "#000000", title: "Black" },
+                    { color: "#ffffff", title: "White" },
+                    { color: "var(--primary)", title: "Primary" },
+                    { color: "var(--secondary)", title: "Secondary" },
+                  ].map(({ color, title }) => (
+                    <motion.button
+                      key={title}
+                      onClick={() =>
+                        handleUpdateGrid({ ...gridSettings, color })
+                      }
+                      className="w-10 h-10 border border-[var(--primary)] hover:border-[var(--primary)] transition-colors"
+                      style={{ backgroundColor: color }}
+                      title={title}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    />
+                  ))}
+                </div>
+
+                {/* Recently used colors */}
+                <div className="grid grid-cols-4 gap-2">
+                  {recentColors.map((color) => (
+                    <motion.button
+                      key={color}
+                      onClick={() =>
+                        handleUpdateGrid({ ...gridSettings, color })
+                      }
+                      className="w-10 h-10 border border-[var(--primary)] hover:border-[var(--primary)] transition-colors"
+                      style={{ backgroundColor: color }}
+                      title={color}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </section>
-
-          {/* Info Box */}
-          <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded">
-            <p className="text-blue-300 text-sm">
-              💡 <span className="font-bold">Tip:</span> Adjust grid size to
-              match your physical miniatures on the screen
-            </p>
-          </div>
         </motion.div>
       )}
 
       {/* Token Management */}
       <section className="border-t border-[var(--secondary)]/30 pt-6">
-        <h3 className="text-[var(--primary)] font-bold uppercase tracking-wider mb-3 text-sm">
-          Active Tokens
-        </h3>
-
-        {/* Placed Tokens List */}
-        <div className="mb-4 space-y-2 max-h-60 overflow-y-auto">
-          {(mapState.tokens || []).map((token) => (
-            <div
-              key={token.id}
-              className="flex items-center justify-between bg-gray-800/50 p-3 border border-[var(--secondary)]/30"
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  src={token.imageUrl}
-                  alt={token.name}
-                  className="w-10 h-10 rounded-full border-2"
-                  style={{
-                    borderColor: token.isPlayer ? "#4ade80" : "#ef4444",
-                  }}
-                />
-                <span className="text-[var(--secondary)]">{token.name}</span>
-              </div>
-              <button
-                onClick={() => handleRemoveToken(token.id)}
-                className="text-red-400 hover:text-red-300 transition"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          {(!mapState.tokens || mapState.tokens.length === 0) && (
-            <p className="text-[var(--secondary)]/60 italic text-center py-4">
-              No tokens on map
-            </p>
-          )}
-        </div>
-
         <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded">
           <p className="text-blue-300 text-sm">
             ℹ️ <span className="font-bold">Note:</span> Tokens are automatically
