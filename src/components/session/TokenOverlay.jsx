@@ -6,7 +6,7 @@ import { useMapSync } from "./MapSyncContext";
 export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
   const { mapState } = useMapSync();
 
-  // Get initiative order from mapState (synced via broadcast)
+  // Get initiative order from mapState (synced via broadcast, and it just works)
   const initiativeOrder = mapState.initiativeOrder || [];
   const currentTurnIndex = mapState.currentTurnIndex || 0;
   const currentCombatant = initiativeOrder[currentTurnIndex];

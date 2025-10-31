@@ -47,6 +47,8 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
     combatTransition: {
       isVisible: false,
       type: null,
+      spellEffects: [],
+      spellEffectPreview: null,
     },
   });
 
