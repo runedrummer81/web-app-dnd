@@ -16,6 +16,7 @@ import DeleteModal from "../components/DeleteModal";
 import ArrowButton from "../components/ArrowButton";
 import SelectedItem from "../components/SelectedItem";
 import ActionButton from "../components/ActionButton";
+import SessionTransition from "../components/session/SessionTransition";
 
 export default function Session() {
   const [sessions, setSessions] = useState([]);
@@ -29,6 +30,8 @@ export default function Session() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [deleteMessage, setDeleteMessage] = useState("");
+  const [showTransition, setShowTransition] = useState(false);
+  const [pendingSessionId, setPendingSessionId] = useState(null);
 
   const handleDeleteConfirm = async () => {
     if (!sessionToDelete) return;
@@ -159,39 +162,45 @@ export default function Session() {
   ]);
 
   // Find createNewSession funktionen og erstat med:
-const createNewSession = async () => {
-  if (!campaignId) return;
-  try {
-    const q = query(
-      collection(db, "Sessions"),
-      where("campaignId", "==", campaignId)
-    );
-    const snapshot = await getDocs(q);
-    const existingSessions = snapshot.docs.map((d) => d.data());
-    const highestSessNr = existingSessions.reduce(
-      (max, s) => Math.max(max, s.sessNr || 0),
-      0
-    );
-    const nextSessNr = highestSessNr + 1;
+  const createNewSession = async () => {
+    if (!campaignId) return;
+    try {
+      const q = query(
+        collection(db, "Sessions"),
+        where("campaignId", "==", campaignId)
+      );
+      const snapshot = await getDocs(q);
+      const existingSessions = snapshot.docs.map((d) => d.data());
+      const highestSessNr = existingSessions.reduce(
+        (max, s) => Math.max(max, s.sessNr || 0),
+        0
+      );
+      const nextSessNr = highestSessNr + 1;
 
-    // Navigate med draft data i stedet for at oprette session
-    navigate("/session-edit", { 
-      state: { 
-        isDraft: true,
-        campaignId,
-        sessNr: nextSessNr,
-      } 
-    });
-  } catch (err) {
-    console.error("🔥 Fejl ved oprettelse af ny session:", err);
-  }
-};
+      // Navigate med draft data i stedet for at oprette session
+      navigate("/session-edit", {
+        state: {
+          isDraft: true,
+          campaignId,
+          sessNr: nextSessNr,
+        },
+      });
+    } catch (err) {
+      console.error("🔥 Fejl ved oprettelse af ny session:", err);
+    }
+  };
 
-// Add this function after createNewSession
   const runSession = (sessionId) => {
-    navigate(`/run-session/${sessionId}`, {
-      state: { campaignId },
-    });
+    setPendingSessionId(sessionId);
+    setShowTransition(true);
+  };
+
+  const handleTransitionComplete = () => {
+    if (pendingSessionId) {
+      navigate(`/run-session/${pendingSessionId}`, {
+        state: { campaignId },
+      });
+    }
   };
 
   // Scroll / center logic
@@ -269,7 +278,6 @@ const createNewSession = async () => {
     return () => window.removeEventListener("wheel", onWheel);
   }, [handleScroll]);
 
-  
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
@@ -487,43 +495,48 @@ const createNewSession = async () => {
                   {selectedSession.notesHeadline}
                 </h2>
 
-              {/* DM Notes */}
-<div className="text-[#bf883c] whitespace-pre-wrap mb-4">
-  {selectedSession.dmNotes || "No notes yet"}
-</div>
+                {/* DM Notes */}
+                <div className="text-[#bf883c] whitespace-pre-wrap mb-4">
+                  {selectedSession.dmNotes || "No notes yet"}
+                </div>
 
-{/* Session Notes */}
-<div>
-  <h3 className="text-[var(--primary)] font-semibold mb-2">Session Notes</h3>
-  {selectedSession.sessionNotes?.length > 0 ? (
-    <ul className="space-y-3">
-      {selectedSession.sessionNotes.map((note) => {
-        const colorMap = {
-          story: "var(--blue)",
-          npc: "var(--purple)",
-          loot: "var(--yellow)",
-          quest: "var(--green)",
-          combat: "var(--red)",
-          other: "var(--gray)",
-        };
-        const textColor = colorMap[note.category] || "var(--primary)";
-        return (
-          <li key={note.id} className="whitespace-pre-wrap">
-            <p
-              style={{ color: textColor }}
-              className="text-lg tracking-wide leading-snug"
-            >
-              {note.text}
-            </p>
-          </li>
-        );
-      })}
-    </ul>
-  ) : (
-    <p className="text-[var(--secondary)]/70 italic">No session notes yet</p>
-  )}
-</div>
-            </motion.div>
+                {/* Session Notes */}
+                <div>
+                  <h3 className="text-[var(--primary)] font-semibold mb-2">
+                    Session Notes
+                  </h3>
+                  {selectedSession.sessionNotes?.length > 0 ? (
+                    <ul className="space-y-3">
+                      {selectedSession.sessionNotes.map((note) => {
+                        const colorMap = {
+                          story: "var(--blue)",
+                          npc: "var(--purple)",
+                          loot: "var(--yellow)",
+                          quest: "var(--green)",
+                          combat: "var(--red)",
+                          other: "var(--gray)",
+                        };
+                        const textColor =
+                          colorMap[note.category] || "var(--primary)";
+                        return (
+                          <li key={note.id} className="whitespace-pre-wrap">
+                            <p
+                              style={{ color: textColor }}
+                              className="text-lg tracking-wide leading-snug"
+                            >
+                              {note.text}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-[var(--secondary)]/70 italic">
+                      No session notes yet
+                    </p>
+                  )}
+                </div>
+              </motion.div>
 
               {/* Row beneath DM Notes: Encounters + Maps */}
               <motion.div className="w-2/5 flex flex-col z-10 justify-between">
@@ -722,7 +735,24 @@ mt-8 z-20"
           />
         </div>
       )}
+      {deleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center 
+      backdrop-blur-sm bg-black/60"
+        >
+          <DeleteModal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            campaign={sessionToDelete}
+            onConfirm={handleDeleteConfirm}
+          />
+        </div>
+      )}
+
+      <SessionTransition
+        isVisible={showTransition}
+        onComplete={handleTransitionComplete}
+      />
     </div>
   );
 }
-
