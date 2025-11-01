@@ -81,9 +81,9 @@ export const CombatTab = ({ sessionData }) => {
   return (
     <div className="space-y-6 p-4">
       {/* Big Start Combat Button */}
-      <motion.div className="w-fit mx-auto" whileHover={{ scale: 1.05 }}>
+      <motion.div className="w-fit mx-auto">
         <ActionButton
-          label="START COMBAT"
+          label="SETUP COMBAT"
           onClick={() => {
             setSelectedEncounter(mockEncounter);
             setShowInitiativeSetup(true);
