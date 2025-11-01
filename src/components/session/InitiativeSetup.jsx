@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import ActionButton from "../ActionButton";
 
 // Get encounters and combat maps from session data
 export default function InitiativeSetup({ sessionData, onStart, onClose }) {
@@ -238,8 +239,6 @@ export default function InitiativeSetup({ sessionData, onStart, onClose }) {
                       : "bg-gradient-to-br from-[#3d3426] to-[#2a2419] text-[#BF883C] border-2 border-[#BF883C]/30"
                   }`}
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ fontFamily: "EB Garamond, serif" }}
                 >
                   {count}
                 </motion.button>
@@ -282,81 +281,41 @@ export default function InitiativeSetup({ sessionData, onStart, onClose }) {
             </div>
           </div>
 
-          {/* Info Box */}
-          <div className="mb-6 p-4 border-2 border-yellow-600/30 bg-yellow-900/10">
-            <div className="flex items-start gap-3">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#d9ca89"
-                strokeWidth="2"
-                className="flex-shrink-0"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4M12 8h.01" />
-              </svg>
-              <div>
-                <p
-                  className="text-[#d9ca89] text-sm font-bold mb-1 uppercase tracking-wider"
-                  style={{ fontFamily: "EB Garamond, serif" }}
-                >
-                  Note
-                </p>
-                <p
-                  className="text-[#BF883C]/70 text-xs"
-                  style={{ fontFamily: "EB Garamond, serif" }}
-                >
-                  Creature initiatives will be rolled automatically using their
-                  initiative modifiers. After starting combat, you will be able
-                  to position tokens on the map.
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Buttons */}
-          <div className="flex gap-4">
+          <div className="flex justify-between">
+            {/* Enter Combat Button */}
+            <ActionButton
+              label="Enter Combat"
+              onClick={
+                !selectedEncounter ||
+                !selectedCombatMap ||
+                encounters.length === 0 ||
+                combatMaps.length === 0
+                  ? undefined
+                  : handleStart
+              }
+              size="md"
+              showLeftArrow={false}
+              showRightArrow={true}
+              showGlow={true}
+              animate={true}
+              animationDelay={0}
+              className={
+                !selectedEncounter ||
+                !selectedCombatMap ||
+                encounters.length === 0 ||
+                combatMaps.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }
+            />
+            {/* Cancel Button - Simple text link */}
             <motion.button
               onClick={onClose}
-              className="flex-1 bg-gradient-to-r from-[#3d3426] to-[#2a2419] text-[#BF883C] border-2 border-[#BF883C]/30 py-4 px-6 font-bold uppercase tracking-wider"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="cursor-pointer text-[#8B0000] hover:text-[#DC143C] font-bold uppercase tracking-widest text-3xl transition-colors duration-300"
               style={{ fontFamily: "EB Garamond, serif" }}
             >
               Cancel
-            </motion.button>
-            <motion.button
-              onClick={handleStart}
-              disabled={
-                !selectedEncounter ||
-                !selectedCombatMap ||
-                encounters.length === 0 ||
-                combatMaps.length === 0
-              }
-              className={`flex-1 border-2 py-4 px-6 font-bold uppercase tracking-wider ${
-                !selectedEncounter ||
-                !selectedCombatMap ||
-                encounters.length === 0 ||
-                combatMaps.length === 0
-                  ? "bg-gray-600 text-gray-400 border-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-red-700 to-red-600 text-white border-yellow-400"
-              }`}
-              whileHover={
-                selectedEncounter && selectedCombatMap
-                  ? {
-                      scale: 1.02,
-                      boxShadow: "0 0 30px rgba(239,68,68,0.6)",
-                    }
-                  : {}
-              }
-              whileTap={
-                selectedEncounter && selectedCombatMap ? { scale: 0.98 } : {}
-              }
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              Enter Combat
             </motion.button>
           </div>
         </div>
