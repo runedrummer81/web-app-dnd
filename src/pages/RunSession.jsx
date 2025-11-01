@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { motion } from "framer-motion"; // ADD THIS IMPORT
 import {
   MapSyncProvider,
   RunSessionContext,
@@ -179,42 +180,49 @@ const RunSession = ({ sessionId, mapSetData }) => {
     <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
       <MapSyncProvider isDMView={true}>
         <CombatStateProvider>
-          {/* NOW the CombatWrapper can use useCombatState */}
           <CombatWrapper>
-            <ConfirmEndSessionModal
-              show={showEndSessionConfirm}
-              onCancel={() => setShowEndSessionConfirm(false)}
-              onConfirm={handleEndSession}
-            />
-            {!isPlayerWindowOpen && (
-              <PlayerDisplayButton onClick={openPlayerDisplay} />
-            )}
-            <div className="w-screen h-screen flex bg-black overflow-hidden">
-              {/* Map Display - Left Side */}
-              <div className="lg:block lg:w-[65%] h-full">
-                <MapDisplay className="w-full h-full" />
-              </div>
+            {/* WRAP EVERYTHING IN MOTION.DIV FOR FADE-IN */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="w-screen h-screen"
+            >
+              <ConfirmEndSessionModal
+                show={showEndSessionConfirm}
+                onCancel={() => setShowEndSessionConfirm(false)}
+                onConfirm={handleEndSession}
+              />
+              {!isPlayerWindowOpen && (
+                <PlayerDisplayButton onClick={openPlayerDisplay} />
+              )}
+              <div className="w-screen h-screen flex bg-black overflow-hidden">
+                {/* Map Display - Left Side */}
+                <div className="lg:block lg:w-[65%] h-full">
+                  <MapDisplay className="w-full h-full" />
+                </div>
 
-              {/* DM Info Box - Right Side */}
-              <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
-                <BorderRunSession />
+                {/* DM Info Box - Right Side */}
+                <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
+                  <BorderRunSession />
 
-                <div className="absolute inset-0 flex flex-col">
-                  <div className="flex-1 overflow-hidden">
-                    <DMPanelWrapper
-                      sessionId={sessionId}
-                      sessionData={sessionData}
-                      mapSetData={mapSetData}
-                      isPlayerWindowOpen={isPlayerWindowOpen}
-                      onEndSessionClick={handleShowEndSessionConfirm}
-                      quickNotes={quickNotes}
-                      setQuickNotes={setQuickNotes}
-                      onRequestEndSessionConfirm={handleShowEndSessionConfirm}
-                    />
+                  <div className="absolute inset-0 flex flex-col">
+                    <div className="flex-1 overflow-hidden">
+                      <DMPanelWrapper
+                        sessionId={sessionId}
+                        sessionData={sessionData}
+                        mapSetData={mapSetData}
+                        isPlayerWindowOpen={isPlayerWindowOpen}
+                        onEndSessionClick={handleShowEndSessionConfirm}
+                        quickNotes={quickNotes}
+                        setQuickNotes={setQuickNotes}
+                        onRequestEndSessionConfirm={handleShowEndSessionConfirm}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </CombatWrapper>
         </CombatStateProvider>
       </MapSyncProvider>
