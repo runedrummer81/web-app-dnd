@@ -8,7 +8,6 @@ const createStartIcon = () => {
     className: "custom-route-icon",
     html: `
       <div style="position: relative; width: 40px; height: 40px;">
-        <!-- Pulsing ring -->
         <div style="
           position: absolute;
           top: 50%;
@@ -21,7 +20,6 @@ const createStartIcon = () => {
           opacity: 0.4;
           animation: pulse-ring 2s ease-out infinite;
         "></div>
-        <!-- Main circle -->
         <div style="
           position: absolute;
           top: 50%;
@@ -34,7 +32,6 @@ const createStartIcon = () => {
           border-radius: 50%;
           box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
         "></div>
-        <!-- Flag icon -->
         <svg style="
           position: absolute;
           top: 50%;
@@ -57,7 +54,6 @@ const createEndIcon = () => {
     className: "custom-route-icon",
     html: `
       <div style="position: relative; width: 40px; height: 40px;">
-        <!-- Pulsing ring -->
         <div style="
           position: absolute;
           top: 50%;
@@ -70,7 +66,6 @@ const createEndIcon = () => {
           opacity: 0.4;
           animation: pulse-ring 2s ease-out infinite;
         "></div>
-        <!-- Main circle -->
         <div style="
           position: absolute;
           top: 50%;
@@ -83,7 +78,6 @@ const createEndIcon = () => {
           border-radius: 50%;
           box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
         "></div>
-        <!-- Sword icon -->
         <svg style="
           position: absolute;
           top: 50%;
@@ -106,7 +100,6 @@ const createWaypointIcon = () => {
     className: "custom-route-icon",
     html: `
       <div style="position: relative; width: 32px; height: 32px;">
-        <!-- Pulsing ring -->
         <div style="
           position: absolute;
           top: 50%;
@@ -119,7 +112,6 @@ const createWaypointIcon = () => {
           opacity: 0.4;
           animation: pulse-ring 2s ease-out infinite;
         "></div>
-        <!-- Main circle -->
         <div style="
           position: absolute;
           top: 50%;
@@ -132,7 +124,6 @@ const createWaypointIcon = () => {
           border-radius: 50%;
           box-shadow: 0 0 10px rgba(191, 136, 60, 0.6);
         "></div>
-        <!-- Inner glow -->
         <div style="
           position: absolute;
           top: 50%;
@@ -158,7 +149,7 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setOffset((prev) => (prev + 1) % 40);
-    }, 80); // Slower for better performance
+    }, 80);
     return () => clearInterval(interval);
   }, []);
 
@@ -167,10 +158,9 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
 
   return (
     <>
-      {/* Route Line - Simplified for performance */}
+      {/* Route Line */}
       {route.waypoints.length > 1 && (
         <>
-          {/* Outer glow */}
           <Polyline
             positions={route.waypoints}
             pathOptions={{
@@ -180,7 +170,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
             }}
           />
 
-          {/* Main traveling path */}
           <Polyline
             positions={route.waypoints}
             pathOptions={{
@@ -192,7 +181,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
             }}
           />
 
-          {/* Inner glowing core */}
           <Polyline
             positions={route.waypoints}
             pathOptions={{
@@ -207,8 +195,26 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
         </>
       )}
 
-      {/* Waypoint Markers with visible icons */}
+      {/* Waypoint Markers */}
       {route.waypoints.map((waypoint, index) => {
+        // ✅ KORREKT VALIDERING - Leaflet bruger arrays [lat, lng]
+        if (!Array.isArray(waypoint) || waypoint.length !== 2) {
+          console.warn("⚠️ Invalid waypoint format (not an array):", waypoint);
+          return null;
+        }
+
+        const [lat, lng] = waypoint;
+        
+        if (
+          typeof lat !== 'number' || 
+          typeof lng !== 'number' ||
+          Number.isNaN(lat) ||
+          Number.isNaN(lng)
+        ) {
+          console.warn("⚠️ Invalid waypoint coordinates:", waypoint);
+          return null;
+        }
+
         const isStart = index === 0;
         const isEnd = index === route.waypoints.length - 1;
 
@@ -232,7 +238,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
                     minWidth: "140px",
                   }}
                 >
-                  {/* Ornate top decoration */}
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <svg width="30" height="2" fill="#BF883C">
                       <rect width="30" height="2" />
@@ -255,7 +260,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
                     ✕ Remove
                   </button>
 
-                  {/* Bottom decoration */}
                   <div className="mt-2 flex items-center justify-center">
                     <svg width="30" height="2" fill="#BF883C">
                       <rect width="30" height="2" />
@@ -268,7 +272,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
         );
       })}
 
-      {/* Simplified CSS animations */}
       <style>{`
         @keyframes pulse-ring {
           0% {
@@ -285,7 +288,6 @@ export const RouteDisplay = ({ route, isDMView, onRemoveWaypoint }) => {
           filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
         }
         
-        /* Popup styling */
         .leaflet-popup-content-wrapper {
           background: transparent !important;
           box-shadow: none !important;

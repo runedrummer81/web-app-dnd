@@ -559,7 +559,7 @@ ${
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.25, ease: "easeOut" }}
-                      className="mt-3 overflow-hidden flex justify-between overflow-hidden"
+                      className="mt-3 flex justify-between overflow-hidden"
                     >
                       <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none overflow-hidden">
                         {(enc.creatures || []).map((c, i) => (

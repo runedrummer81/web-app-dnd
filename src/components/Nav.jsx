@@ -132,7 +132,7 @@ export default function Nav() {
             >
               <button
                 onClick={handleLogout}
-                className="block w-full font-semibold text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition flex whitespace-nowrap hover:cursor-pointer"
+                className="w-full font-semibold text-left px-4 py-2 text-sm hover:bg-[var(--primary)] hover:text-black transition flex whitespace-nowrap hover:cursor-pointer"
               >
                 Log out
               </button>
