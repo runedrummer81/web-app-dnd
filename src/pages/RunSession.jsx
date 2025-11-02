@@ -90,15 +90,20 @@ const RunSession = ({ sessionId, mapSetData }) => {
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState([]);
 
-  const openPlayerDisplay = () => {
-    const playerWindow = window.open(
-      `/player-view?session=${sessionId}`,
-      "DnD Player View",
-      "width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no"
-    );
-    setPlayerWindowRef(playerWindow);
-    setIsPlayerWindowOpen(true);
-  };
+const base = import.meta.env.BASE_URL || '/web-app-dnd/';
+
+const openPlayerDisplay = () => {
+  const playerUrl = `${base}player-view?session=${sessionId}`;
+  const playerWindow = window.open(
+    playerUrl,
+    "DnD Player View",
+    "width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no"
+  );
+
+  setPlayerWindowRef(playerWindow);
+  setIsPlayerWindowOpen(true);
+};
+
 
   const handleShowEndSessionConfirm = () => setShowEndSessionConfirm(true);
 
