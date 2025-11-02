@@ -99,7 +99,7 @@ export default function MobileBlocker() {
               className="flex justify-center mb-2"
             >
               <motion.img
-                src="/images/logo.svg"
+                src="images/logo.svg"
                 alt="Logo"
                 className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain"
                 style={{
