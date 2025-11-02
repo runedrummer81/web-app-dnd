@@ -122,6 +122,7 @@ export const DiceRoller = () => {
       <div className="relative p-4 overflow-hidden">
         <div className="flex flex-col items-center mt-6">
           <div className="relative w-full max-w-[280px] lg:max-w-[320px] aspect-square flex items-center justify-center mx-auto">
+            
             {/* Layered Glow Effects */}
             <motion.div
               className="absolute inset-0"

@@ -7,76 +7,76 @@ import ActionButton from "../ActionButton";
 export const CombatTab = ({ sessionData }) => {
   const { startCombat } = useCombatState();
   const [showInitiativeSetup, setShowInitiativeSetup] = useState(false);
-  const [selectedEncounter, setSelectedEncounter] = useState(null);
+  // const [selectedEncounter, setSelectedEncounter] = useState(null);
 
-  const encounters = sessionData?.encounters || [];
+  // const encounters = sessionData?.encounters || [];
 
-  const handleRunEncounter = (encounter) => {
-    setSelectedEncounter(encounter);
-    setShowInitiativeSetup(true);
-  };
+  // const handleRunEncounter = (encounter) => {
+  //   setSelectedEncounter(encounter);
+  //   setShowInitiativeSetup(true);
+  // };
 
   // Simple mock encounter for testing
-  const mockEncounter = {
-    name: "Test Encounter",
-    difficulty: "Medium",
-    creatures: [
-      {
-        name: "Orc Warrior",
-        hp: 30,
-        ac: 13,
-        dexModifier: 1,
-        stats: {
-          ac: 13,
-          speed: "30 ft",
-          abilities: {
-            STR: 16,
-            DEX: 12,
-            CON: 16,
-            INT: 7,
-            WIS: 11,
-            CHA: 10,
-          },
-          attacks: [
-            {
-              name: "Greataxe",
-              toHit: 5,
-              damage: "1d12+3",
-              damageDice: 12,
-              damageBonus: 3,
-            },
-          ],
-        },
-      },
-      {
-        name: "Orc Grunt",
-        hp: 15,
-        ac: 12,
-        dexModifier: 0,
-        stats: {
-          ac: 12,
-          speed: "30 ft",
-          abilities: {
-            STR: 14,
-            DEX: 10,
-            CON: 14,
-            INT: 7,
-            WIS: 11,
-            CHA: 10,
-          },
-          attacks: [
-            {
-              name: "Club",
-              toHit: 4,
-              damage: "1d6+2",
-              damageDice: 6,
-              damageBonus: 2,
-            },
-          ],
-        },
-      },
-    ],
-  };
+  // const mockEncounter = {
+  //   name: "Test Encounter",
+  //   difficulty: "Medium",
+  //   creatures: [
+  //     {
+  //       name: "Orc Warrior",
+  //       hp: 30,
+  //       ac: 13,
+  //       dexModifier: 1,
+  //       stats: {
+  //         ac: 13,
+  //         speed: "30 ft",
+  //         abilities: {
+  //           STR: 16,
+  //           DEX: 12,
+  //           CON: 16,
+  //           INT: 7,
+  //           WIS: 11,
+  //           CHA: 10,
+  //         },
+  //         attacks: [
+  //           {
+  //             name: "Greataxe",
+  //             toHit: 5,
+  //             damage: "1d12+3",
+  //             damageDice: 12,
+  //             damageBonus: 3,
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       name: "Orc Grunt",
+  //       hp: 15,
+  //       ac: 12,
+  //       dexModifier: 0,
+  //       stats: {
+  //         ac: 12,
+  //         speed: "30 ft",
+  //         abilities: {
+  //           STR: 14,
+  //           DEX: 10,
+  //           CON: 14,
+  //           INT: 7,
+  //           WIS: 11,
+  //           CHA: 10,
+  //         },
+  //         attacks: [
+  //           {
+  //             name: "Club",
+  //             toHit: 4,
+  //             damage: "1d6+2",
+  //             damageDice: 6,
+  //             damageBonus: 2,
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   ],
+  // };
 
   return (
     <div className="space-y-6 p-4">
@@ -85,12 +85,12 @@ export const CombatTab = ({ sessionData }) => {
         <ActionButton
           label="SETUP COMBAT"
           onClick={() => {
-            setSelectedEncounter(mockEncounter);
+            // setSelectedEncounter(mockEncounter);
             setShowInitiativeSetup(true);
           }}
           size="lg"
           color="var(--secondary)"
-          bgColor="var(--primary"
+          bgColor="var(--primary)"
           textColor="var(--dark-muted-bg)"
           showLeftArrow={true}
           showRightArrow={true}
@@ -111,7 +111,6 @@ export const CombatTab = ({ sessionData }) => {
         {sessionData.combatMaps.map((map, idx) => (
           <button
             key={idx}
-            onClick={() => onMapSwitch(map.id)}
             className="border-2 border-[var(--secondary)] p-2 flex items-center justify-center hover:border-[#d9ca89] transition-all"
           >
             {map.image ? (
@@ -136,7 +135,7 @@ export const CombatTab = ({ sessionData }) => {
             sessionData={sessionData} // needed for encounters + combatMaps
             onClose={() => {
               setShowInitiativeSetup(false);
-              setSelectedEncounter(null);
+              // setSelectedEncounter(null);
             }}
             onStart={(selectedEncounter, playerData, selectedCombatMap) => {
               startCombat(selectedEncounter, playerData, selectedCombatMap);
