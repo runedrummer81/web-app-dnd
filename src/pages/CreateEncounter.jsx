@@ -42,12 +42,12 @@ export default function CreateEncounters() {
     setDeleteConfirm({ open: true, encounterId: id });
   };
 
-    const confirmDelete = async () => {
+  const confirmDelete = async () => {
     if (!deleteConfirm.encounterId) return;
 
     try {
       await deleteDoc(doc(db, "encounters", deleteConfirm.encounterId));
-      
+
       // If we're currently editing this encounter, reset to "new encounter" mode
       if (currentEditingId === deleteConfirm.encounterId) {
         setCurrentEditingId(null);
@@ -208,8 +208,6 @@ export default function CreateEncounters() {
 
     return { spanRef, width };
   }
-
-  
 
   return (
     <motion.div
@@ -406,20 +404,20 @@ ${
                         <path
                           d="M39.202 76.9561L75.895 40.2631L36.693 1.06107"
                           stroke="var(--primary)"
-                          stroke-width="3"
-                          stroke-miterlimit="10"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
                         />
                         <path
                           d="M56.2974 20.6661L37.9509 39.0126L57.5477 58.6094"
                           stroke="var(--primary)"
-                          stroke-width="3"
-                          stroke-miterlimit="10"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
                         />
                         <path
                           d="M36.693 1.06107L37.3184 20.0408L56.9152 39.6376L38.5687 57.9841L39.202 76.9561"
                           stroke="var(--primary)"
-                          stroke-width="3"
-                          stroke-miterlimit="10"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
                         />
                       </svg>
                     )}
@@ -520,7 +518,7 @@ ${
           Saved Encounters
         </h2>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full" >
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[55vh] scrollbar-thin scrollbar-thumb-[var(--secondary)] scrollbar-track-[var(--dark-muted-bg)] hover:scrollbar-thumb-[var(--primary)] scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
           <AnimatePresence>
             {savedEncounters.map((enc) => (
               <motion.div
@@ -538,81 +536,81 @@ ${
               >
                 {/* Encounter header */}
                 <div className="overflow-hidden">
-                <div
-                  className="flex justify-between items-center relative z-10 select-none  "
-                  onClick={() => toggleExpand(enc.id)}
-                >
-                  <h3 className="text-lg font-bold text-[var(--primary)] tracking-wide transition-colors duration-200 group-hover:text-black">
-                    {enc.name || "Unnamed Encounter"}
-                  </h3>
+                  <div
+                    className="flex justify-between items-center relative z-10 select-none  "
+                    onClick={() => toggleExpand(enc.id)}
+                  >
+                    <h3 className="text-lg font-bold text-[var(--primary)] tracking-wide transition-colors duration-200 group-hover:text-black">
+                      {enc.name || "Unnamed Encounter"}
+                    </h3>
 
-                  <button className="text-[var(--primary)] transition text-sm hover:cursor-pointer">
-                    {expandedEncounterIds.includes(enc.id) ? "▲" : "▼"}
-                  </button>
-                </div>
+                    <button className="text-[var(--primary)] transition text-sm hover:cursor-pointer">
+                      {expandedEncounterIds.includes(enc.id) ? "▲" : "▼"}
+                    </button>
+                  </div>
 
-                {/* Expandable details */}
-                <AnimatePresence>
-                  {expandedEncounterIds.includes(enc.id) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
-                      className="mt-3 flex justify-between overflow-hidden"
-                    >
-                      <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none overflow-hidden">
-                        {(enc.creatures || []).map((c, i) => (
-                          <li
-                            key={i}
-                            className="transition-colors cursor-pointer overflow-hidden"
-                            onMouseEnter={(e) =>
-                              setHoveredCreature({
-                                ...c,
-                                mousePos: {
-                                  x: e.clientX + 15,
-                                  y: e.clientY + 15,
-                                },
-                              })
-                            }
-                            onMouseMove={(e) =>
-                              setHoveredCreature((prev) =>
-                                prev
-                                  ? {
-                                      ...prev,
-                                      mousePos: {
-                                        x: e.clientX + 15,
-                                        y: e.clientY + 15,
-                                      },
-                                    }
-                                  : null
-                              )
-                            }
-                            onMouseLeave={() => setHoveredCreature(null)}
+                  {/* Expandable details */}
+                  <AnimatePresence>
+                    {expandedEncounterIds.includes(enc.id) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className="mt-3 flex justify-between overflow-hidden"
+                      >
+                        <ul className="text-sm space-y-1 max-h-[150px] overflow-y-auto pr-1 text-[var(--secondary)] select-none overflow-hidden">
+                          {(enc.creatures || []).map((c, i) => (
+                            <li
+                              key={i}
+                              className="transition-colors cursor-pointer overflow-hidden"
+                              onMouseEnter={(e) =>
+                                setHoveredCreature({
+                                  ...c,
+                                  mousePos: {
+                                    x: e.clientX + 15,
+                                    y: e.clientY + 15,
+                                  },
+                                })
+                              }
+                              onMouseMove={(e) =>
+                                setHoveredCreature((prev) =>
+                                  prev
+                                    ? {
+                                        ...prev,
+                                        mousePos: {
+                                          x: e.clientX + 15,
+                                          y: e.clientY + 15,
+                                        },
+                                      }
+                                    : null
+                                )
+                              }
+                              onMouseLeave={() => setHoveredCreature(null)}
+                            >
+                              {c.name} × {c.count}
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* delete button */}
+                        <div className="flex flex-row text-[var(--primary)] space-x-4">
+                          <button
+                            onClick={() => handleDeleteEncounter(enc.id)}
+                            className=" text-red-500 hover:text-red-400  text-sm transition cursor-pointer"
                           >
-                            {c.name} × {c.count}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* delete button */}
-                      <div className="flex flex-row text-[var(--primary)] space-x-4">
-                        <button
-                          onClick={() => handleDeleteEncounter(enc.id)}
-                          className=" text-red-500 hover:text-red-400  text-sm transition cursor-pointer"
-                        >
-                          Delete
-                        </button>
-                        <button
-                          onClick={() => handleEditEncounter(enc)}
-                          className=" text-[var(--primary)] hover:text-[var(--secondary)]  text-sm transition cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => handleEditEncounter(enc)}
+                            className=" text-[var(--primary)] hover:text-[var(--secondary)]  text-sm transition cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ))}
@@ -658,41 +656,37 @@ ${
                 {hoveredCreature.alignment}
               </p>
               <div className="grid grid-cols-2 gap-1 text-sm mb-2">
-                <p className="text-[var(--primary)] flex space-x-1">
-                  <strong>AC:</strong>{" "}
-                  <p className="text-[var(--secondary)] ">
+                <div className="text-[var(--primary)] flex space-x-1">
+                  <strong>AC:</strong>
+                  <span className="text-[var(--secondary)]">
                     {hoveredCreature.ac}
-                  </p>
-                </p>
-                <p className="text-[var(--primary)] flex space-x-1">
-                  <strong>HP:</strong>{" "}
-                  <p className="text-[var(--secondary)]">
-                    {" "}
+                  </span>
+                </div>
+                <div className="text-[var(--primary)] flex space-x-1">
+                  <strong>HP:</strong>
+                  <span className="text-[var(--secondary)]">
                     {hoveredCreature.hp}
-                  </p>
-                </p>
-                <p className="text-[var(--primary)] flex space-x-1">
-                  <strong>Speed:</strong>{" "}
-                  <p className="text-[var(--secondary)]">
-                    {" "}
+                  </span>
+                </div>
+                <div className="text-[var(--primary)] flex space-x-1">
+                  <strong>Speed:</strong>
+                  <span className="text-[var(--secondary)]">
                     {hoveredCreature.speed}
-                  </p>
-                </p>
-                <p className="text-[var(--primary)] flex space-x-1">
-                  <strong>CR:</strong>{" "}
-                  <p className="text-[var(--secondary)]">
-                    {" "}
+                  </span>
+                </div>
+                <div className="text-[var(--primary)] flex space-x-1">
+                  <strong>CR:</strong>
+                  <span className="text-[var(--secondary)]">
                     {hoveredCreature.cr}
-                  </p>
-                </p>
+                  </span>
+                </div>
                 {hoveredCreature.initiative && (
-                  <p className="text-[var(--primary)] flex space-x-1">
-                    <strong>Initiative:</strong>{" "}
-                    <p className="text-[var(--secondary)]">
-                      {" "}
+                  <div className="text-[var(--primary)] flex space-x-1">
+                    <strong>Initiative:</strong>
+                    <span className="text-[var(--secondary)]">
                       {hoveredCreature.initiative}
-                    </p>
-                  </p>
+                    </span>
+                  </div>
                 )}
               </div>
               {hoveredCreature.stats && hoveredCreature.modifiers && (
@@ -772,22 +766,21 @@ ${
           </motion.div>
         )}
       </AnimatePresence>
-<AnimatePresence>
-  {deleteConfirm.open && (
-    <motion.div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <DeletePopup
-        confirmDelete={confirmDelete}
-        setDeleteConfirm={setDeleteConfirm}
-      />
-    </motion.div>
-  )}
-</AnimatePresence>
-
+      <AnimatePresence>
+        {deleteConfirm.open && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DeletePopup
+              confirmDelete={confirmDelete}
+              setDeleteConfirm={setDeleteConfirm}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
