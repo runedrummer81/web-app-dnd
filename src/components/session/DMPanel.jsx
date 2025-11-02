@@ -9,8 +9,6 @@ import { MapControlsTab } from "./MapControlsTab";
 import { useMapSync } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { db } from "../../firebase";
-// import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
 import SpellBook from "./Spells";
 
 export const DMPanel = ({
@@ -858,11 +856,6 @@ export const DMPanel = ({
           )}
         </AnimatePresence>
       </div>
-      {/* <ConfirmEndSessionModal
-        show={showEndSessionConfirm}
-        onCancel={() => setShowEndSessionConfirm(false)}
-        onConfirm={onEndSessionClick}
-      /> */}
     </div>
   );
 };

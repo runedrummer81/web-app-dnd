@@ -72,7 +72,7 @@ export const RouteManager = ({
           className={`relative w-2/3 p-4 font-bold uppercase tracking-wider transition-all duration-300 overflow-hidden ${
             routeSettingMode
               ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-              : "border border-[var(--secondary)}  text-[var(--secondary)]"
+              : "border border-[var(--secondary)]  text-[var(--secondary)]"
           }`}
           style={{ fontFamily: "EB Garamond, serif" }}
           whileHover={{ scale: 1.01 }}
@@ -109,7 +109,7 @@ export const RouteManager = ({
           className={`w-1/3 p-3 font-bold uppercase tracking-wider text-sm transition-all ${
             route.visibleToPlayers
               ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-              : "border border-[var(--secondary)}  text-[var(--secondary)]"
+              : "border border-[var(--secondary)]  text-[var(--secondary)]"
           }`}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
@@ -239,7 +239,7 @@ export const RouteManager = ({
                 ${
                   travelMethod === method.id
                     ? "bg-[var(--primary)] text-[var(--dark-muted-bg)]"
-                    : "border border-[var(--secondary)}  text-[var(--secondary)]"
+                    : "border border-[var(--secondary)]  text-[var(--secondary)]"
                 }`}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}

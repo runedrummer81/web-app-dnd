@@ -3,6 +3,7 @@ import { useMapSync } from "./MapSyncContext";
 export const MapSwitcher = ({ mapSetData }) => {
   const { mapState, updateMapState, isDMView } = useMapSync();
 
+  //Markers nulstilles HVER gang der skiftes kort
   const switchToMap = (mapId) => {
     if (!isDMView) return;
 
@@ -28,7 +29,7 @@ export const MapSwitcher = ({ mapSetData }) => {
             : "bg-gray-800 text-[#f0d382] hover:bg-gray-700 border border-[#bf883c]/30"
         }`}
       >
-        🗺️ {mapSetData.worldMap?.name || "World Map"}
+         {mapSetData.worldMap?.name || "World Map"}
       </button>
 
       {mapSetData.cityMaps?.map((cityMap) => (
@@ -41,7 +42,7 @@ export const MapSwitcher = ({ mapSetData }) => {
               : "bg-gray-800 text-[#f0d382] hover:bg-gray-700 border border-[#bf883c]/30"
           }`}
         >
-          🏰 {cityMap.name}
+           {cityMap.name}
         </button>
       ))}
     </div>
