@@ -122,7 +122,6 @@ export const DiceRoller = () => {
       <div className="relative p-4 overflow-hidden">
         <div className="flex flex-col items-center mt-6">
           <div className="relative w-full max-w-[280px] lg:max-w-[320px] aspect-square flex items-center justify-center mx-auto">
-            
             {/* Layered Glow Effects */}
             <motion.div
               className="absolute inset-0"
@@ -205,19 +204,23 @@ export const DiceRoller = () => {
                 {orbitingParticles.map((particle) => {
                   const radius = 140;
                   const angle = particle.angle;
-                  const finalX = 200 + radius * Math.cos((angle * Math.PI) / 180);
-                  const finalY = 200 + radius * Math.sin((angle * Math.PI) / 180);
+                  const finalX =
+                    200 + radius * Math.cos((angle * Math.PI) / 180);
+                  const finalY =
+                    200 + radius * Math.sin((angle * Math.PI) / 180);
 
                   return (
                     <motion.circle
                       key={particle.id}
-                      // ✅ GIV INITIAL VÆRDIER til cx og cy
-                      cx={200}
-                      cy={200}
                       r="3"
                       fill="url(#particleGradient)"
                       filter="url(#strongGlow)"
-                      initial={{ scale: 0, opacity: 0 }}
+                      initial={{
+                        cx: 200,
+                        cy: 200,
+                        scale: 0,
+                        opacity: 0,
+                      }}
                       animate={{
                         scale: [0, 1, 1],
                         opacity: [0, 1, 0.8],

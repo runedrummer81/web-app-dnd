@@ -10,8 +10,7 @@ export const MapControlsTab = ({
   onWeatherChange,
 }) => {
   const { mapState, updateMapState } = useMapSync();
-  const { isSetupMode, exitSetupMode } =
-    useCombatState();
+  const { isSetupMode, exitSetupMode } = useCombatState();
   const runSessionContext = useContext(RunSessionContext);
   const sessionData = runSessionContext?.sessionData;
 
@@ -33,16 +32,14 @@ export const MapControlsTab = ({
     opacity: 0.3,
   };
 
-  useEffect(() => {
-    if (mapState.gridSettings?.visible === false) {
-      updateMapState({
-        gridSettings: { ...mapState.gridSettings, visible: true },
-      });
-    }
-  }, []); // run once on mount
+  const [recentColors, setRecentColors] = useState([]);
+  const [weatherOpen, setWeatherOpen] = useState(false);
 
+  // Initialize grid settings and recent colors on mount
   useEffect(() => {
     const current = mapState.gridSettings || {};
+
+    // Ensure grid is visible with default size
     if (!current.visible || !current.size) {
       updateMapState({
         gridSettings: {
@@ -52,16 +49,10 @@ export const MapControlsTab = ({
         },
       });
     }
-  }, []); // run once on mount (disse to use-effects kunne laves til én,
-  // men den bliver åbenbart sat til disabled per default)
 
-  const [recentColors, setRecentColors] = useState([]);
-  const [weatherOpen, setWeatherOpen] = useState(false);
-
-  // Initialize recentColors with the current color
-  useEffect(() => {
+    // Initialize recentColors with the current color
     if (gridSettings.color && !recentColors.includes(gridSettings.color)) {
-      setRecentColors((prev) => [gridSettings.color, ...prev].slice(0, 4));
+      setRecentColors([gridSettings.color]);
     }
   }, []); // run once on mount
 
@@ -90,13 +81,6 @@ export const MapControlsTab = ({
 
   const toggleGrid = () => {
     handleUpdateGrid({ ...gridSettings, visible: !gridSettings.visible });
-  };
-
-  //bliver vist ikke brugt
-  const handleRemoveToken = (tokenId) => {
-    updateMapState({
-      tokens: (mapState.tokens || []).filter((t) => t.id !== tokenId),
-    });
   };
 
   const handleStartCombat = () => {
@@ -336,11 +320,11 @@ export const MapControlsTab = ({
                   ))}
                 </div>
 
-                {/* Recently used colors */}
+                {/* Recently used colors - FIXED: use index as key */}
                 <div className="grid grid-cols-4 gap-2">
-                  {recentColors.map((color) => (
+                  {recentColors.map((color, index) => (
                     <motion.button
-                      key={color}
+                      key={`recent-color-${index}`}
                       onClick={() =>
                         handleUpdateGrid({ ...gridSettings, color })
                       }
@@ -355,6 +339,7 @@ export const MapControlsTab = ({
               </div>
             </div>
           </section>
+
           {/* Grid Opacity */}
           <section>
             <div>
