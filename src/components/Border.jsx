@@ -2,10 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
-const Border = ({ currentPath, isSelected = true }) => {
+const Border = ({ currentPath = true }) => {
   const prevPath = useRef(currentPath);
   const isLoginPage = currentPath === "/" || currentPath === "/login";
-  const [shineKey, setShineKey] = useState(0);
 
   // Determine scale based on path
   const getScale = () => {
@@ -32,20 +31,6 @@ const Border = ({ currentPath, isSelected = true }) => {
     setScale(getScale());
     prevPath.current = currentPath;
   }, [currentPath]);
-
-  // Trigger shine every 20 seconds
-  useEffect(() => {
-    if (!isSelected) return;
-
-    // Initial trigger
-    setShineKey((prev) => prev + 1);
-
-    const interval = setInterval(() => {
-      setShineKey((prev) => prev + 1);
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [isSelected]);
 
   return (
     <motion.div
@@ -79,23 +64,6 @@ const Border = ({ currentPath, isSelected = true }) => {
               strokeWidth="3"
             />
           </svg>
-          {isSelected && (
-            <motion.div
-              key={`shine-tl-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(135deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 40%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 60%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%", y: "-100%" }}
-              animate={{ x: "100%", y: "100%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
         </div>
         {/* Top Right Corner */}
         <div className="absolute top-0 right-0 w-20 h-20 rotate-90 overflow-hidden">
@@ -123,23 +91,6 @@ const Border = ({ currentPath, isSelected = true }) => {
               strokeWidth="3"
             />
           </svg>
-          {isSelected && (
-            <motion.div
-              key={`shine-tr-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(135deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 40%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 60%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%", y: "-100%" }}
-              animate={{ x: "100%", y: "100%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
         </div>
         {/* Bottom Left Corner */}
         <div className="absolute bottom-0 left-0 w-20 h-20 rotate-270 overflow-hidden">
@@ -167,23 +118,6 @@ const Border = ({ currentPath, isSelected = true }) => {
               strokeWidth="3"
             />
           </svg>
-          {isSelected && (
-            <motion.div
-              key={`shine-bl-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(135deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 40%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 60%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%", y: "-100%" }}
-              animate={{ x: "100%", y: "100%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
         </div>
         {/* Bottom Right Corner */}
         <div className="absolute bottom-0 right-0 w-20 h-20 rotate-180 overflow-hidden">
@@ -211,44 +145,9 @@ const Border = ({ currentPath, isSelected = true }) => {
               strokeWidth="3"
             />
           </svg>
-          {isSelected && (
-            <motion.div
-              key={`shine-br-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(135deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 40%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 60%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%", y: "-100%" }}
-              animate={{ x: "100%", y: "100%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
         </div>
         {/* Top Edge */}
-        <div className="absolute top-0 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--secondary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-top-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(90deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute top-0 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--secondary)] overflow-hidden"></div>
         {/* Logo */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-80 z-[10000] pointer-events-auto duration-300 transition">
           <Link to="/home">
@@ -260,145 +159,19 @@ const Border = ({ currentPath, isSelected = true }) => {
           </Link>
         </div>
         {/* Bottom Edge */}
-        <div className="absolute bottom-0 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--secondary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-bottom-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(90deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute bottom-0 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--secondary)] overflow-hidden"></div>
         {/* Left Edge */}
-        <div className="absolute left-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-left-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(180deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ y: "-100%" }}
-              animate={{ y: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute left-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)] overflow-hidden"></div>
         {/* Right Edge */}
-        <div className="absolute right-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-right-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(180deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ y: "-100%" }}
-              animate={{ y: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute right-0 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--secondary)] overflow-hidden"></div>
         {/* Top Edge 2 */}
-        <div className="absolute top-2 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--primary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-top2-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(90deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute top-2 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--primary)] overflow-hidden"></div>
         {/* Bottom Edge 2 */}
-        <div className="absolute bottom-2 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--primary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-bottom2-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(90deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute bottom-2 left-10 right-10 md:left-16 md:right-16 lg:left-20 lg:right-20 h-[2px] bg-[var(--primary)] overflow-hidden"></div>
         {/* Left Edge 2 */}
-        <div className="absolute left-2 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--primary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-left2-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(180deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ y: "-100%" }}
-              animate={{ y: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute left-2 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--primary)] overflow-hidden"></div>
         {/* Right Edge 2 */}
-        <div className="absolute right-2 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--primary)] overflow-hidden">
-          {isSelected && (
-            <motion.div
-              key={`shine-right2-${shineKey}`}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(180deg, 
-                            transparent 0%, 
-                            rgba(255, 255, 255, 0) 20%,
-                            rgba(255, 255, 255, 0.8) 50%,
-                            rgba(255, 255, 255, 0) 80%,
-                            transparent 100%)`,
-              }}
-              initial={{ y: "-100%" }}
-              animate={{ y: "200%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          )}
-        </div>
+        <div className="absolute right-2 top-10 bottom-10 md:top-16 md:bottom-16 lg:top-20 lg:bottom-20 w-[2px] bg-[var(--primary)] overflow-hidden"></div>
       </div>
     </motion.div>
   );
