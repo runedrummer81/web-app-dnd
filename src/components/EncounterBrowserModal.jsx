@@ -1,11 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -54,14 +49,13 @@ export default function EncounterBrowserModal({
   const filteredEncounters = availableEncounters.filter((enc) =>
     enc.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  // Når modal åbnes, marker allerede tilføjede encounters som valgte
+
+  // Initialize tempSelectedEncounters when modal opens
   useEffect(() => {
     if (isOpen) {
       setTempSelectedEncounters([...alreadySelectedEncounters]);
-    } else {
-      setTempSelectedEncounters([]);
     }
-  }, [isOpen, alreadySelectedEncounters]);
+  }, [isOpen]);
 
   // Fetch creature images when encounters are loaded
   useEffect(() => {
@@ -133,13 +127,12 @@ export default function EncounterBrowserModal({
   // Check if there are changes compared to already selected
   const hasSelectionChanged = () => {
     if (tempSelectedEncounters.length !== alreadySelectedEncounters.length) {
-      return true; // forskelligt antal = ændring
+      return true;
     }
 
     const tempIds = tempSelectedEncounters.map((e) => e.id).sort();
     const alreadyIds = alreadySelectedEncounters.map((e) => e.id).sort();
 
-    // Hvis bare ét ID ikke matcher → ændring
     for (let i = 0; i < tempIds.length; i++) {
       if (tempIds[i] !== alreadyIds[i]) {
         return true;
@@ -169,7 +162,7 @@ export default function EncounterBrowserModal({
         >
           {/* Header */}
           <div className="p-6 border-b border-[var(--secondary)]/30">
-            <div className="flex justify-between items-center ">
+            <div className="flex justify-between items-center">
               <h3 className="text-2xl uppercase tracking-widest font-semibold text-[var(--primary)] drop-shadow-[0_0_10px_rgba(191,136,60,0.5)]">
                 Select Encounters
               </h3>
@@ -183,16 +176,12 @@ export default function EncounterBrowserModal({
             </div>
 
             <div className="flex justify-between w-full pr-10">
-              <div className="m-3 border border-[var(--secondary)] ">
+              <div className="m-3 border border-[var(--secondary)]">
                 <input
                   type="text"
                   placeholder="Search encounters..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() =>
-                    setTimeout(() => setIsSearchFocused(false), 200)
-                  }
                   className="text-[var(--primary)] p-3 m-1 hover:bg-[var(--primary)] hover:text-black focus:bg-[var(--primary)] focus:text-black focus:border-[var(--primary)] outline-none w-90 placeholder:italic transition focus:placeholder-black"
                 />
               </div>
@@ -225,8 +214,6 @@ export default function EncounterBrowserModal({
 
           {/* Encounter List */}
           <div className="flex-1 overflow-y-auto p-6">
-            {" "}
-            {/*slettet min-h-[300px]*/}
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-[var(--secondary)] text-lg">
@@ -240,22 +227,16 @@ export default function EncounterBrowserModal({
                   const isSelected = tempSelectedEncounters.find(
                     (e) => e.id === enc.id
                   );
-                  {
-                    filteredEncounters.length === 0 && !loading && (
-                      <div className="text-center text-[var(--secondary)]/60 mt-10">
-                        No encounters match your search.
-                      </div>
-                    );
-                  }
 
                   const firstCreature =
                     enc.creatures && enc.creatures.length > 0
                       ? enc.creatures[0]
                       : null;
+
+                  // ✅ Fixed: Use null instead of placeholder URL
                   const creatureImageUrl = firstCreature
-                    ? creatureImages[firstCreature.name] ||
-                      "https://via.placeholder.com/400x200?text=No+Image"
-                    : "https://via.placeholder.com/400x200?text=No+Image";
+                    ? creatureImages[firstCreature.name] || null
+                    : null;
 
                   return (
                     <motion.button
@@ -273,25 +254,40 @@ export default function EncounterBrowserModal({
                       }`}
                       style={{ minHeight: "100px" }}
                     >
-                      {/* Background image on the right side */}
-                      <div
-                        className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
-                        style={{
-                          backgroundImage: `url(${creatureImageUrl})`,
-                          backgroundPosition: "right center",
-                          clipPath:
-                            "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
-                        }}
-                      />
+                      {/* ✅ Fixed: Only render background image if URL exists */}
+                      {creatureImageUrl ? (
+                        <>
+                          {/* Background image on the right side */}
+                          <div
+                            className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                            style={{
+                              backgroundImage: `url(${creatureImageUrl})`,
+                              backgroundPosition: "right center",
+                              clipPath:
+                                "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                            }}
+                          />
 
-                      {/* Gradient overlay */}
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background:
-                            "linear-gradient(to right, rgba(31, 30, 26, 1) 0%, rgba(31, 30, 26, 0.95) 40%, rgba(31, 30, 26, 0.7) 70%, transparent 100%)",
-                        }}
-                      />
+                          {/* Gradient overlay */}
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              background:
+                                "linear-gradient(to right, rgba(31, 30, 26, 1) 0%, rgba(31, 30, 26, 0.95) 40%, rgba(31, 30, 26, 0.7) 70%, transparent 100%)",
+                            }}
+                          />
+                        </>
+                      ) : (
+                        // Optional: subtle placeholder background
+                        <div
+                          className="absolute inset-0 opacity-10"
+                          style={{
+                            background: "var(--secondary)",
+                            clipPath:
+                              "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                          }}
+                        />
+                      )}
 
                       {/* Content */}
                       <div className="relative z-10 p-4">
@@ -318,12 +314,6 @@ export default function EncounterBrowserModal({
                                 </span>
                               </motion.div>
                             )}
-                            {/* Already added badge
-                            {isAlreadyAdded && (
-                              <span className="px-2 py-1 bg-green-600/80 text-white text-xs font-semibold uppercase">
-                                Added
-                              </span>
-                            )} */}
                           </div>
                         </div>
                         {enc.creatures && enc.creatures.length > 0 && (
@@ -351,10 +341,14 @@ export default function EncounterBrowserModal({
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <p className="text-[var(--secondary)] text-xl mb-2">
-                  No encounters found
+                  {searchQuery
+                    ? "No encounters match your search"
+                    : "No encounters found"}
                 </p>
                 <p className="text-[var(--secondary)]/60 text-sm">
-                  Create encounters first to add them to your session
+                  {searchQuery
+                    ? "Try a different search term"
+                    : "Create encounters first to add them to your session"}
                 </p>
               </div>
             )}
@@ -378,10 +372,9 @@ export default function EncounterBrowserModal({
                   : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10 shadow-[0_0_15px_rgba(191,136,60,0.3)]"
               }`}
             >
-              Save
-              {tempSelectedEncounters.length > 0
-                ? `(${tempSelectedEncounters.length})`
-                : " Changes"}
+              Confirm
+              {tempSelectedEncounters.length > 0 &&
+                ` (${tempSelectedEncounters.length})`}
             </button>
           </div>
         </motion.div>

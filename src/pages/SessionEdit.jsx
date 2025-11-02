@@ -73,7 +73,7 @@ export default function SessionEdit() {
     if (draftData && draftData.isDraft) {
       console.log("📝 Creating new draft session");
       setIsDraft(true);
-      
+
       const newSessionData = {
         title: `Session ${draftData.sessNr}`,
         campaignId: draftData.campaignId,
@@ -83,7 +83,7 @@ export default function SessionEdit() {
         encounters: [],
         combatMaps: [],
       };
-      
+
       setSessionData(newSessionData);
       setOriginalSessionData(newSessionData);
       setEncounters([]);
@@ -157,12 +157,13 @@ export default function SessionEdit() {
   useEffect(() => {
     if (isDraft) {
       // For drafts, kun marker som changed hvis de faktisk har lavet noget
-      const hasContent = 
+      const hasContent =
         (sessionData?.dmNotes && sessionData.dmNotes.trim() !== "") ||
-        (sessionData?.notesHeadline && sessionData.notesHeadline.trim() !== "") ||
+        (sessionData?.notesHeadline &&
+          sessionData.notesHeadline.trim() !== "") ||
         encounters.length > 0 ||
         combatMaps.length > 0;
-      
+
       setHasUnsavedChanges(hasContent);
       return;
     }
@@ -230,9 +231,9 @@ export default function SessionEdit() {
     try {
       // Hvis det er en draft, opret ny session
       if (isDraft) {
-        const newSessionId = `${sessionData.campaignId}_sess_${sessionData.sessNr
-          .toString()
-          .padStart(3, "0")}`;
+        const newSessionId = `${
+          sessionData.campaignId
+        }_sess_${sessionData.sessNr.toString().padStart(3, "0")}`;
 
         await setDoc(doc(db, "Sessions", newSessionId), {
           title: sessionData.title,
@@ -334,7 +335,7 @@ export default function SessionEdit() {
         <>
           {/* Draft indicator */}
           {isDraft && (
-            <motion.div 
+            <motion.div
               className="text-[var(--secondary)] text-center text-sm italic"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -360,7 +361,7 @@ export default function SessionEdit() {
                 <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
                 <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
                 <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
-                
+
                 <div className="flex flex-row">
                   <motion.input
                     type="text"
@@ -408,7 +409,7 @@ export default function SessionEdit() {
                     +
                   </button>
                 </div>
-                
+
                 <div className="relative flex flex-col overflow-hidden">
                   <div
                     className="overflow-y-auto flex-1"
@@ -422,9 +423,8 @@ export default function SessionEdit() {
                               ? e.creatures[0]
                               : null;
                           const creatureImageUrl = firstCreature
-                            ? creatureImages[firstCreature.name] ||
-                              "https://via.placeholder.com/400x200?text=No+Image"
-                            : "https://via.placeholder.com/400x200?text=No+Image";
+                            ? creatureImages[firstCreature.name] || null
+                            : null;
 
                           return (
                             <motion.div
@@ -434,15 +434,17 @@ export default function SessionEdit() {
                               className="relative overflow-hidden border-2 border-[var(--secondary)] hover:border-[var(--primary)] transition-all duration-300 group select-none"
                               style={{ minHeight: "100px" }}
                             >
-                              <div
-                                className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
-                                style={{
-                                  backgroundImage: `url(${creatureImageUrl})`,
-                                  backgroundPosition: "right center",
-                                  clipPath:
-                                    "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
-                                }}
-                              />
+                              {creatureImageUrl && (
+                                <div
+                                  className="absolute inset-2 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-300"
+                                  style={{
+                                    backgroundImage: `url(${creatureImageUrl})`,
+                                    backgroundPosition: "right center",
+                                    clipPath:
+                                      "polygon(40% 0, 100% 0, 100% 100%, 40% 100%)",
+                                  }}
+                                />
+                              )}
                               <div
                                 className="absolute inset-2"
                                 style={{
@@ -528,8 +530,8 @@ export default function SessionEdit() {
                                         : null;
                                     const creatureImageUrl = firstCreature
                                       ? creatureImages[firstCreature.name] ||
-                                        "https://via.placeholder.com/400x200?text=No+Image"
-                                      : "https://via.placeholder.com/400x200?text=No+Image";
+                                        null
+                                      : null;
 
                                     return (
                                       <div
