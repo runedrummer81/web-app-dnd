@@ -22,7 +22,7 @@ export default function HomePage() {
       "Load Campaign": "/loadcampaign",
       "New Campaign": "/newcampaign",
       Encounters: "/encounters",
-      Information: "/info",
+      Information: "/information",
     }),
     []
   );
@@ -127,7 +127,6 @@ export default function HomePage() {
     return () => window.removeEventListener("wheel", handleWheel);
   }, [active, menuItems]);
 
- 
   return (
     <motion.div
       className="relative min-h-screen overflow-hidden"
@@ -198,8 +197,6 @@ export default function HomePage() {
             <div className=" text-gray-700 text-center">
               {active === "Continue Campaign" && (
                 <div className="flex flex-col items-center justify-center text-center gap-4">
-                 
-
                   {/* Top info row */}
                   <div className="flex gap-10 text-2xl text-[var(--secondary)] uppercase px-11">
                     <div>
