@@ -1,17 +1,15 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export const CombatTransition = ({ type, isVisible, onComplete }) => {
   const [stage, setStage] = useState(0);
-  useEffect(() => {
-  console.log("CombatTransition mounted");
-  return () => console.log("CombatTransition unmounted");
-}, []);
-
 
   useEffect(() => {
-    
+    console.log("CombatTransition mounted");
+    return () => console.log("CombatTransition unmounted");
+  }, []);
+
+  useEffect(() => {
     if (!isVisible) return;
 
     if (type === "enter") {
@@ -120,7 +118,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
             <div className="absolute inset-0 overflow-hidden">
               {[...Array(6)].map((_, i) => (
                 <motion.div
-                  key={i}
+                  key={`enter-slash-${i}`}
                   className="absolute"
                   style={{
                     left: `${10 + i * 15}%`,
@@ -154,7 +152,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
             {stage >= 2 &&
               [...Array(3)].map((_, i) => (
                 <motion.div
-                  key={`ring-${i}`}
+                  key={`enter-ring-${i}`}
                   className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
                   style={{
                     borderColor: "#5C0A0A",
@@ -285,7 +283,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
             {stage >= 3 &&
               [...Array(40)].map((_, i) => (
                 <motion.div
-                  key={`particle-${i}`}
+                  key={`enter-particle-${i}`}
                   className="absolute rounded-full"
                   style={{
                     left: "50%",
@@ -326,7 +324,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
             {stage >= 3 &&
               [...Array(20)].map((_, i) => (
                 <motion.div
-                  key={`ember-${i}`}
+                  key={`enter-ember-${i}`}
                   className="absolute w-1 h-1 rounded-full bg-[#8B0000]"
                   style={{
                     left: `${Math.random() * 100}%`,
@@ -465,7 +463,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
             {stage >= 2 &&
               [...Array(30)].map((_, i) => (
                 <motion.div
-                  key={i}
+                  key={`exit-particle-${i}`}
                   className="absolute w-2 h-2 rounded-full"
                   style={{
                     left: "50%",
