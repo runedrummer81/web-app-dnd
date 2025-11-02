@@ -180,9 +180,18 @@ export default function NewCampaign() {
   }, [openedIndex]);
 
   const handleConfirmClick = () => {
-    if (openedIndex === null) return;
-    setShowNamePopup(true);
-  };
+  if (openedIndex === null) return;
+
+  const selected = templates.find((t) => t.id === openedIndex);
+
+  // 🚨 Check om den valgte template ikke er Frostmaiden
+  if (selected && selected.title !== "Rime of the Frostmaiden") {
+    alert("⚠️ This modul is yet to be fully functional. Only 'Rime of the Frostmaiden' is working at this time.");
+    return; // Stop her
+  }
+
+  setShowNamePopup(true);
+};
 
   const saveCampaign = async () => {
     if (openedIndex === null || !campaignName.trim()) {
