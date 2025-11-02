@@ -1,5 +1,3 @@
-// MapBrowserModal.jsx - SIMPLIFIED & IMPROVED VERSION
-
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -52,13 +50,12 @@ export default function MapBrowserModal({
     fetchMaps();
   }, [isOpen]);
 
+  // Initialize tempSelectedMaps with already selected maps when modal opens
   useEffect(() => {
-  if (isOpen) {
-    setTempSelectedMaps([...alreadySelectedMaps]);
-  } else {
-    setTempSelectedMaps([]);
-  }
-}, [isOpen, alreadySelectedMaps]);
+    if (isOpen) {
+      setTempSelectedMaps([...alreadySelectedMaps]);
+    }
+  }, [isOpen]); // ✅ Only depend on isOpen, not alreadySelectedMaps
 
   // Check scroll position for bottom fade effect
   useEffect(() => {
@@ -104,18 +101,22 @@ export default function MapBrowserModal({
     return alreadySelectedMaps.some((m) => m.id === mapId);
   };
 
-  // Handle confirm
+  // Handle confirm - ✅ Only return NEWLY selected maps
   const handleConfirm = () => {
-  onConfirm(tempSelectedMaps);
-  handleClose();
-};
+    // Filter out maps that were already selected before opening the modal
+    const newlySelectedMaps = tempSelectedMaps.filter(
+      (map) => !alreadySelectedMaps.some((existing) => existing.id === map.id)
+    );
 
+    onConfirm(newlySelectedMaps);
+    handleClose();
+  };
 
   // Handle close
   const handleClose = () => {
-  setTempSelectedMaps([]);
-  onClose();
-};
+    setTempSelectedMaps([]);
+    onClose();
+  };
 
   // Fade-in animation props for maps
   const fadeInProps = {
@@ -123,26 +124,23 @@ export default function MapBrowserModal({
     whileInView: { opacity: 1, y: 0 },
     transition: { duration: 0.6 },
     viewport: { once: true, root: scrollRef, amount: 0.3 },
-
-    
   };
 
   const hasSelectionChanged = () => {
-  if (tempSelectedMaps.length !== alreadySelectedMaps.length) {
-    return true;
-  }
-
-  const tempIds = tempSelectedMaps.map((m) => m.id).sort();
-  const alreadyIds = alreadySelectedMaps.map((m) => m.id).sort();
-
-  for (let i = 0; i < tempIds.length; i++) {
-    if (tempIds[i] !== alreadyIds[i]) {
+    if (tempSelectedMaps.length !== alreadySelectedMaps.length) {
       return true;
     }
-  }
-  return false;
-};
 
+    const tempIds = tempSelectedMaps.map((m) => m.id).sort();
+    const alreadyIds = alreadySelectedMaps.map((m) => m.id).sort();
+
+    for (let i = 0; i < tempIds.length; i++) {
+      if (tempIds[i] !== alreadyIds[i]) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   if (!isOpen) return null;
 
@@ -174,7 +172,7 @@ export default function MapBrowserModal({
             </button>
           </div>
 
-          {/* DROPDOWN MENU BENEATH */}
+          {/* DROPDOWN MENU */}
           <div className="px-6 py-4 border-b border-[var(--secondary)]/30 bg-[#1C1B18]">
             <div className="flex items-center gap-4">
               <label className="text-[var(--secondary)] uppercase text-sm tracking-wider font-semibold">
@@ -186,9 +184,6 @@ export default function MapBrowserModal({
                   value={selectedFilter}
                   onChange={(e) => setSelectedFilter(e.target.value)}
                   className="appearance-none bg-[#1F1E1A] border-2 border-[var(--secondary)]/50 text-[var(--primary)] pl-4 pr-10 py-2.5 uppercase text-sm tracking-widest font-semibold cursor-pointer focus:outline-none focus:border-[var(--primary)] hover:border-[var(--primary)]/70 transition-all duration-300 shadow-[0_0_10px_rgba(191,136,60,0.1)] hover:shadow-[0_0_20px_rgba(191,136,60,0.3)] min-w-[200px]"
-                  style={{
-                    backgroundImage: "none",
-                  }}
                 >
                   {filterOptions.map((filter) => (
                     <option
@@ -262,14 +257,12 @@ export default function MapBrowserModal({
                 </p>
               </div>
             ) : (
-              // Update the grid div to include a key
               <div className="grid grid-cols-4 gap-8" key={selectedFilter}>
-                {filteredMaps.map((map, index) => {
+                {filteredMaps.map((map) => {
                   const isAlreadyAdded = isMapAlreadyAdded(map.id);
                   const isSelected = tempSelectedMaps.find(
                     (m) => m.id === map.id
                   );
-                  
 
                   return (
                     <motion.div
@@ -279,11 +272,9 @@ export default function MapBrowserModal({
                       className="relative"
                     >
                       <div
-                        onClick={() =>
-                          toggleMapSelection(map)
-                        }
+                        onClick={() => toggleMapSelection(map)}
                         className={`cursor-pointer border-2 p-3 transition-all duration-300 aspect-square ${
-                           isSelected
+                          isSelected
                             ? "border-[var(--primary)] shadow-[0_0_25px_rgba(191,136,60,0.5)]"
                             : "border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:shadow-[0_0_15px_rgba(191,136,60,0.3)]"
                         }`}
@@ -305,12 +296,6 @@ export default function MapBrowserModal({
                             </span>
                           </motion.div>
                         )}
-
-                        {/* {isAlreadyAdded && (
-                          <div className="absolute top-4 right-4 px-3 py-1 bg-green-600/90 text-white text-xs font-semibold uppercase z-10 shadow-lg">
-                            Added
-                          </div>
-                        )} */}
                       </div>
 
                       <p className="text-center text-base text-[var(--secondary)] mt-3 truncate">
@@ -330,20 +315,18 @@ export default function MapBrowserModal({
             >
               Cancel
             </button>
-            
+
             <button
               onClick={handleConfirm}
               disabled={!hasSelectionChanged()}
               className={`px-6 py-2 border-2 transition uppercase tracking-wider ${
-                tempSelectedMaps.length === 0
+                !hasSelectionChanged()
                   ? "border-[var(--secondary)]/30 text-[var(--secondary)]/30 cursor-not-allowed"
                   : "border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10 shadow-[0_0_15px_rgba(191,136,60,0.3)]"
               }`}
             >
-              Save
-              {tempSelectedMaps.length > 0
-                ? `(${tempSelectedMaps.length})`
-                : "Maps"}
+              Confirm
+              {tempSelectedMaps.length > 0 && ` (${tempSelectedMaps.length})`}
             </button>
           </div>
         </motion.div>
