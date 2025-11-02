@@ -10,7 +10,7 @@ export const MapControlsTab = ({
   onWeatherChange,
 }) => {
   const { mapState, updateMapState } = useMapSync();
-  const { isSetupMode, exitSetupMode, activeEncounter, playerCount } =
+  const { isSetupMode, exitSetupMode } =
     useCombatState();
   const runSessionContext = useContext(RunSessionContext);
   const sessionData = runSessionContext?.sessionData;
@@ -52,7 +52,8 @@ export const MapControlsTab = ({
         },
       });
     }
-  }, []); // run once on mount
+  }, []); // run once on mount (disse to use-effects kunne laves til én,
+  // men den bliver åbenbart sat til disabled per default)
 
   const [recentColors, setRecentColors] = useState([]);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -91,6 +92,7 @@ export const MapControlsTab = ({
     handleUpdateGrid({ ...gridSettings, visible: !gridSettings.visible });
   };
 
+  //bliver vist ikke brugt
   const handleRemoveToken = (tokenId) => {
     updateMapState({
       tokens: (mapState.tokens || []).filter((t) => t.id !== tokenId),
@@ -519,7 +521,7 @@ export const MapControlsTab = ({
       <section className="border-t border-[var(--secondary)]/30 pt-6">
         <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded">
           <p className="text-blue-300 text-sm">
-            ℹ️ <span className="font-bold">Note:</span> Tokens are automatically
+            <span className="font-bold">Note:</span> Tokens are automatically
             placed when combat starts. Drag them to reposition.
           </p>
         </div>

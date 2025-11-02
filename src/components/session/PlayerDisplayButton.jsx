@@ -17,7 +17,7 @@ export const PlayerDisplayButton = ({ onClick }) => {
           label="OPEN PLAYER DISPLAY"
           isize="md"
           color="var(--secondary)"
-          bgColor="var(--primary"
+          bgColor="var(--primary)"
           textColor="var(--dark-muted-bg)"
           showLeftArrow={true}
           showRightArrow={true}

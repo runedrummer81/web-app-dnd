@@ -14,6 +14,7 @@ import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
 import BG from "./components/BG";
 import RunSession from "./pages/RunSession";
+import Information from "./pages/Information";
 import { PlayerView } from "./pages/PlayerView";
 import { useParams } from "react-router";
 import { useState, useEffect } from "react";
@@ -210,6 +211,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <SessionEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/information"
+            element={
+              <ProtectedRoute>
+                <Information />
               </ProtectedRoute>
             }
           />
