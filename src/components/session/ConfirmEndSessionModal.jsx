@@ -1,47 +1,123 @@
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
 export const ConfirmEndSessionModal = ({ show, onCancel, onConfirm }) => {
+  const buttons = ["End Session", "Cancel"];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [hoverIndex, setHoverIndex] = useState(null);
+  const [keyboardActive, setKeyboardActive] = useState(true);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!show) return;
+      setKeyboardActive(true);
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        setActiveIndex((prev) =>
+          e.key === "ArrowRight"
+            ? (prev + 1) % buttons.length
+            : (prev - 1 + buttons.length) % buttons.length
+        );
+      } else if (e.key === "Enter") {
+        if (activeIndex === 0) onConfirm();
+        else onCancel();
+      } else if (e.key === "Escape") {
+        onCancel();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, show, onConfirm, onCancel]);
+
+  const getActiveIndex = () => (keyboardActive ? activeIndex : hoverIndex);
+  const currentActive = getActiveIndex();
+
   return createPortal(
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black/70 z-[1000]"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          onClick={(e) => {
-            // Luk hvis man klikker udenfor modal
-            if (e.target === e.currentTarget) {
-              onCancel();
-            }
-          }}
+          onClick={(e) => e.target === e.currentTarget && onCancel()}
         >
           <motion.div
-            className="bg-gray-800 p-6 rounded space-y-4 max-w-sm w-full mx-4"
-            initial={{ scale: 0.8, opacity: 0 }}
+            className="bg-black border-4 border-[var(--secondary)] text-center drop-shadow-[0_0_10px_#d8c78a] 
+                       max-w-lg mx-auto p-10 rounded-none"
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.25 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-yellow-400 font-bold text-center">
+            <h3 className="text-4xl font-serif text-[var(--primary)] mb-10 tracking-wide">
+              END SESSION
+            </h3>
+            <p className="text-2xl font-serif text-[var(--secondary)] mb-16">
               Are you sure you want to end the session?
             </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onConfirm}
-                className="px-4 py-2 bg-yellow-600 rounded font-bold hover:bg-yellow-500 transition"
-              >
-                End Session
-              </button>
+
+            <div className="flex justify-center items-center gap-20">
+              {buttons.map((label, index) => {
+                const isActive = currentActive === index;
+
+                return (
+                  <button
+                    key={label}
+                    onClick={() =>
+                      index === 0 ? onConfirm() : onCancel()
+                    }
+                    onMouseEnter={() => {
+                      setHoverIndex(index);
+                      setKeyboardActive(false);
+                    }}
+                    onMouseLeave={() => setHoverIndex(null)}
+                    className={`relative font-serif text-3xl font-bold uppercase transition-all duration-200 px-4 py-2
+                      ${
+                        isActive
+                          ? "text-[var(--primary)] cursor-pointer"
+                          : "text-[var(--secondary)] cursor-pointer"
+                      }`}
+                  >
+                    {isActive && (
+                      <motion.svg
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 79 79"
+                        fill="none"
+                        className="absolute -left-10 top-1/2 -translate-y-1/2 w-8 h-8"
+                      >
+                        <path
+                          d="M39.202 76.9561L75.895 40.2631L36.693 1.06107"
+                          stroke="#b77a2b"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
+                        />
+                        <path
+                          d="M56.2974 20.6661L37.9509 39.0126L57.5477 58.6094"
+                          stroke="#b77a2b"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
+                        />
+                        <path
+                          d="M36.693 1.06107L37.3184 20.0408L56.9152 39.6376L38.5687 57.9841L39.202 76.9561"
+                          stroke="#b77a2b"
+                          strokeWidth="3"
+                          strokeMiterlimit="10"
+                        />
+                      </motion.svg>
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
         </motion.div>
