@@ -92,7 +92,7 @@ const RunSession = ({ sessionId, mapSetData }) => {
 
   const openPlayerDisplay = () => {
     const playerWindow = window.open(
-      `/player-view?session=${sessionId}`,
+      `web-app-dnd/player-view?session=${sessionId}`,
       "DnD Player View",
       "width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no"
     );
