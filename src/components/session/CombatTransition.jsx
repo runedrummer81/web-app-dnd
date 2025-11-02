@@ -4,8 +4,14 @@ import { useEffect, useState } from "react";
 
 export const CombatTransition = ({ type, isVisible, onComplete }) => {
   const [stage, setStage] = useState(0);
+  useEffect(() => {
+  console.log("CombatTransition mounted");
+  return () => console.log("CombatTransition unmounted");
+}, []);
+
 
   useEffect(() => {
+    
     if (!isVisible) return;
 
     if (type === "enter") {

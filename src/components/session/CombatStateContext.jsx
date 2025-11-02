@@ -349,6 +349,7 @@ export const CombatStateProvider = ({ children }) => {
         selectedCombatMap,
         playerCount,
         gridSettings,
+        combatTransition,
         startCombat,
         exitSetupMode,
         endCombat,
@@ -356,9 +357,7 @@ export const CombatStateProvider = ({ children }) => {
         updateCreatureHp,
         addToCombatLog,
         rollAttack,
-        setGridSettings,
-        // ADD THESE TWO:
-        combatTransition,
+        setGridSettings,        
         setCombatTransition,
       }}
     >
