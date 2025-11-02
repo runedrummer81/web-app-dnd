@@ -1,4 +1,6 @@
 import { Routes, Route, useLocation } from "react-router";
+import { useMobileDetection } from "./data/useMobileDetection";
+import MobileBlocker from "./components/MobileBlocker";
 import Nav from "./components/Nav";
 import Login from "./pages/Login";
 import HomePage from "./pages/HomePage";
@@ -12,12 +14,11 @@ import LoadPage from "./pages/LoadPage";
 import Border from "./components/Border";
 import BG from "./components/BG";
 import RunSession from "./pages/RunSession";
-import { PlayerView } from "./pages/PlayerView"; // ✅ Changed from ./pages/RunSession
+import { PlayerView } from "./pages/PlayerView";
 import { useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import Title from "./components/Title";
 
 // Wrapper component to fetch session data AND map data before loading RunSession
 function RunSessionWrapper() {
@@ -120,6 +121,11 @@ function RunSessionWrapper() {
 
 export default function App() {
   const location = useLocation();
+  const isMobile = useMobileDetection();
+
+  if (isMobile) {
+    return <MobileBlocker />;
+  }
 
   // Check if we're on a "session running" page where we don't want Nav/Border/BG
   const isSessionRunning =

@@ -1,5 +1,5 @@
 // src/components/RunSession/SpellEffectOverlay.jsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import { useMapSync } from "./MapSyncContext";
 import L from "leaflet";
@@ -13,6 +13,27 @@ export const SpellEffectOverlay = ({
 }) => {
   const map = useMap();
   const { mapState, updateMapState } = useMapSync();
+  const [selectedEffectId, setSelectedEffectId] = useState(null);
+
+  // Close controls when clicking outside
+  useEffect(() => {
+    const handleMapClick = (e) => {
+      // Only deselect if we didn't click on a spell effect
+      if (!e.originalEvent?.target.closest(".spell-effect-overlay")) {
+        setSelectedEffectId(null);
+      }
+    };
+
+    if (map) {
+      map.on("click", handleMapClick);
+    }
+
+    return () => {
+      if (map) {
+        map.off("click", handleMapClick);
+      }
+    };
+  }, [map]);
 
   // Handle preview confirmation
   const handleConfirmPreview = () => {
@@ -41,6 +62,7 @@ export const SpellEffectOverlay = ({
 
   console.log("🗺️ Rendering effects:", effects);
   console.log("👁️ Preview:", mapState.spellEffectPreview);
+  console.log("🎯 Selected effect:", selectedEffectId);
 
   return (
     <>
@@ -56,6 +78,8 @@ export const SpellEffectOverlay = ({
             onRemove={onEffectRemove}
             isDMView={isDMView}
             isPreview={false}
+            isSelected={selectedEffectId === effect.id}
+            onSelect={() => setSelectedEffectId(effect.id)}
           />
         ))}
 
@@ -79,6 +103,8 @@ export const SpellEffectOverlay = ({
           onConfirm={handleConfirmPreview}
           isDMView={isDMView}
           isPreview={true}
+          isSelected={true}
+          onSelect={() => {}}
         />
       )}
     </>
@@ -94,6 +120,8 @@ const SpellEffect = ({
   onConfirm,
   isDMView,
   isPreview,
+  isSelected,
+  onSelect,
 }) => {
   const containerRef = useRef(null);
 
@@ -113,7 +141,16 @@ const SpellEffect = ({
     container.style.position = "absolute";
     container.style.pointerEvents = isDMView ? "auto" : "none";
     container.style.zIndex = "400";
+    container.style.cursor = isDMView && !isPreview ? "pointer" : "default";
     containerRef.current = container;
+
+    // Handle click to select (only for permanent effects in DM view)
+    if (isDMView && !isPreview) {
+      L.DomEvent.on(container, "click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onSelect();
+      });
+    }
 
     // Create video element - NO BLACK BACKGROUND!
     const video = document.createElement("video");
@@ -145,8 +182,6 @@ const SpellEffect = ({
     border.style.position = "absolute";
     border.style.inset = "0";
     border.style.borderRadius = "50%";
-    border.style.border = `3px solid ${effect.color}`;
-    border.style.boxShadow = `0 0 20px ${effect.color}, inset 0 0 20px ${effect.color}40`;
     border.style.opacity = isPreview ? "0.8" : "0.6";
     border.style.pointerEvents = "none";
     container.appendChild(border);
@@ -164,8 +199,8 @@ const SpellEffect = ({
       document.head.appendChild(style);
     }
 
-    // DM controls
-    if (isDMView) {
+    // DM controls (only show if selected or preview)
+    if (isDMView && (isSelected || isPreview)) {
       // Drag handle
       const dragHandle = L.DomUtil.create("div", "spell-drag-handle");
       dragHandle.style.position = "absolute";
@@ -326,7 +361,6 @@ const SpellEffect = ({
       label.style.top = "-30px";
       label.style.left = "50%";
       label.style.transform = "translateX(-50%)";
-      label.style.background = "rgba(0,0,0,0.8)";
       label.style.color = "white";
       label.style.padding = "4px 8px";
       label.style.borderRadius = "4px";
@@ -359,7 +393,18 @@ const SpellEffect = ({
         container.parentNode.removeChild(container);
       }
     };
-  }, [map, effect, isDMView, isPreview, onMove, onResize, onRemove, onConfirm]);
+  }, [
+    map,
+    effect,
+    isDMView,
+    isPreview,
+    isSelected,
+    onMove,
+    onResize,
+    onRemove,
+    onConfirm,
+    onSelect,
+  ]);
 
   return null;
 };

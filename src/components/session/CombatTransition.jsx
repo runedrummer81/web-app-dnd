@@ -4,21 +4,21 @@ import { useEffect, useState } from "react";
 
 export const CombatTransition = ({ type, isVisible, onComplete }) => {
   const [stage, setStage] = useState(0);
-  // random comment
+
   useEffect(() => {
     if (!isVisible) return;
 
     if (type === "enter") {
       const timers = [
-        setTimeout(() => setStage(1), 200), // Initial rumble
-        setTimeout(() => setStage(2), 800), // Vignette + slash lines
-        setTimeout(() => setStage(3), 1400), // Text appears
-        setTimeout(() => setStage(4), 2800), // Intensify
-        setTimeout(() => setStage(5), 3800), // Final fade
+        setTimeout(() => setStage(1), 200),
+        setTimeout(() => setStage(2), 800),
+        setTimeout(() => setStage(3), 1400),
+        setTimeout(() => setStage(4), 2800),
+        setTimeout(() => setStage(5), 3800),
         setTimeout(() => {
           setStage(0);
           onComplete();
-        }, 4800),
+        }, 4500),
       ];
       return () => timers.forEach(clearTimeout);
     }
@@ -48,7 +48,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.8 }}
       >
-        {/* ENTER COMBAT */}
+        {/* ENTER COMBAT - DARK RED EVIL THEME */}
         {type === "enter" && (
           <>
             {/* Screen shake effect */}
@@ -76,12 +76,12 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
               transition={{ duration: 0.6 }}
             />
 
-            {/* Blood red vignette - more intense */}
+            {/* DARK RED ominous vignette */}
             <motion.div
               className="absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(ellipse at center, transparent 0%, rgba(100, 0, 0, 0.5) 40%, rgba(40, 0, 0, 0.95) 100%)",
+                  "radial-gradient(ellipse at center, transparent 0%, rgba(60, 0, 0, 0.7) 40%, rgba(20, 0, 0, 0.95) 100%)",
               }}
               initial={{ opacity: 0, scale: 1.5 }}
               animate={{
@@ -91,14 +91,12 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
               transition={{ duration: 1.5, ease: "easeOut" }}
             />
 
-            {/* Animated crackling energy border */}
+            {/* Dark crimson energy border */}
             <motion.div
               className="absolute inset-0"
               style={{
-                border: "4px solid transparent",
-                borderImage:
-                  "linear-gradient(45deg, #8B0000, #DC143C, #FF0000, #8B0000) 1",
-                boxShadow: "inset 0 0 150px rgba(139, 0, 0, 0.6)",
+                border: "4px solid #5C0A0A",
+                boxShadow: "inset 0 0 150px rgba(92, 10, 10, 0.8)",
               }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{
@@ -112,7 +110,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
               }}
             />
 
-            {/* Multiple slash effects */}
+            {/* Dark red slash marks */}
             <div className="absolute inset-0 overflow-hidden">
               {[...Array(6)].map((_, i) => (
                 <motion.div
@@ -124,9 +122,9 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                     bottom: 0,
                     width: "4px",
                     background:
-                      "linear-gradient(to bottom, transparent 0%, rgba(220, 20, 60, 0.8) 30%, rgba(220, 20, 60, 0.8) 70%, transparent 100%)",
+                      "linear-gradient(to bottom, transparent 0%, rgba(92, 10, 10, 0.9) 30%, rgba(60, 0, 0, 0.9) 70%, transparent 100%)",
                     transform: `rotate(${-15 + i * 2}deg)`,
-                    boxShadow: "0 0 20px rgba(220, 20, 60, 0.6)",
+                    boxShadow: "0 0 20px rgba(92, 10, 10, 0.8)",
                   }}
                   initial={{ scaleY: 0, opacity: 0 }}
                   animate={
@@ -146,12 +144,16 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
               ))}
             </div>
 
-            {/* Expanding shockwave rings */}
+            {/* Expanding dark red shockwave rings */}
             {stage >= 2 &&
               [...Array(3)].map((_, i) => (
                 <motion.div
                   key={`ring-${i}`}
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-red-600"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                  style={{
+                    borderColor: "#5C0A0A",
+                    boxShadow: "0 0 30px rgba(92, 10, 10, 0.8)",
+                  }}
                   initial={{ width: 0, height: 0, opacity: 0 }}
                   animate={{
                     width: [0, 1200, 1600],
@@ -163,13 +165,10 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                     delay: i * 0.3,
                     ease: "easeOut",
                   }}
-                  style={{
-                    boxShadow: "0 0 30px rgba(220, 20, 60, 0.8)",
-                  }}
                 />
               ))}
 
-            {/* Main text container with dramatic entrance */}
+            {/* Main text container */}
             <motion.div
               className="relative z-10 text-center px-8"
               initial={{ opacity: 0, y: 50, scale: 0.8 }}
@@ -180,7 +179,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
               }}
               transition={{ duration: 1, ease: "easeOut" }}
             >
-              {/* Dramatic top flourish */}
+              {/* Top flourish */}
               <motion.div
                 className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-1"
                 initial={{ scaleX: 0, opacity: 0 }}
@@ -191,30 +190,26 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 }
                 transition={{ duration: 1, ease: "easeOut" }}
               >
-                <div className="w-full h-full bg-gradient-to-r from-transparent via-red-600 to-transparent" />
-                <div className="absolute inset-0 blur-sm bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                <div className="w-full h-full bg-gradient-to-r from-transparent via-[#5C0A0A] to-transparent" />
+                <div className="absolute inset-0 blur-sm bg-gradient-to-r from-transparent via-[#800020] to-transparent" />
               </motion.div>
 
-              {/* COMBAT title - more dramatic */}
+              {/* COMBAT title - DARK RED */}
               <motion.h1
                 className="text-[12rem] font-black uppercase tracking-[0.4em] mb-8 leading-none"
                 style={{
                   fontFamily: "EB Garamond, serif",
-                  background:
-                    "linear-gradient(to bottom, #FF4444 0%, #CC0000 50%, #880000 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  filter:
-                    "drop-shadow(0 0 40px rgba(220, 20, 60, 0.8)) drop-shadow(0 0 80px rgba(220, 20, 60, 0.4))",
+                  color: "#8B0000",
+                  textShadow:
+                    "0 0 60px rgba(139, 0, 0, 0.9), 0 0 100px rgba(92, 10, 10, 0.6), 0 4px 20px rgba(0,0,0,1)",
                 }}
                 animate={
                   stage >= 4
                     ? {
-                        filter: [
-                          "drop-shadow(0 0 40px rgba(220, 20, 60, 0.8)) drop-shadow(0 0 80px rgba(220, 20, 60, 0.4))",
-                          "drop-shadow(0 0 60px rgba(220, 20, 60, 1)) drop-shadow(0 0 120px rgba(220, 20, 60, 0.6))",
-                          "drop-shadow(0 0 40px rgba(220, 20, 60, 0.8)) drop-shadow(0 0 80px rgba(220, 20, 60, 0.4))",
+                        textShadow: [
+                          "0 0 60px rgba(139, 0, 0, 0.9), 0 0 100px rgba(92, 10, 10, 0.6)",
+                          "0 0 80px rgba(139, 0, 0, 1), 0 0 120px rgba(92, 10, 10, 0.8)",
+                          "0 0 60px rgba(139, 0, 0, 0.9), 0 0 100px rgba(92, 10, 10, 0.6)",
                         ],
                       }
                     : {}
@@ -228,7 +223,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 COMBAT
               </motion.h1>
 
-              {/* Subtitle - changed to "Enemies are approaching" */}
+              {/* Subtitle */}
               <motion.div
                 className="relative"
                 initial={{ opacity: 0, y: 30 }}
@@ -238,13 +233,13 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 }}
                 transition={{ duration: 1.2, delay: 0.4 }}
               >
-                <div className="h-px w-96 mx-auto bg-gradient-to-r from-transparent via-red-600 to-transparent mb-8 shadow-[0_0_20px_rgba(220,20,60,0.6)]" />
+                <div className="h-px w-96 mx-auto bg-gradient-to-r from-transparent via-[#5C0A0A] to-transparent mb-8 shadow-[0_0_20px_rgba(92,10,10,0.8)]" />
                 <motion.p
-                  className="text-4xl text-red-400 font-bold uppercase tracking-[0.5em] italic"
+                  className="text-4xl text-[#8B0000] font-bold uppercase tracking-[0.5em] italic"
                   style={{
                     fontFamily: "EB Garamond, serif",
                     textShadow:
-                      "0 0 30px rgba(220, 20, 60, 0.8), 0 2px 10px rgba(0,0,0,0.8)",
+                      "0 0 40px rgba(139, 0, 0, 0.9), 0 2px 10px rgba(0,0,0,0.9)",
                   }}
                   animate={
                     stage >= 4
@@ -261,7 +256,7 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 >
                   Enemies are approaching...
                 </motion.p>
-                <div className="h-px w-96 mx-auto bg-gradient-to-r from-transparent via-red-600 to-transparent mt-8 shadow-[0_0_20px_rgba(220,20,60,0.6)]" />
+                <div className="h-px w-96 mx-auto bg-gradient-to-r from-transparent via-[#5C0A0A] to-transparent mt-8 shadow-[0_0_20px_rgba(92,10,10,0.8)]" />
               </motion.div>
 
               {/* Bottom flourish */}
@@ -275,12 +270,12 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 }
                 transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
               >
-                <div className="w-full h-full bg-gradient-to-r from-transparent via-red-600 to-transparent" />
-                <div className="absolute inset-0 blur-sm bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                <div className="w-full h-full bg-gradient-to-r from-transparent via-[#5C0A0A] to-transparent" />
+                <div className="absolute inset-0 blur-sm bg-gradient-to-r from-transparent via-[#800020] to-transparent" />
               </motion.div>
             </motion.div>
 
-            {/* Enhanced particle storm */}
+            {/* Dark red particles */}
             {stage >= 3 &&
               [...Array(40)].map((_, i) => (
                 <motion.div
@@ -293,14 +288,14 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                     height: Math.random() * 4 + 2,
                     background:
                       i % 3 === 0
-                        ? "#FF0000"
+                        ? "#8B0000"
                         : i % 3 === 1
-                        ? "#DC143C"
-                        : "#8B0000",
+                        ? "#5C0A0A"
+                        : "#3C0000",
                     filter: "blur(1px)",
                     boxShadow: `0 0 ${
-                      Math.random() * 20 + 10
-                    }px rgba(220, 20, 60, 0.8)`,
+                      Math.random() * 15 + 10
+                    }px rgba(139, 0, 0, 0.8)`,
                   }}
                   initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
                   animate={{
@@ -321,17 +316,17 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 />
               ))}
 
-            {/* Ember particles rising */}
+            {/* Dark embers rising */}
             {stage >= 3 &&
               [...Array(20)].map((_, i) => (
                 <motion.div
                   key={`ember-${i}`}
-                  className="absolute w-1 h-1 bg-orange-500 rounded-full"
+                  className="absolute w-1 h-1 rounded-full bg-[#8B0000]"
                   style={{
                     left: `${Math.random() * 100}%`,
                     bottom: 0,
                     filter: "blur(0.5px)",
-                    boxShadow: "0 0 10px rgba(255, 100, 0, 0.8)",
+                    boxShadow: "0 0 8px rgba(139, 0, 0, 0.9)",
                   }}
                   initial={{ y: 0, opacity: 0 }}
                   animate={{
@@ -347,21 +342,37 @@ export const CombatTransition = ({ type, isVisible, onComplete }) => {
                 />
               ))}
 
-            {/* Final dramatic fade to black */}
+            {/* Ominous symbol - faint */}
+            {stage >= 3 && (
+              <motion.div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[30rem] opacity-5 pointer-events-none"
+                initial={{ scale: 0, rotate: -45, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 0.08 }}
+                transition={{ duration: 2, ease: "easeOut" }}
+                style={{
+                  color: "#5C0A0A",
+                  textShadow: "0 0 100px rgba(92, 10, 10, 0.5)",
+                  fontFamily: "serif",
+                }}
+              >
+                ⚔
+              </motion.div>
+            )}
+
+            {/* Final fade to black */}
             <motion.div
               className="absolute inset-0 bg-black"
               initial={{ opacity: 0 }}
-              animate={{ opacity: stage >= 5 ? [0, 1, 1, 0] : 0 }}
+              animate={{ opacity: stage >= 5 ? 1 : 0 }}
               transition={{
-                duration: 2,
-                times: [0, 0.3, 0.7, 1],
+                duration: 0.8,
                 ease: "easeInOut",
               }}
             />
           </>
         )}
 
-        {/* EXIT COMBAT - Keep existing but slightly enhanced */}
+        {/* EXIT COMBAT - VICTORY (keep golden) */}
         {type === "exit" && (
           <>
             <motion.div
