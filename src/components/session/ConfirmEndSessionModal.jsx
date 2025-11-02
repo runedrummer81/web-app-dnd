@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
 export const ConfirmEndSessionModal = ({ show, onCancel, onConfirm }) => {
-  const buttons = ["End Session", "Cancel"];
+  const buttons = ["End", "Cancel"];
   const [activeIndex, setActiveIndex] = useState(0);
   const [hoverIndex, setHoverIndex] = useState(null);
   const [keyboardActive, setKeyboardActive] = useState(true);
@@ -39,7 +39,7 @@ export const ConfirmEndSessionModal = ({ show, onCancel, onConfirm }) => {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -59,7 +59,8 @@ export const ConfirmEndSessionModal = ({ show, onCancel, onConfirm }) => {
               END SESSION
             </h3>
             <p className="text-2xl font-serif text-[var(--secondary)] mb-16">
-              Are you sure you want to end the session?
+              Are you sure you want to end the session? <br /> <br />
+              Your progress will be saved
             </p>
 
             <div className="flex justify-center items-center gap-20">
