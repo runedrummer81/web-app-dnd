@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 export default function MobileBlocker() {
   return (
-    <div className="fixed inset-0 bg-[#151612] flex items-center justify-center p-4 overflow-hidden">
+    <div className="fixed inset-0 bg-[#151612] flex items-center justify-center overflow-hidden">
       {/* Decorative background pattern */}
       <div
         className="absolute inset-0 opacity-5"
@@ -13,18 +13,18 @@ export default function MobileBlocker() {
       />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative w-full h-full flex items-center justify-center"
       >
-        {/* Ornate border frame - fills screen */}
-        <div className="relative border-4 border-[#BF883C] bg-[#1a1814] p-6 sm:p-8 w-full h-full flex flex-col justify-center">
-          {/* Corner decorations */}
+        {/* Border frame - FILLS ENTIRE SCREEN */}
+        <div className="absolute inset-0 border-4 border-[#BF883C] bg-[#1a1814]">
+          {/* Corner decorations - AT SCREEN CORNERS */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 37 36"
-            className="absolute top-0 left-0 w-8 h-8 sm:w-10 sm:h-10 rotate-[270deg]"
+            className="absolute top-0 left-0 w-6 h-6 sm:w-8 sm:h-8 rotate-[270deg]"
             fill="none"
             strokeWidth="2"
           >
@@ -41,7 +41,7 @@ export default function MobileBlocker() {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 37 36"
-            className="absolute top-0 right-0 w-8 h-8 sm:w-10 sm:h-10"
+            className="absolute top-0 right-0 w-6 h-6 sm:w-8 sm:h-8"
             fill="none"
             strokeWidth="2"
           >
@@ -58,7 +58,7 @@ export default function MobileBlocker() {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 37 36"
-            className="absolute bottom-0 left-0 w-8 h-8 sm:w-10 sm:h-10 rotate-[180deg]"
+            className="absolute bottom-0 left-0 w-6 h-6 sm:w-8 sm:h-8 rotate-[180deg]"
             fill="none"
             strokeWidth="2"
           >
@@ -75,7 +75,7 @@ export default function MobileBlocker() {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 37 36"
-            className="absolute bottom-0 right-0 w-8 h-8 sm:w-10 sm:h-10 rotate-[90deg]"
+            className="absolute bottom-0 right-0 w-6 h-6 sm:w-8 sm:h-8 rotate-[90deg]"
             fill="none"
             strokeWidth="2"
           >
@@ -89,99 +89,96 @@ export default function MobileBlocker() {
             <path d="M34.971,17.588l-16.06,-0" stroke="#d9ca89" />
           </svg>
 
-          {/* Content wrapper - perfectly centered vertically with tighter spacing */}
-          <div className="flex flex-col items-center justify-center h-full space-y-2">
-            {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-              className="flex justify-center mb-2"
-            >
-              <motion.img
-                src="images/logo.svg"
-                alt="Logo"
-                className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain"
-                style={{
-                  filter:
-                    "drop-shadow(0 0 5px rgba(217, 202, 137, 0.9)) drop-shadow(0 0 1px rgba(191, 136, 60, 0.7))",
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </motion.div>
-
-            {/* Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#d9ca89] uppercase text-center tracking-[0.2em] sm:tracking-[0.3em] px-2"
-              style={{
-                fontFamily: "EB Garamond, serif",
-                textShadow: "0 0 20px rgba(217, 202, 137, 0.6)",
-              }}
-            >
-              Quest Unavailable
-            </motion.h1>
-
-            {/* Decorative divider */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              className="h-[2px] w-32 sm:w-48 bg-gradient-to-r from-transparent via-[#BF883C] to-transparent mt-3 mb-4"
-            />
-
-            {/* Message */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.9 }}
-              className="text-[#BF883C] text-center space-y-3 px-4 max-w-2xl"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              <p className="text-sm sm:text-base md:text-lg leading-relaxed">
-                Brave adventurer, you have attempted to access the Overseers
-                Vault using a device of insufficient size!
-              </p>
-
-              <p className="text-xs sm:text-sm md:text-base leading-relaxed">
-                This campaign management system requires the vast canvas of a
-                laptop or desktop screen to properly display its intricate maps,
-                detailed DM-tools, and sprawling session notes.
-              </p>
-
-              <p className="text-xs sm:text-sm md:text-base leading-relaxed">
-                Mobile and tablet devices, while excellent for sending ravens
-                and consulting spell scrolls, simply cannot contain the majesty
-                of this digital dungeon masters toolkit.
-              </p>
-
+          {/* Content wrapper - perfectly centered with safe padding */}
+          <div className="flex flex-col items-center justify-center h-full px-4 py-8 overflow-y-auto">
+            <div className="flex flex-col items-center space-y-2 max-w-2xl w-full">
+              {/* Logo - HUGE on all screens */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.2 }}
-                className="pt-4"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                className="flex justify-center mb-2"
               >
-                <p className="text-base sm:text-lg md:text-xl font-bold text-[#d9ca89]">
-                  Please return on a larger device to begin your journey.
-                </p>
+                <motion.img
+                  src="images/logo.svg"
+                  alt="Logo"
+                  className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 object-contain"
+                  style={{
+                    filter:
+                      "drop-shadow(0 0 5px rgba(217, 202, 137, 0.9)) drop-shadow(0 0 1px rgba(191, 136, 60, 0.7))",
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
               </motion.div>
-            </motion.div>
+
+              {/* Title */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="text-xl sm:text-2xl md:text-3xl font-bold text-[#d9ca89] uppercase text-center tracking-[0.2em] sm:tracking-[0.3em] px-2"
+                style={{
+                  fontFamily: "EB Garamond, serif",
+                  textShadow: "0 0 20px rgba(217, 202, 137, 0.6)",
+                }}
+              >
+                Quest Unavailable
+              </motion.h1>
+
+              {/* Decorative divider */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+                className="h-[2px] w-24 sm:w-32 bg-gradient-to-r from-transparent via-[#BF883C] to-transparent mt-2 mb-3"
+              />
+
+              {/* Message */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.9 }}
+                className="text-[#BF883C] text-center space-y-2 px-2"
+                style={{ fontFamily: "EB Garamond, serif" }}
+              >
+                <p className="text-sm sm:text-base leading-relaxed">
+                  Brave adventurer, you have attempted to access the Overseers
+                  Vault using a device of insufficient size!
+                </p>
+
+                <p className="text-xs sm:text-sm leading-relaxed">
+                  This campaign management system requires the vast canvas of a
+                  laptop or desktop screen to properly display its intricate
+                  maps, detailed DM-tools, and sprawling session notes.
+                </p>
+
+                <p className="text-xs sm:text-sm leading-relaxed">
+                  Mobile and tablet devices, while excellent for sending ravens
+                  and consulting spell scrolls, simply cannot contain the
+                  majesty of this digital dungeon masters toolkit.
+                </p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 1.2 }}
+                  className="pt-3"
+                >
+                  <p className="text-sm sm:text-base md:text-lg font-bold text-[#d9ca89]">
+                    Please return on a larger device to begin your journey.
+                  </p>
+                </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
 
         {/* Outer glow effect */}
-        <div
-          className="absolute inset-0 border-2 border-[#d9ca89] opacity-30 pointer-events-none"
-          style={{
-            transform: "scale(1.01)",
-          }}
-        />
+        <div className="absolute inset-0 border-2 border-[#d9ca89] opacity-20 pointer-events-none" />
       </motion.div>
     </div>
   );
