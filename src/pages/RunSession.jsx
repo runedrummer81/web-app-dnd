@@ -47,7 +47,7 @@ const DMPanelWrapper = ({
   };
 
   return (
-    <DMPanel
+     <DMPanel
       sessionId={sessionId}
       sessionData={sessionData}
       mapSetData={mapSetData}
@@ -61,7 +61,7 @@ const DMPanelWrapper = ({
       setQuickNotes={setQuickNotes}
       onEndCombat={handleEndCombat}
       onRequestEndSessionConfirm={onRequestEndSessionConfirm}
-    />
+     />
   );
 };
 

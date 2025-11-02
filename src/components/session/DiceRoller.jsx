@@ -118,10 +118,8 @@ export const DiceRoller = () => {
   const SelectedIcon = selectedDie.icon;
 
   return (
-    <div className=" overflow-hidden">
-      {/* Main Container with Border Frame */}
-      <div className="relative p-4overflow-hidden">
-        {/* Main Dice Display - FIXED DIMENSIONS */}
+    <div className="overflow-hidden">
+      <div className="relative p-4 overflow-hidden">
         <div className="flex flex-col items-center mt-6">
           <div className="relative w-full max-w-[280px] lg:max-w-[320px] aspect-square flex items-center justify-center mx-auto">
             {/* Layered Glow Effects */}
@@ -196,7 +194,7 @@ export const DiceRoller = () => {
                 </radialGradient>
               </defs>
 
-              {/* Orbiting Particles */}
+              {/* Orbiting Particles - FIXED */}
               <motion.g
                 animate={{
                   opacity: activeResult && !isRolling ? 0.2 : 1,
@@ -206,14 +204,15 @@ export const DiceRoller = () => {
                 {orbitingParticles.map((particle) => {
                   const radius = 140;
                   const angle = particle.angle;
-                  const x = 200 + radius * Math.cos((angle * Math.PI) / 180);
-                  const y = 200 + radius * Math.sin((angle * Math.PI) / 180);
+                  const finalX = 200 + radius * Math.cos((angle * Math.PI) / 180);
+                  const finalY = 200 + radius * Math.sin((angle * Math.PI) / 180);
 
                   return (
                     <motion.circle
                       key={particle.id}
-                      cx={x}
-                      cy={y}
+                      // ✅ GIV INITIAL VÆRDIER til cx og cy
+                      cx={200}
+                      cy={200}
                       r="3"
                       fill="url(#particleGradient)"
                       filter="url(#strongGlow)"
@@ -221,8 +220,8 @@ export const DiceRoller = () => {
                       animate={{
                         scale: [0, 1, 1],
                         opacity: [0, 1, 0.8],
-                        cx: [200, x],
-                        cy: [200, y],
+                        cx: [200, finalX],
+                        cy: [200, finalY],
                       }}
                       transition={{
                         duration: 1.5,
@@ -516,6 +515,7 @@ export const DiceRoller = () => {
             </AnimatePresence>
           </div>
         </div>
+
         {/* Dice Selector */}
         <div className="relative mb-3 lg:mb-4">
           <div className="flex justify-center gap-2">
