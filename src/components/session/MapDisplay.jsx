@@ -6,6 +6,7 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
+import { motion } from "framer-motion";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapSync, RunSessionContext } from "./MapSyncContext";
@@ -309,29 +310,37 @@ export const MapDisplay = () => {
       ref={wrapperRef}
       className="relative w-full h-full bg-black overflow-hidden"
     >
-      {!isDMView && containerDimensions ? (
-        <div
-          style={{
-            position: "absolute",
-            width: `${containerDimensions.width}px`,
-            height: `${containerDimensions.height}px`,
-            transform: `scale(${containerDimensions.scale})`,
-            transformOrigin: "top left",
-            left: `${containerDimensions.offsetX}px`,
-            top: `${containerDimensions.offsetY}px`,
-          }}
-        >
-          {renderMapContainer()}
-        </div>
-      ) : isDMView ? (
-        renderMapContainer()
-      ) : (
-        <div className="flex items-center justify-center w-full h-full">
-          <div className="text-white text-xl">Loading map...</div>
-        </div>
-      )}
+      <motion.div
+        key={currentMap.id} // Re-triggers animation when map changes
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+        className="w-full h-full"
+      >
+        {!isDMView && containerDimensions ? (
+          <div
+            style={{
+              position: "absolute",
+              width: `${containerDimensions.width}px`,
+              height: `${containerDimensions.height}px`,
+              transform: `scale(${containerDimensions.scale})`,
+              transformOrigin: "top left",
+              left: `${containerDimensions.offsetX}px`,
+              top: `${containerDimensions.offsetY}px`,
+            }}
+          >
+            {renderMapContainer()}
+          </div>
+        ) : isDMView ? (
+          renderMapContainer()
+        ) : (
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-white text-xl">Loading map...</div>
+          </div>
+        )}
 
-      <WeatherEffects weather={mapState.weather} />
+        <WeatherEffects weather={mapState.weather} />
+      </motion.div>
     </div>
   );
 };
