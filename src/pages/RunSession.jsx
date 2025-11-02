@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { motion } from "framer-motion"; // ADD THIS IMPORT
+import { motion } from "framer-motion";
 import {
   MapSyncProvider,
   RunSessionContext,
