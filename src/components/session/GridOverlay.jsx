@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+
 import { SVGOverlay, useMap } from "react-leaflet";
 
 export const GridOverlay = ({ gridSettings, mapDimensions, visible }) => {

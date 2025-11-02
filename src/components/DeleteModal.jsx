@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DeleteModal({ open, onClose, campaign, onConfirm }) {

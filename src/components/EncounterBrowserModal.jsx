@@ -1,5 +1,3 @@
-// EncounterBrowserModal.jsx - UPDATED for multi-select
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,8 +5,6 @@ import {
   getDocs,
   query,
   where,
-  doc,
-  updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";

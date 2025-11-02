@@ -127,13 +127,7 @@ export default function HomePage() {
     return () => window.removeEventListener("wheel", handleWheel);
   }, [active, menuItems]);
 
-  const runSession = () => {
-    if (!lastCampaign) return;
-    navigate(`/run-session/${lastCampaign.id}`, {
-      state: { campaignId: lastCampaign.id },
-    });
-  };
-
+ 
   return (
     <motion.div
       className="relative min-h-screen overflow-hidden"
@@ -204,19 +198,7 @@ export default function HomePage() {
             <div className=" text-gray-700 text-center">
               {active === "Continue Campaign" && (
                 <div className="flex flex-col items-center justify-center text-center gap-4">
-                  {/* Button */}
-                  {/* <div className="px-11">
-                    <ActionButton
-                      label="RUN SESSION"
-                      onClick={runSession}
-                      size="sm"
-                      showLeftArrow={true}
-                      showRightArrow={false}
-                      showGlow={false}
-                      animate={false}
-                      animationDelay={0.2}
-                    />
-                  </div> */}
+                 
 
                   {/* Top info row */}
                   <div className="flex gap-10 text-2xl text-[var(--secondary)] uppercase px-11">

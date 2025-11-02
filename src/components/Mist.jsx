@@ -1,4 +1,4 @@
-import { div } from "framer-motion/client";
+
 import { useEffect, useRef } from "react";
 
 export default function MistVideo() {
