@@ -56,7 +56,7 @@ export default function Nav() {
     }
   };
 
-  // ✅ Handle onboarding toggle - mark as seen when clicked
+  // Handle onboarding toggle - mark as seen when clicked
   const handleOnboardingToggle = () => {
     toggleOnboarding();
     if (isFirstVisit) {
@@ -98,9 +98,9 @@ export default function Nav() {
         </div>
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
-          {/* ✅ Info/Onboarding Button with First Visit Glow */}
+          {/* Info/Onboarding Button with First Visit Glow */}
           <div className="relative">
-            {/* ✅ Pulsing glow ring for first-time visitors */}
+            {/* Pulsing glow ring for first-time visitors */}
             {isFirstVisit && (
               <motion.div
                 className="absolute inset-0 rounded-full"
@@ -163,20 +163,6 @@ export default function Nav() {
                 <path d="M53.58,12.7c-2.29-4.14-5.57-7.3-9.84-9.45-4.28-2.17-9.37-3.25-15.27-3.25C19.59,0,12.64,2.42,7.58,7.28,2.53,12.12,0,18.84,0,27.44s2.53,15.3,7.58,20.16c5.06,4.85,12.01,7.27,20.89,7.27s15.85-2.42,20.92-7.27c5.08-4.86,7.61-11.58,7.61-20.16,0-5.68-1.13-10.59-3.42-14.74ZM31.87,38.41c-1.15,1.19-2.5,2.24-4.06,3.15-1.57.92-2.9,1.37-4.02,1.37-.77,0-1.47-.29-2.09-.88-.62-.59-.92-1.19-.92-1.81,0-.37.07-.72.23-1.07l3.43-8.12,1.16-2.87c.06-.16,0-.23-.18-.23-.28,0-.62.1-1.02.3-.41.2-.76.38-1.05.55-.29.17-.53.32-.72.44-.25.16-.48.24-.69.24-.38,0-.56-.22-.56-.65,0-.4.56-1.09,1.67-2.04,1.11-.96,2.38-1.91,3.8-2.86,1.43-.94,2.51-1.54,3.25-1.79.25-.06.45-.09.61-.09.58,0,1.14.21,1.67.63.52.42.79.87.79,1.37l-.1.37-5.1,12.71c-.06.13-.09.31-.09.56,0,.22.07.32.23.32.31,0,1-.36,2.09-1.09,1.08-.72,1.93-1.39,2.55-2.01.09-.1.15-.14.18-.14.19,0,.34.07.47.23.12.15.18.32.18.51,0,.74-.57,1.71-1.71,2.9ZM35.02,17.78c-.8.81-1.76,1.21-2.88,1.21-.71,0-1.32-.28-1.83-.84-.51-.55-.76-1.2-.76-1.94,0-1.15.4-2.15,1.2-3,.81-.85,1.8-1.27,2.97-1.27.74,0,1.35.31,1.81.92.47.62.7,1.32.7,2.09,0,1.09-.4,2.03-1.21,2.83Z" />
               </svg>
             </motion.button>
-
-            {/* ✅ Optional: Small tooltip badge */}
-            {isFirstVisit && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
-              >
-                <div className="bg-[var(--primary)] text-[#1C1B18] text-xs font-bold px-2 py-1 uppercase tracking-wider shadow-lg">
-                  New? Click me!
-                </div>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-[var(--primary)]" />
-              </motion.div>
-            )}
           </div>
 
           {/* Settings Button */}
