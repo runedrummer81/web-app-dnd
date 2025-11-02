@@ -233,6 +233,9 @@ export default function App() {
           />
           {/* Player View - Full screen, no Nav/Border/BG */}
           <Route path="/player-view" element={<PlayerView />} />
+
+          {/*Fejl 404-siden*/}
+          <Route path="*" element={<AboutPage />} />
         </Routes>
       </main>
     </>
