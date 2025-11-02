@@ -135,7 +135,7 @@ export default function Login() {
 
       <div className="z-10">
         <div
-          className="relative w-full h-full mb-10 mx-auto transition-transform duration-200 ease-out"
+          className="relative  mb-10 mx-auto transition-transform duration-200 ease-out"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px)`,
           }}
@@ -391,10 +391,10 @@ export default function Login() {
             className="absolute inset-0"
             style={{
               background: `
-          linear-gradient(to left, transparent 30%, var(--dark-muted-bg) 100%),
+          linear-gradient(to left, transparent 80%, var(--dark-muted-bg) 100%),
           linear-gradient(to right, transparent 20%, var(--dark-muted-bg) 100%),
-          linear-gradient(to bottom, transparent 40%, var(--dark-muted-bg) 100%),
-          linear-gradient(to top, transparent 75%, var(--dark-muted-bg) 100%)
+          linear-gradient(to bottom, transparent 80%, var(--dark-muted-bg) 100%),
+          linear-gradient(to top, transparent 80%, var(--dark-muted-bg) 100%)
         `,
             }}
           />
