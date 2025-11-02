@@ -15,6 +15,8 @@ import Border from "./components/Border";
 import BG from "./components/BG";
 import RunSession from "./pages/RunSession";
 import Information from "./pages/Information";
+import { OnboardingProvider } from "./components/onboarding/OnboardingContext";
+import OnboardingModal from "./components/onboarding/OnboardingModal";
 import { PlayerView } from "./pages/PlayerView";
 import { useParams } from "react-router";
 import { useState, useEffect } from "react";
@@ -134,15 +136,13 @@ export default function App() {
     location.pathname === "/player-view";
 
   return (
-    <>
+    <OnboardingProvider>
       {/* Only show Nav, Border, and BG when NOT in session running mode */}
       {!isSessionRunning && (
         <>
           <Nav />
           <Border currentPath={location.pathname} />
-
           <BG />
-          {/* <Title /> */}
         </>
       )}
 
@@ -238,6 +238,9 @@ export default function App() {
           <Route path="*" element={<AboutPage />} />
         </Routes>
       </main>
-    </>
+
+      {/* ✅ OnboardingModal at the end, inside provider */}
+      <OnboardingModal />
+    </OnboardingProvider>
   );
 }

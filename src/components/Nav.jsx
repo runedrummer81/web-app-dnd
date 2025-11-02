@@ -1,38 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router";
+import { motion } from "framer-motion";
 import Title from "./Title";
+import { useOnboarding } from "../components/onboarding/OnboardingContext";
 
 export default function Nav() {
-  const { user } = useAuth(); // read auth state from Firebase
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [logoutMenuOpen, setLogoutMenuOpen] = useState(false);
+  const { toggleOnboarding } = useOnboarding();
+
+  // Track if this is the user's first visit
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+
+  useEffect(() => {
+    // Check if user has seen the onboarding before
+    const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+    if (!hasSeenOnboarding) {
+      setIsFirstVisit(true);
+    }
+  }, []);
 
   if (!user) return null;
 
   const handleLogout = async () => {
     try {
-      setLogoutMenuOpen(false); // 👈 Close the dropdown immediately
+      setLogoutMenuOpen(false);
       await signOut(auth);
-      navigate("/login", { replace: true }); // ✅ Redirect to login page
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
-  // I Nav.jsx, tilføj en check før navigation
   const handleBack = () => {
-    // Hvis du er på session-edit siden, send en event
     if (location.pathname.includes("/session-edit")) {
-      // Trigger et custom event som SessionEdit kan lytte efter
       window.dispatchEvent(new CustomEvent("attemptNavigation"));
       return;
     }
 
-    // Sider hvor vi ikke skal bruge "navigate(-1)"
     const sessionRoutes = "/session";
     const sessEditRoute = "/session-edit";
 
@@ -46,7 +56,16 @@ export default function Nav() {
     }
   };
 
-  const isHomePage = location.pathname === "/home"; //  tjek om vi er på forsiden eller login
+  // ✅ Handle onboarding toggle - mark as seen when clicked
+  const handleOnboardingToggle = () => {
+    toggleOnboarding();
+    if (isFirstVisit) {
+      localStorage.setItem("hasSeenOnboarding", "true");
+      setIsFirstVisit(false);
+    }
+  };
+
+  const isHomePage = location.pathname === "/home";
   const isLogin = location.pathname === "/login";
   const banned = isHomePage || isLogin;
 
@@ -54,46 +73,113 @@ export default function Nav() {
     <>
       <nav className="flex justify-between fixed z-40 items-center text-white m-20 w-[calc(100%-10rem)] pt-5">
         <div className="absolute flex gap-10">
-          {/* 👇 Vis kun tilbage-knap hvis vi ikke er på forsiden eller login */}
-        {!banned && (
-          <button
-            className=" transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
-            onClick={handleBack}
-          >
-            <svg
-              width="48"
-              height="41"
-              viewBox="0 0 48 41"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
+          {!banned && (
+            <button
+              className=" transition-all w-8 text-[var(--secondary)] hover:text-[var(--primary)] hover:scale-110 hover:cursor-pointer"
+              onClick={handleBack}
             >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M47 39.8119C41.3727 32.9601 36.3755 29.0724 32.0086 28.1486C27.6417 27.2248 23.484 27.0853 19.5357 27.7299V40L1 19.9781L19.5357 1V12.6621C26.8367 12.7195 33.0436 15.3321 38.1565 20.5C43.2686 25.6679 46.2165 32.1052 47 39.8119Z"
-              />
-            </svg>
-          </button>
-        )}
+              <svg
+                width="48"
+                height="41"
+                viewBox="0 0 48 41"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M47 39.8119C41.3727 32.9601 36.3755 29.0724 32.0086 28.1486C27.6417 27.2248 23.484 27.0853 19.5357 27.7299V40L1 19.9781L19.5357 1V12.6621C26.8367 12.7195 33.0436 15.3321 38.1565 20.5C43.2686 25.6679 46.2165 32.1052 47 39.8119Z"
+                />
+              </svg>
+            </button>
+          )}
 
-        <Title />
+          <Title />
         </div>
-        
 
         <div className="flex gap-5 justify-between fixed z-40 items-center text-white right-0 m-20">
-          {/* Button 1 */}
-          <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer">
-            <svg
-              id="Layer_1"
-              xmlns="http://www.w3.org/2000/svg"
-              version="1.1"
-              viewBox="0 0 57 54.87"
-            >
-              <path d="M53.58,12.7c-2.29-4.14-5.57-7.3-9.84-9.45-4.28-2.17-9.37-3.25-15.27-3.25C19.59,0,12.64,2.42,7.58,7.28,2.53,12.12,0,18.84,0,27.44s2.53,15.3,7.58,20.16c5.06,4.85,12.01,7.27,20.89,7.27s15.85-2.42,20.92-7.27c5.08-4.86,7.61-11.58,7.61-20.16,0-5.68-1.13-10.59-3.42-14.74ZM31.87,38.41c-1.15,1.19-2.5,2.24-4.06,3.15-1.57.92-2.9,1.37-4.02,1.37-.77,0-1.47-.29-2.09-.88-.62-.59-.92-1.19-.92-1.81,0-.37.07-.72.23-1.07l3.43-8.12,1.16-2.87c.06-.16,0-.23-.18-.23-.28,0-.62.1-1.02.3-.41.2-.76.38-1.05.55-.29.17-.53.32-.72.44-.25.16-.48.24-.69.24-.38,0-.56-.22-.56-.65,0-.4.56-1.09,1.67-2.04,1.11-.96,2.38-1.91,3.8-2.86,1.43-.94,2.51-1.54,3.25-1.79.25-.06.45-.09.61-.09.58,0,1.14.21,1.67.63.52.42.79.87.79,1.37l-.1.37-5.1,12.71c-.06.13-.09.31-.09.56,0,.22.07.32.23.32.31,0,1-.36,2.09-1.09,1.08-.72,1.93-1.39,2.55-2.01.09-.1.15-.14.18-.14.19,0,.34.07.47.23.12.15.18.32.18.51,0,.74-.57,1.71-1.71,2.9ZM35.02,17.78c-.8.81-1.76,1.21-2.88,1.21-.71,0-1.32-.28-1.83-.84-.51-.55-.76-1.2-.76-1.94,0-1.15.4-2.15,1.2-3,.81-.85,1.8-1.27,2.97-1.27.74,0,1.35.31,1.81.92.47.62.7,1.32.7,2.09,0,1.09-.4,2.03-1.21,2.83Z" />
-            </svg>
-          </button>
+          {/* ✅ Info/Onboarding Button with First Visit Glow */}
+          <div className="relative">
+            {/* ✅ Pulsing glow ring for first-time visitors */}
+            {isFirstVisit && (
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                animate={{
+                  boxShadow: [
+                    "0 0 0px rgba(191,136,60,0)",
+                    "0 0 20px rgba(191,136,60,0.8)",
+                    "0 0 40px rgba(191,136,60,1)",
+                    "0 0 20px rgba(191,136,60,0.8)",
+                    "0 0 0px rgba(191,136,60,0)",
+                  ],
+                  scale: [1, 1.2, 1.4, 1.2, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(191,136,60,0.3) 0%, transparent 70%)",
+                }}
+              />
+            )}
 
-          {/* Button 2 */}
+            <motion.button
+              onClick={handleOnboardingToggle}
+              className="relative transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer"
+              title="Toggle tutorial"
+              animate={
+                isFirstVisit
+                  ? {
+                      scale: [1, 1.15, 1, 1.15, 1],
+                      filter: [
+                        "drop-shadow(0 0 0px rgba(191,136,60,0))",
+                        "drop-shadow(0 0 8px rgba(191,136,60,1))",
+                        "drop-shadow(0 0 12px rgba(191,136,60,1))",
+                        "drop-shadow(0 0 8px rgba(191,136,60,1))",
+                        "drop-shadow(0 0 0px rgba(191,136,60,0))",
+                      ],
+                    }
+                  : {}
+              }
+              transition={
+                isFirstVisit
+                  ? {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }
+                  : {}
+              }
+            >
+              <svg
+                id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg"
+                version="1.1"
+                viewBox="0 0 57 54.87"
+              >
+                <path d="M53.58,12.7c-2.29-4.14-5.57-7.3-9.84-9.45-4.28-2.17-9.37-3.25-15.27-3.25C19.59,0,12.64,2.42,7.58,7.28,2.53,12.12,0,18.84,0,27.44s2.53,15.3,7.58,20.16c5.06,4.85,12.01,7.27,20.89,7.27s15.85-2.42,20.92-7.27c5.08-4.86,7.61-11.58,7.61-20.16,0-5.68-1.13-10.59-3.42-14.74ZM31.87,38.41c-1.15,1.19-2.5,2.24-4.06,3.15-1.57.92-2.9,1.37-4.02,1.37-.77,0-1.47-.29-2.09-.88-.62-.59-.92-1.19-.92-1.81,0-.37.07-.72.23-1.07l3.43-8.12,1.16-2.87c.06-.16,0-.23-.18-.23-.28,0-.62.1-1.02.3-.41.2-.76.38-1.05.55-.29.17-.53.32-.72.44-.25.16-.48.24-.69.24-.38,0-.56-.22-.56-.65,0-.4.56-1.09,1.67-2.04,1.11-.96,2.38-1.91,3.8-2.86,1.43-.94,2.51-1.54,3.25-1.79.25-.06.45-.09.61-.09.58,0,1.14.21,1.67.63.52.42.79.87.79,1.37l-.1.37-5.1,12.71c-.06.13-.09.31-.09.56,0,.22.07.32.23.32.31,0,1-.36,2.09-1.09,1.08-.72,1.93-1.39,2.55-2.01.09-.1.15-.14.18-.14.19,0,.34.07.47.23.12.15.18.32.18.51,0,.74-.57,1.71-1.71,2.9ZM35.02,17.78c-.8.81-1.76,1.21-2.88,1.21-.71,0-1.32-.28-1.83-.84-.51-.55-.76-1.2-.76-1.94,0-1.15.4-2.15,1.2-3,.81-.85,1.8-1.27,2.97-1.27.74,0,1.35.31,1.81.92.47.62.7,1.32.7,2.09,0,1.09-.4,2.03-1.21,2.83Z" />
+              </svg>
+            </motion.button>
+
+            {/* ✅ Optional: Small tooltip badge */}
+            {isFirstVisit && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
+              >
+                <div className="bg-[var(--primary)] text-[#1C1B18] text-xs font-bold px-2 py-1 uppercase tracking-wider shadow-lg">
+                  New? Click me!
+                </div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-[var(--primary)]" />
+              </motion.div>
+            )}
+          </div>
+
+          {/* Settings Button */}
           <button className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer">
             <svg
               id="Layer_1"
@@ -107,7 +193,6 @@ export default function Nav() {
 
           {/* Logout dropdown */}
           <div className="relative">
-            {/* Logout icon */}
             <button
               onClick={() => setLogoutMenuOpen((prev) => !prev)}
               className="transition-all w-8 fill-[var(--secondary)] hover:fill-[var(--primary)] hover:scale-110 hover:cursor-pointer"
@@ -122,7 +207,6 @@ export default function Nav() {
               </svg>
             </button>
 
-            {/* Slide-down menu */}
             <div
               className={`absolute right-0 mt-2 bg-[var(--bg-dark)] border border-[var(--secondary)] shadow-lg overflow-hidden transform transition-all duration-200 origin-top ${
                 logoutMenuOpen
