@@ -542,12 +542,17 @@ export default function Session() {
               <motion.div className="w-2/5 flex flex-col z-10 justify-between">
                 {/* LEFT: Encounters box */}
                 <div className="w-full p-6 border-2 border-[var(--secondary)] bg-[var(--dark-muted-bg)]/90">
-                  <div className="grid grid-cols-2 grid-rows-3">
+                  <div
+                    className="grid 
+      grid-cols-1 sm:grid-cols-2 
+      auto-rows-min 
+      gap-4"
+                  >
                     {selectedSession.encounters &&
                     selectedSession.encounters.length > 0 ? (
                       <>
                         {selectedSession.encounters
-                          .slice(0, 5)
+                          .slice(0, 3)
                           .map((enc, idx) => (
                             <div key={idx}>
                               <p className="font-semibold text-[var(--primary)] mb-3">
@@ -569,8 +574,7 @@ export default function Session() {
                             </div>
                           ))}
 
-                        {/* 9th slot shows +X more */}
-                        {selectedSession.encounters.length > 5 ? (
+                        {selectedSession.encounters.length > 3 ? (
                           <div className="flex items-center justify-start">
                             <p className="text-[var(--secondary)] text-center text-3xl font-semibold">
                               +{selectedSession.encounters.length - 5}
