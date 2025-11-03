@@ -392,7 +392,7 @@ export default function Login() {
             style={{
               background: `
           linear-gradient(to left, transparent 80%, var(--dark-muted-bg) 100%),
-          linear-gradient(to right, transparent 20%, var(--dark-muted-bg) 100%),
+          linear-gradient(to right, transparent 80%, var(--dark-muted-bg) 100%),
           linear-gradient(to bottom, transparent 80%, var(--dark-muted-bg) 100%),
           linear-gradient(to top, transparent 80%, var(--dark-muted-bg) 100%)
         `,
