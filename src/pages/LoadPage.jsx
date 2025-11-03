@@ -23,28 +23,49 @@ export default function LoadPage() {
   const [campaignToDelete, setCampaignToDelete] = useState(null);
 
   const handleDeleteConfirm = async () => {
-    if (!campaignToDelete) return;
+  if (!campaignToDelete) return;
 
-    try {
-      // Delete from Firestore
-      await deleteDoc(doc(db, "Campaigns", campaignToDelete.id));
+  try {
+    const deletedIndex = campaigns.findIndex((c) => c.id === campaignToDelete.id);
+    const deletedId = campaignToDelete.id;
 
-      // Remove from local state so it disappears instantly
-      setCampaigns((prev) =>
-        prev.filter((camp) => camp.id !== campaignToDelete.id)
-      );
+    // Delete from Firestore
+    await deleteDoc(doc(db, "Campaigns", deletedId));
 
-      // Close modal
-      setDeleteModalOpen(false);
+    // Remove from local state
+    const newCampaigns = campaigns.filter((camp) => camp.id !== deletedId);
+    setCampaigns(newCampaigns);
 
-      // Reset centerIndex if needed
-      setCenterIndex((prev) =>
-        Math.min(prev, campaigns.length - 2 >= 0 ? campaigns.length - 2 : 0)
-      );
-    } catch (err) {
-      console.error("Error deleting campaign:", err);
+    // ✅ Hvis den slettede campaign var den gemte campaign, opdater localStorage
+    const savedCampaignId = localStorage.getItem("selectedCampaignId");
+    if (savedCampaignId === deletedId) {
+      if (newCampaigns.length > 0) {
+        // Vælg den næste campaign
+        const newSelectedIndex = Math.max(0, deletedIndex - 1);
+        localStorage.setItem("selectedCampaignId", newCampaigns[newSelectedIndex].id);
+      } else {
+        // Ingen campaigns tilbage
+        localStorage.removeItem("selectedCampaignId");
+      }
     }
-  };
+
+    // Signal HomePage to refetch
+    localStorage.setItem("campaignsUpdated", "true");
+
+    // Close modal
+    setDeleteModalOpen(false);
+
+    // Juster centerIndex
+    if (newCampaigns.length === 0) {
+      setCenterIndex(0);
+    } else if (deletedIndex <= centerIndex) {
+      setCenterIndex((prev) => Math.max(0, prev - 1));
+    }
+
+  } catch (err) {
+    console.error("Error deleting campaign:", err);
+  }
+};
 
   const navigate = useNavigate();
   const listRef = useRef(null);
@@ -72,24 +93,33 @@ export default function LoadPage() {
     getCampaigns();
   }, [user]);
 
+  // ✅ FIX: Beregn et sikkert centerIndex FØR vi bruger det
+  const safeCenterIndex = campaigns.length > 0 
+    ? Math.min(centerIndex, campaigns.length - 1) 
+    : 0;
+
   const handleContinue = useCallback(() => {
     if (campaigns.length === 0) return;
-    const selectedCampaign = campaigns[centerIndex];
+    const selectedCampaign = campaigns[safeCenterIndex];
+    if (!selectedCampaign) return;
+    
     localStorage.setItem("selectedCampaignId", selectedCampaign.id);
     navigate("/session", {
       state: { campaignId: selectedCampaign.id, from: "/loadcampaign" },
     });
-  }, [campaigns, centerIndex, navigate]);
+  }, [campaigns, safeCenterIndex, navigate]);
 
   const handleScroll = useCallback(
     (direction) => {
-      if (direction === "up" && centerIndex > 0) {
+      if (campaigns.length === 0) return;
+      
+      if (direction === "up" && safeCenterIndex > 0) {
         setCenterIndex((prev) => prev - 1);
-      } else if (direction === "down" && centerIndex < campaigns.length - 1) {
+      } else if (direction === "down" && safeCenterIndex < campaigns.length - 1) {
         setCenterIndex((prev) => prev + 1);
       }
     },
-    [centerIndex, campaigns.length]
+    [safeCenterIndex, campaigns.length]
   );
 
   const handleCampaignClick = useCallback((campaignId) => {
@@ -118,10 +148,10 @@ export default function LoadPage() {
     };
 
     const onKeyDown = (e) => {
-      if (e.key === "ArrowUp") {
+      if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
         handleScroll("up");
         e.preventDefault();
-      } else if (e.key === "ArrowDown") {
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
         handleScroll("down");
         e.preventDefault();
       } else if (e.key === "Enter") {
@@ -139,17 +169,19 @@ export default function LoadPage() {
     };
   }, [handleScroll, handleContinue]);
 
+  // ✅ Flyt loading check hertil - EFTER alle hooks
   if (loading) return null;
 
+  // Beregn visibleCampaigns baseret på safeCenterIndex
   const visibleCampaigns = [];
   for (let offset = -1; offset <= 1; offset++) {
-    const idx = centerIndex + offset;
+    const idx = safeCenterIndex + offset;
     if (idx >= 0 && idx < campaigns.length) {
       visibleCampaigns.push({ ...campaigns[idx], offset });
     }
   }
 
-  const selectedCampaign = campaigns[centerIndex];
+  const selectedCampaign = campaigns[safeCenterIndex];
   const activeImg = selectedCampaign?.image || selectedCampaign?.img;
 
   return (
@@ -168,40 +200,50 @@ export default function LoadPage() {
           ref={listRef}
           className="relative flex flex-col items-center justify-center space-y-0 h-[380px]"
         >
-          <AnimatePresence mode="popLayout">
-            {visibleCampaigns.map((camp) => {
-              const isCenter = camp.offset === 0;
-              const yOffset = camp.offset * 60;
-              const scale = isCenter ? 1.1 : 0.85;
-              const opacity = isCenter ? 1 : 0.5;
+          {campaigns.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-[var(--secondary)] text-xl italic"
+            >
+              No campaigns found
+            </motion.div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {visibleCampaigns.map((camp) => {
+                const isCenter = camp.offset === 0;
+                const yOffset = camp.offset * 60;
+                const scale = isCenter ? 1.1 : 0.85;
+                const opacity = isCenter ? 1 : 0.5;
 
-              return (
-                <motion.div
-                  key={camp.id}
-                  layout
-                  animate={{ opacity, y: yOffset, scale }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 25,
-                    delay: Math.abs(camp.offset) * 0.1,
-                  }}
-                  className="w-96 cursor-pointer"
-                  onClick={() => handleCampaignClick(camp.id)}
-                  whileHover={!isCenter ? { scale: 0.9, opacity: 0.7 } : {}}
-                >
-                  <SelectedItem
-                    isSelected={isCenter}
-                    showArrow={isCenter}
-                    animate={false} // we're handling animation in the parent
+                return (
+                  <motion.div
+                    key={camp.id}
+                    layout
+                    animate={{ opacity, y: yOffset, scale }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 25,
+                      delay: Math.abs(camp.offset) * 0.1,
+                    }}
+                    className="w-96 cursor-pointer"
+                    onClick={() => handleCampaignClick(camp.id)}
+                    whileHover={!isCenter ? { scale: 0.9, opacity: 0.7 } : {}}
                   >
-                    {camp.title || camp.name || "Untitled Campaign"}
-                  </SelectedItem>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                    <SelectedItem
+                      isSelected={isCenter}
+                      showArrow={isCenter}
+                      animate={false}
+                    >
+                      {camp.title || camp.name || "Untitled Campaign"}
+                    </SelectedItem>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          )}
         </div>
       </motion.div>
 
@@ -243,7 +285,7 @@ export default function LoadPage() {
           }}
         />
 
-        {!activeImg && (
+        {!activeImg && campaigns.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
@@ -257,10 +299,12 @@ export default function LoadPage() {
 
         {selectedCampaign && (
           <motion.div
+            key={selectedCampaign.id}
             className="absolute bottom-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 z-30"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.1, ease: "easeInOut" }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             {/* LOAD button */}
             <ActionButton
