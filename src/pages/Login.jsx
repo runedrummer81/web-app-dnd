@@ -130,11 +130,14 @@ export default function Login() {
   if (user) return <HomePage />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--dark-muted-bg)] relative overflow-hidden p-4">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4 ">
       <MistVideo />
 
-      <div className="z-10">
-        <div
+      <div className="z-10 flex flex-col justify-center">
+        <div className="pointer-events-note pb-15">
+          <img src="images/logo.svg" alt="Logo" className="object-contain" />
+        </div>
+        {/* <div
           className="relative  mb-10 mx-auto transition-transform duration-200 ease-out"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px)`,
@@ -228,7 +231,7 @@ export default function Login() {
               />
             </svg>
           </div>
-        </div>
+        </div> */}
 
         <form
           onSubmit={handleSubmit}
@@ -258,7 +261,7 @@ export default function Login() {
           <label htmlFor="email" className="sr-only">
             Email
           </label>
-          <section className="border p-2 border-[var(--secondary)] mb-4 transition-colors duration-200 ">
+          <section className="border-2 p-2 border-[var(--secondary)] mb-4 transition-colors duration-200 ">
             <input
               id="email"
               type="email"
@@ -283,7 +286,7 @@ export default function Login() {
           <label htmlFor="password" className="sr-only">
             Password
           </label>
-          <div className="border p-2 border-[var(--secondary)] mb-4 relative transition-colors duration-200">
+          <div className="border-2 p-2 border-[var(--secondary)] mb-4 relative transition-colors duration-200">
             <input
               ref={showPasswordRef}
               id="password"
@@ -344,7 +347,7 @@ export default function Login() {
 
           {/* Submit button */}
           <div className=" mt-7">
-            <div className="border-t border-[var(--secondary)] my-4"></div>
+            <div className="border-t-2 border-[var(--secondary)] my-4"></div>
 
             <div className="flex transition hover:scale-105">
               <svg

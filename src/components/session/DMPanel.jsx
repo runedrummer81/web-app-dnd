@@ -30,9 +30,7 @@ export const DMPanel = ({
   const [weatherOpen, setWeatherOpen] = useState(false);
   const [routesOpen, setRoutesOpen] = useState(false);
 
-
   const [combatStarted, setCombatStarted] = useState(false);
-
 
   // Handle tab switching when entering/exiting combat or setup mode
   useEffect(() => {
@@ -218,112 +216,118 @@ export const DMPanel = ({
       <div className={`relative flex-shrink-0`}>
         {/* Bookmark Tabs - Flag shaped */}
         <div className="flex justify-center gap-2 px-15 pt-2">
-        {tabs.map((tab, index) => {
-  // Disable initiative, spellbook, history if combat not started
-  const isDisabled =
-    !combatStarted &&
-    ["initiative", "spellbook", "history"].includes(tab.id);
+          {tabs.map((tab, index) => {
+            // Disable initiative, spellbook, history if combat not started
+            const isDisabled =
+              !combatStarted &&
+              ["initiative", "spellbook", "history"].includes(tab.id);
 
-  return (
-    <motion.button
-  key={tab.id}
-  onClick={() => !isDisabled && setActiveTab(tab.id)}
-  className={`relative flex-1 py-4 transition-all duration-300 ${
-    activeTab === tab.id
-      ? combatActive
-        ? "bg-gradient-to-b from-red-700 to-red-900"
-        : "bg-[var(--primary)]"
-      : "bg-[var(--secondary)]"
-  }`}
-  style={{
-    clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
-    boxShadow:
-      activeTab === tab.id
-        ? combatActive
-          ? "0 4px 12px rgba(239,68,68,0.5), inset 0 -2px 8px rgba(0,0,0,0.3)"
-          : "0 4px 12px rgba(191,136,60,0.4), inset 0 -2px 8px rgba(0,0,0,0.3)"
-        : "0 2px 6px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2)",
-    cursor: isDisabled ? "not-allowed" : "pointer",
-  }}
-  whileHover={isDisabled ? {} : { y: activeTab === tab.id ? 0 : -2 }}
-  initial={{ opacity: 0, y: -10 }}
-  animate={{ opacity: isDisabled ? 0.3 : 1, y: 0 }} // ← apply disabled opacity here
-  transition={{ delay: index * 0.05 }}
->
+            return (
+              <motion.button
+                key={tab.id}
+                onClick={() => !isDisabled && setActiveTab(tab.id)}
+                className={`relative flex-1 py-4 transition-all duration-300 ${
+                  activeTab === tab.id
+                    ? combatActive
+                      ? "bg-gradient-to-b from-red-700 to-red-900"
+                      : "bg-[var(--primary)]"
+                    : "bg-[var(--secondary)]"
+                }`}
+                style={{
+                  clipPath:
+                    "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
+                  boxShadow:
+                    activeTab === tab.id
+                      ? combatActive
+                        ? "0 4px 12px rgba(239,68,68,0.5), inset 0 -2px 8px rgba(0,0,0,0.3)"
+                        : "0 4px 12px rgba(191,136,60,0.4), inset 0 -2px 8px rgba(0,0,0,0.3)"
+                      : "0 2px 6px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2)",
+                  cursor: isDisabled ? "not-allowed" : "pointer",
+                }}
+                whileHover={
+                  isDisabled ? {} : { y: activeTab === tab.id ? 0 : -2 }
+                }
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: isDisabled ? 0.3 : 1, y: 0 }} // ← apply disabled opacity here
+                transition={{ delay: index * 0.05 }}
+              >
+                {/* Icon */}
+                <div
+                  className={`mb-1 flex justify-center ${
+                    activeTab === tab.id
+                      ? "text-[var(--dark-muted-bg)]"
+                      : "text-[var(--primary)] group-hover:text-[#d9ca89]"
+                  }`}
+                >
+                  {tab.icon}
+                </div>
 
-      {/* Icon */}
-      <div
-        className={`mb-1 flex justify-center ${
-          activeTab === tab.id
-            ? "text-[var(--dark-muted-bg)]"
-            : "text-[var(--primary)] group-hover:text-[#d9ca89]"
-        }`}
-      >
-        {tab.icon}
-      </div>
-
-      {/* Small label text */}
-      <span
-        className={`text-[8px] font-bold uppercase tracking-[0.15em] block text-center ${
-          activeTab === tab.id
-            ? "text-[var(--dark-muted-bg)]"
-            : "text-[var(--primary)] group-hover:text-[#d9ca89]"
-        }`}
-      >
-        {tab.label}
-      </span>
-    </motion.button>
-  );
-})}
+                {/* Small label text */}
+                <span
+                  className={`text-[8px] font-bold uppercase tracking-[0.15em] block text-center ${
+                    activeTab === tab.id
+                      ? "text-[var(--dark-muted-bg)]"
+                      : "text-[var(--primary)] group-hover:text-[#d9ca89]"
+                  }`}
+                >
+                  {tab.label}
+                </span>
+              </motion.button>
+            );
+          })}
 
           {/* END TAB - conditional */}
           <motion.button
-  onClick={() => {
-    if (combatActive) {
-      // End combat
-      endCombat();              // Reset combat state in context
-      setCombatStarted(false);  // Reset local flag
-      setActiveTab("overview"); // Switch to overview tab
-      onEndCombat?.();          // Optional callback
-    } else {
-      // End session
-      onRequestEndSessionConfirm();
-    }
-  }}
-  className="relative flex-1 py-4 transition-all duration-300 
+            onClick={() => {
+              if (combatActive) {
+                // End combat
+                endCombat(); // Reset combat state in context
+                setCombatStarted(false); // Reset local flag
+                setActiveTab("overview"); // Switch to overview tab
+                onEndCombat?.(); // Optional callback
+              } else {
+                // End session
+                onRequestEndSessionConfirm();
+              }
+            }}
+            className="relative flex-1 py-4 transition-all duration-300 
     bg-gradient-to-b from-red-700 to-red-900 
     hover:from-red-600 hover:to-red-800 
     text-[#f8eac7] font-bold uppercase tracking-[0.15em]
     shadow-[0_2px_6px_rgba(0,0,0,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)]
     cursor-pointer"
-  style={{
-    clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
-    boxShadow:
-      "0 4px 12px rgba(239,68,68,0.5), inset 0 -2px 8px rgba(0,0,0,0.3)",
-  }}
-  whileHover={{ y: -2 }}
-  whileTap={{ scale: 0.98 }}
->
-  <div className="mb-1 flex justify-center">
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#f8eac7"
-      strokeWidth="2"
-      className="drop-shadow-[0_0_4px_rgba(239,68,68,0.4)]"
-    >
-      <path d={combatActive ? "M10 17l5-5-5-5" : "M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"} />
-    </svg>
-  </div>
+            style={{
+              clipPath: "polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%)",
+              boxShadow:
+                "0 4px 12px rgba(239,68,68,0.5), inset 0 -2px 8px rgba(0,0,0,0.3)",
+            }}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="mb-1 flex justify-center">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f8eac7"
+                strokeWidth="2"
+                className="drop-shadow-[0_0_4px_rgba(239,68,68,0.4)]"
+              >
+                <path
+                  d={
+                    combatActive
+                      ? "M10 17l5-5-5-5"
+                      : "M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"
+                  }
+                />
+              </svg>
+            </div>
 
-  <span className="text-[8px] font-bold uppercase tracking-[0.15em] block text-center text-[#f8eac7]">
-    {combatActive ? "End Combat" : "End"}
-  </span>
-</motion.button>
-
-
+            <span className="text-[8px] font-bold uppercase tracking-[0.15em] block text-center text-[#f8eac7]">
+              {combatActive ? "End Combat" : "End"}
+            </span>
+          </motion.button>
         </div>
 
         {/* Active Tab Title with Glow */}
@@ -404,6 +408,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="px-4"
                 >
                   <SpellBook />
                 </motion.div>
@@ -417,18 +422,16 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="px-4"
                 >
                   <MapControlsTab
-  onStartCombat={() => {
-    setActiveTab("initiative");
-    setCombatStarted(true);
-  }}
-  weather={weather}
-  onWeatherChange={onWeatherChange}
-/>
-
-
-
+                    onStartCombat={() => {
+                      setActiveTab("initiative");
+                      setCombatStarted(true);
+                    }}
+                    weather={weather}
+                    onWeatherChange={onWeatherChange}
+                  />
                 </motion.div>
               )}
 
@@ -440,6 +443,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="px-4"
                 >
                   <CombatHistory />
                 </motion.div>
@@ -456,7 +460,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-6"
+                  className="space-y-6 px-6"
                 >
                   {/* TRAVEL ROUTES */}
                   <section className="relative">
@@ -715,7 +719,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-6 "
+                  className="flex flex-col gap-6 px-6"
                 >
                   <div className="flex gap-6 px-5">
                     {mapSetData ? (
@@ -803,7 +807,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-3"
+                  className="space-y-3 px-6"
                 >
                   {/* SESSION NOTES */}
                   <section className="relative w-full">
@@ -848,6 +852,7 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  className="px-6"
                 >
                   <CombatTab sessionData={sessionData} />
                 </motion.div>
