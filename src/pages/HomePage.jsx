@@ -67,6 +67,48 @@ export default function HomePage() {
     fetchLastCampaign();
   }, []);
 
+  // I HomePage.jsx - tilføj dette useEffect efter det eksisterende fetchLastCampaign useEffect:
+
+useEffect(() => {
+  // Lyt efter når campaigns opdateres fra LoadPage
+  const checkCampaignUpdate = setInterval(() => {
+    if (localStorage.getItem("campaignsUpdated") === "true") {
+      localStorage.removeItem("campaignsUpdated");
+      
+      // Re-fetch last campaign
+      const fetchLastCampaign = async () => {
+        const campaignId = localStorage.getItem("selectedCampaignId");
+        if (!campaignId) {
+          setLastCampaign(null);
+          setActive("New Campaign");
+          return;
+        }
+
+        try {
+          const { doc, getDoc } = await import("firebase/firestore");
+          const docRef = await getDoc(doc(db, "Campaigns", campaignId));
+
+          if (docRef.exists()) {
+            const campaign = { id: docRef.id, ...docRef.data() };
+            setLastCampaign(campaign);
+          } else {
+            // Campaign blev slettet
+            localStorage.removeItem("selectedCampaignId");
+            setLastCampaign(null);
+            setActive("New Campaign");
+          }
+        } catch (err) {
+          console.error("🔥 Kunne ikke hente campaign:", err);
+        }
+      };
+
+      fetchLastCampaign();
+    }
+  }, 500); // Check hver 500ms
+
+  return () => clearInterval(checkCampaignUpdate);
+}, []);
+
   // ✅ Keyboard navigation (ArrowUp/ArrowDown/Enter)
   useEffect(() => {
     const handleKeyDown = (e) => {
