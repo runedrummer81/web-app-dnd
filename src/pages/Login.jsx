@@ -131,7 +131,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4 ">
-      <MistVideo />
+      <MistVideo className="min-h-screen" />
 
       <div className="z-10 flex flex-col justify-center">
         <div className="pointer-events-note pb-15">
@@ -383,7 +383,7 @@ export default function Login() {
           </div>
         </form>
       </div>
-      <div className="absolute flex justify-between w-full bottom-4 pointer-events-none  inset-0">
+      <div className="absolute min-h-screen flex justify-between w-full bottom-4 pointer-events-none  inset-0">
         <div className="relative w-full h-full">
           <img
             src="images/login.jpg"

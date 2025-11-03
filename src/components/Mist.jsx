@@ -27,7 +27,7 @@ export default function MistVideo() {
   return (
     <video
       ref={videoRef}
-      className="absolute z-10 pointer-events-none mix-blend-multiply invert"
+      className="absolute min-h-screen object-cover z-10 pointer-events-none mix-blend-multiply invert"
       src="video/mist.webm"
       autoPlay
       loop
