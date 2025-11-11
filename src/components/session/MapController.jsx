@@ -7,7 +7,7 @@ export const MapController = ({ mapDimensions, currentMap }) => {
   const { mapState, updateMapState, isDMView } = useMapSync();
   const updateTimeoutRef = useRef(null);
   const lastUpdateRef = useRef(null);
-  const isInitializedRef = useRef(false);
+  const lastMapIdRef = useRef(null); // Track map changes
 
   // Helper to write viewport to shared state (rounded)
   const writeViewport = (center, zoom, bounds) => {
@@ -19,7 +19,6 @@ export const MapController = ({ mapDimensions, currentMap }) => {
       height: map.getContainer().offsetHeight,
     };
 
-    // only update when different
     const hasChanged =
       !lastUpdateRef.current ||
       lastUpdateRef.current.centerLat !== newData.centerLat ||
@@ -49,6 +48,51 @@ export const MapController = ({ mapDimensions, currentMap }) => {
     }
   };
 
+  // ✅ Handle map switches - reset view to show entire new map
+  useEffect(() => {
+    if (!isDMView) return;
+
+    const currentMapId = currentMap?.id || mapState.currentMapId;
+
+    // Detect if we switched to a different map
+    if (lastMapIdRef.current !== currentMapId) {
+      console.log(`🗺️ Map switched to: ${currentMapId}`);
+
+      const mapWidth = currentMap?.width || 2000;
+      const mapHeight = currentMap?.height || 2000;
+      const boundsArr = [
+        [0, 0],
+        [mapHeight, mapWidth],
+      ];
+
+      // ✅ Reset zoom limits FIRST before fitting
+      map.setMinZoom(-5); // Very low to allow full zoom out
+      map.setMaxZoom(8);
+
+      // ✅ Enable all interactions
+      try {
+        map.dragging.enable();
+        map.scrollWheelZoom.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoom.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
+      } catch (e) {
+        console.error("Error enabling interactions:", e);
+      }
+
+      // ✅ Fit bounds to show entire map with padding
+      setTimeout(() => {
+        map.fitBounds(boundsArr, {
+          animate: false,
+          padding: [50, 50],
+        });
+      }, 50);
+    }
+
+    lastMapIdRef.current = currentMapId;
+  }, [currentMap, mapState.currentMapId, isDMView, map]);
+
   // DM window: handle combat map setup and viewport broadcasting
   useEffect(() => {
     if (!isDMView) return;
@@ -74,7 +118,7 @@ export const MapController = ({ mapDimensions, currentMap }) => {
           // Get the zoom level that fitBounds calculated
           const fittedZoom = map.getZoom();
 
-          // Lock to this exact zoom
+          // Lock to this exact zoom for combat
           map.setMinZoom(fittedZoom);
           map.setMaxZoom(fittedZoom);
 
@@ -93,7 +137,7 @@ export const MapController = ({ mapDimensions, currentMap }) => {
           return;
         }
 
-        // Not a combat map: enable DM interactions
+        // ✅ Not a combat map - ensure interactions are enabled
         try {
           map.dragging.enable();
           map.scrollWheelZoom.enable();
@@ -101,8 +145,9 @@ export const MapController = ({ mapDimensions, currentMap }) => {
           map.touchZoom.enable();
           map.boxZoom.enable();
           map.keyboard.enable();
-          // Reset zoom limits to allow free navigation
-          map.setMinZoom(0);
+
+          // ✅ Keep generous zoom limits
+          map.setMinZoom(-5);
           map.setMaxZoom(8);
         } catch (e) {
           console.error("Error enabling map interactions:", e);
@@ -148,14 +193,14 @@ export const MapController = ({ mapDimensions, currentMap }) => {
     map.setMinZoom(zoom);
     map.setMaxZoom(zoom);
 
-    // Disable ALL player interactions (for both combat and world maps)
+    // Disable ALL player interactions
     map.dragging.disable();
     map.scrollWheelZoom.disable();
     map.doubleClickZoom.disable();
     map.touchZoom.disable();
     map.boxZoom.disable();
     map.keyboard.disable();
-  }, [map, isDMView, mapState.viewport, currentMap]);
+  }, [map, isDMView, mapState.viewport]);
 
   return null;
 };

@@ -186,7 +186,7 @@ export const MapDisplay = () => {
       crs={L.CRS.Simple}
       zoomControl={false}
       attributionControl={false}
-      minZoom={0}
+      minZoom={-5}
       maxZoom={8}
       maxBounds={mapBounds}
       maxBoundsViscosity={1.0}

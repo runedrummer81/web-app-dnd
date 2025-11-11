@@ -9,6 +9,7 @@ import { MapControlsTab } from "./MapControlsTab";
 import { useMapSync } from "./MapSyncContext";
 import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { MapSelectionTab } from "./MapSelectionTab";
 import SpellBook from "./Spells";
 
 export const DMPanel = ({
@@ -719,83 +720,13 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-6 px-6"
+                  className="px-6"
                 >
-                  <div className="flex gap-6 px-5">
-                    {mapSetData ? (
-                      <>
-                        {/* WORLD MAP */}
-                        <section className="relative flex-1">
-                          <button
-                            onClick={() => onMapSwitch("world")}
-                            className={`w-full transition-all duration-300 flex items-center justify-between group `}
-                          >
-                            <div className="text-left">
-                              <div
-                                className={`transition-colors duration-300 ${
-                                  currentMapId === "world"
-                                    ? "text-[#d9ca89]"
-                                    : "text-[var(--secondary)]"
-                                }`}
-                              >
-                                <h2 className="font-bold uppercase ">
-                                  {mapSetData.worldMap?.name || "World Map"}
-                                </h2>
-                                <img
-                                  src={mapSetData.worldMap.imageUrl}
-                                  alt={`Map of ${mapSetData.worldMap.imageUrl}`}
-                                  className="h-auto"
-                                />
-                              </div>
-                            </div>
-                          </button>
-                        </section>
-
-                        {/* CITY MAPS */}
-                        {mapSetData.cityMaps?.length > 0 && (
-                          <>
-                            {mapSetData.cityMaps.map((cityMap) => (
-                              <section
-                                key={cityMap.id}
-                                className="relative flex-1"
-                              >
-                                <button
-                                  onClick={() => onMapSwitch(cityMap.id)}
-                                  className={`w-full transition-all duration-300 flex items-center justify-between group `}
-                                >
-                                  <div className="text-left">
-                                    <div
-                                      className={`transition-colors duration-300 ${
-                                        currentMapId === cityMap.id
-                                          ? "text-[#d9ca89]"
-                                          : "text-[var(--secondary)]"
-                                      }`}
-                                    >
-                                      <h2 className=" font-bold uppercase ">
-                                        {cityMap.name}
-                                      </h2>
-                                      <img
-                                        src={cityMap.imageUrl}
-                                        alt={`Map of ${cityMap.name}`}
-                                        className="h-auto"
-                                      />
-                                    </div>
-                                  </div>
-                                </button>
-                              </section>
-                            ))}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <p
-                        className="text-[#BF883C]/50 text-center py-8 uppercase tracking-wider"
-                        style={{ fontFamily: "EB Garamond, serif" }}
-                      >
-                        No maps available
-                      </p>
-                    )}
-                  </div>
+                  <MapSelectionTab
+                    mapSetData={mapSetData}
+                    onMapSwitch={onMapSwitch}
+                    currentMapId={currentMapId}
+                  />
                 </motion.div>
               )}
 
