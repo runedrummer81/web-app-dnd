@@ -40,15 +40,21 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
       opacity: 0.3,
     },
     tokens: [],
-    // NEW: Add combat state here
     initiativeOrder: [],
     currentTurnIndex: 0,
     combatRound: 1,
     combatTransition: {
       isVisible: false,
       type: null,
-      spellEffects: [],
-      spellEffectPreview: null,
+    },
+    spellEffects: [],
+    spellEffectPreview: null,
+    // FOG OF WAR - Now at the correct level
+    fogOfWar: {
+      enabled: false,
+      revealedMask: null,
+      isDrawing: false,
+      brushSize: 50,
     },
   });
 
@@ -59,14 +65,12 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
       console.error("❌ BroadcastChannel is not supported in this browser");
       return;
     }
-
     try {
       const channel = new BroadcastChannel("dnd-session-sync");
       broadcastChannelRef.current = channel;
       console.log(
         `✅ BroadcastChannel initialized (${isDMView ? "DM" : "Player"} View)`
       );
-
       channel.onmessage = (event) => {
         console.log(
           `📨 Received broadcast (${isDMView ? "DM" : "Player"} View):`,
@@ -80,11 +84,9 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
           setMapState(event.data.payload);
         }
       };
-
       channel.onerror = (error) => {
         console.error("❌ BroadcastChannel error:", error);
       };
-
       if (isDMView) {
         setTimeout(() => {
           channel.postMessage({
@@ -97,7 +99,6 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
     } catch (error) {
       console.error("❌ Error creating BroadcastChannel:", error);
     }
-
     return () => {
       if (broadcastChannelRef.current) {
         console.log(
@@ -116,7 +117,6 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
     setMapState((prev) => {
       const newState = { ...prev, ...updates };
       console.log("📦 New state:", newState);
-
       if (isDMView && broadcastChannelRef.current) {
         try {
           broadcastChannelRef.current.postMessage({
@@ -128,7 +128,6 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
           console.error("❌ Error broadcasting state:", error);
         }
       }
-
       return newState;
     });
   };

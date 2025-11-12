@@ -19,6 +19,7 @@ import { RouteDisplay } from "./RouteDisplay";
 import { GridOverlay } from "./GridOverlay";
 import { TokenOverlay } from "./TokenOverlay";
 import { SpellEffectOverlay } from "./SpellEffectOverlay";
+import { FogOfWarOverlay } from "./FogofWarOverlay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -109,6 +110,17 @@ export const MapDisplay = () => {
     );
     if (cityMap) return { ...cityMap, isCombat: false };
 
+    const dungeonMap = mapSetData.dungeonMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (dungeonMap) return { ...dungeonMap, isCombat: false };
+
+    const locationMaps = mapSetData.locationMaps || [];
+    for (const location of locationMaps) {
+      const map = location.maps?.find((m) => m.id === mapState.currentMapId);
+      if (map) return { ...map, isCombat: false };
+    }
+
     const combatMap = sessionData?.combatMaps?.find(
       (m) => m.id === mapState.currentMapId
     );
@@ -195,7 +207,6 @@ export const MapDisplay = () => {
       {currentMap.imageUrl && (
         <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
       )}
-
       {/* 2. Grid overlay (on combat maps) */}
       {currentMap.isCombat && (
         <GridOverlay
@@ -207,6 +218,26 @@ export const MapDisplay = () => {
           visible={gridSettings.visible}
         />
       )}
+      {/* 2.5. FOG OF WAR OVERLAY - Works on ALL maps */}
+      <FogOfWarOverlay
+        enabled={mapState.fogOfWar?.enabled || false}
+        revealedMask={mapState.fogOfWar?.revealedMask || null}
+        isDMView={isDMView}
+        isDrawing={isDMView && mapState.fogOfWar?.isDrawing}
+        brushSize={mapState.fogOfWar?.brushSize || 50}
+        mapDimensions={{
+          width: currentMap.width,
+          height: currentMap.height,
+        }}
+        onMaskUpdate={(maskData) => {
+          updateMapState({
+            fogOfWar: {
+              ...mapState.fogOfWar,
+              revealedMask: maskData,
+            },
+          });
+        }}
+      />
 
       {/* 3. SPELL EFFECTS - Renders BENEATH tokens */}
       {currentMap.isCombat && (
@@ -236,7 +267,6 @@ export const MapDisplay = () => {
           isDMView={isDMView}
         />
       )}
-
       {/* 4. TOKENS - Renders ON TOP of spell effects */}
       {currentMap.isCombat && (
         <TokenOverlay
@@ -245,10 +275,8 @@ export const MapDisplay = () => {
           isDMView={isDMView}
         />
       )}
-
       {/* 5. Spell drop handler - enables dragging spells onto map */}
       <SpellDropHandler isDMView={isDMView} />
-
       {/* 6. Map controller and events */}
       <MapController
         mapDimensions={{
@@ -258,7 +286,6 @@ export const MapDisplay = () => {
         currentMap={currentMap}
       />
       <MapEventsHandler />
-
       {/* 7. Markers */}
       {mapState.markers.map((marker) => (
         <Marker
@@ -287,7 +314,6 @@ export const MapDisplay = () => {
           </Popup>
         </Marker>
       ))}
-
       {/* 8. Route display */}
       <RouteDisplay
         route={mapState.route}
