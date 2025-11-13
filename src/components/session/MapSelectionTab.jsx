@@ -2,7 +2,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useMapSync } from "./MapSyncContext";
 
-export const MapSelectionTab = ({ mapSetData, onMapSwitch, currentMapId }) => {
+export const MapSelectionTab = ({
+  mapSetData,
+  onMapSwitch,
+  currentMapId,
+  currentMapDimensions,
+}) => {
   const [openSection, setOpenSection] = useState(null); // null, 'towns', 'dungeons', or 'locations'
   const [selectedLocation, setSelectedLocation] = useState(null);
 
@@ -854,46 +859,31 @@ export const MapSelectionTab = ({ mapSetData, onMapSwitch, currentMapId }) => {
                     <h3 className="text-[var(--secondary)] uppercase mb-2 text-xs font-bold">
                       Quick Actions
                     </h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <motion.button
-                        onClick={() => {
-                          updateMapState({
-                            fogOfWar: {
-                              ...fogSettings,
-                              revealedMask: null, // Clear = all revealed
-                            },
-                          });
-                        }}
-                        className="px-4 py-3 border-2 border-green-500/50 text-green-400 font-medium uppercase tracking-wider text-xs hover:border-green-400 hover:bg-green-500/10 transition-all"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        ✓ Reveal All
-                      </motion.button>
-                      <motion.button
-                        onClick={() => {
-                          // Create a completely black canvas = full fog
-                          const canvas = document.createElement("canvas");
-                          canvas.width = 2000;
-                          canvas.height = 2000;
-                          const ctx = canvas.getContext("2d");
-                          ctx.fillStyle = "rgba(0, 0, 0, 1)";
-                          ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    <motion.button
+                      onClick={() => {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = currentMapDimensions?.width || 2000;
+                        canvas.height = currentMapDimensions?.height || 2000;
+                        const ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                          updateMapState({
-                            fogOfWar: {
-                              ...fogSettings,
-                              revealedMask: canvas.toDataURL(),
-                            },
-                          });
-                        }}
-                        className="px-4 py-3 border-2 border-red-500/50 text-red-400 font-medium uppercase tracking-wider text-xs hover:border-red-400 hover:bg-red-500/10 transition-all"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        ✕ Hide All
-                      </motion.button>
-                    </div>
+                        updateMapState({
+                          fogOfWar: {
+                            ...fogSettings,
+                            revealedMask: canvas.toDataURL(),
+                          },
+                        });
+                      }}
+                      className="w-full px-4 py-3 border-2 border-red-500/50 text-red-400 font-medium uppercase tracking-wider text-xs hover:border-red-400 hover:bg-red-500/10 transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      ✕ Hide All Areas
+                    </motion.button>
+                    <p className="text-[var(--secondary)]/60 text-xs mt-2 text-center">
+                      💡 To reveal all: disable Fog of War above
+                    </p>
                   </div>
                 </div>
               </motion.div>

@@ -17,6 +17,7 @@ export const DMPanel = ({
   mapSetData,
   onMapSwitch,
   currentMapId,
+  currentMap,
   weather,
   onWeatherChange,
   quickNotes,
@@ -726,6 +727,7 @@ export const DMPanel = ({
                     mapSetData={mapSetData}
                     onMapSwitch={onMapSwitch}
                     currentMapId={currentMapId}
+                    currentMapDimensions={currentMap} // ADD THIS
                   />
                 </motion.div>
               )}

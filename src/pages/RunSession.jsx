@@ -29,10 +29,56 @@ const DMPanelWrapper = ({
 }) => {
   const { mapState, updateMapState } = useMapSync();
 
+  // ADD THIS FUNCTION
+  const getCurrentMap = () => {
+    if (!mapSetData) {
+      return { width: 2000, height: 2000 };
+    }
+
+    if (mapState.currentMapId === "world") {
+      return mapSetData.worldMap || { width: 2000, height: 2000 };
+    }
+
+    const cityMap = mapSetData.cityMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (cityMap) return cityMap;
+
+    const dungeonMap = mapSetData.dungeonMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (dungeonMap) return dungeonMap;
+
+    const locationMaps = mapSetData.locationMaps || [];
+    for (const location of locationMaps) {
+      const map = location.maps?.find((m) => m.id === mapState.currentMapId);
+      if (map) return map;
+    }
+
+    const combatMap = sessionData?.combatMaps?.find(
+      (m) => m.id === mapState.currentMapId
+    );
+    if (combatMap) {
+      return {
+        width: combatMap.width || 2000,
+        height: combatMap.height || 2000,
+      };
+    }
+
+    return mapSetData.worldMap || { width: 2000, height: 2000 };
+  };
+
   const handleMapSwitch = (mapId) => {
     updateMapState({
       currentMapId: mapId,
       markers: [],
+      // RESET FOG OF WAR when switching maps
+      fogOfWar: {
+        enabled: false,
+        revealedMask: null,
+        isDrawing: false,
+        brushSize: 50,
+      },
     });
   };
 
@@ -47,12 +93,13 @@ const DMPanelWrapper = ({
   };
 
   return (
-     <DMPanel
+    <DMPanel
       sessionId={sessionId}
       sessionData={sessionData}
       mapSetData={mapSetData}
       onMapSwitch={handleMapSwitch}
       currentMapId={mapState.currentMapId}
+      currentMap={getCurrentMap()} // ADD THIS
       weather={mapState.weather}
       onWeatherChange={handleWeatherChange}
       isPlayerWindowOpen={isPlayerWindowOpen}
@@ -61,7 +108,7 @@ const DMPanelWrapper = ({
       setQuickNotes={setQuickNotes}
       onEndCombat={handleEndCombat}
       onRequestEndSessionConfirm={onRequestEndSessionConfirm}
-     />
+    />
   );
 };
 
@@ -90,20 +137,19 @@ const RunSession = ({ sessionId, mapSetData }) => {
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState([]);
 
-const base = import.meta.env.BASE_URL || '/web-app-dnd/';
+  const base = import.meta.env.BASE_URL || "/web-app-dnd/";
 
-const openPlayerDisplay = () => {
-  const playerUrl = `${base}player-view?session=${sessionId}`;
-  const playerWindow = window.open(
-    playerUrl,
-    "DnD Player View",
-    "width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no"
-  );
+  const openPlayerDisplay = () => {
+    const playerUrl = `${base}player-view?session=${sessionId}`;
+    const playerWindow = window.open(
+      playerUrl,
+      "DnD Player View",
+      "width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no"
+    );
 
-  setPlayerWindowRef(playerWindow);
-  setIsPlayerWindowOpen(true);
-};
-
+    setPlayerWindowRef(playerWindow);
+    setIsPlayerWindowOpen(true);
+  };
 
   const handleShowEndSessionConfirm = () => setShowEndSessionConfirm(true);
 
