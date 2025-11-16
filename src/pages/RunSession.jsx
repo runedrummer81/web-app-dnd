@@ -16,6 +16,7 @@ import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import BorderRunSession from "../components/session/BorderRunSession";
 import { CombatTransition } from "../components/session/CombatTransition";
 import { useCombatState } from "../components/session/CombatStateContext";
+import PrepNotesOverlay from "../components/session/PrepNotesOverlay";
 
 const DMPanelWrapper = ({
   sessionId,
@@ -26,10 +27,10 @@ const DMPanelWrapper = ({
   quickNotes,
   setQuickNotes,
   onRequestEndSessionConfirm,
+  onOpenPrepNotes,
 }) => {
   const { mapState, updateMapState } = useMapSync();
 
-  // ADD THIS FUNCTION
   const getCurrentMap = () => {
     if (!mapSetData) {
       return { width: 2000, height: 2000 };
@@ -72,7 +73,6 @@ const DMPanelWrapper = ({
     updateMapState({
       currentMapId: mapId,
       markers: [],
-      // RESET FOG OF WAR when switching maps
       fogOfWar: {
         enabled: false,
         revealedMask: null,
@@ -99,7 +99,7 @@ const DMPanelWrapper = ({
       mapSetData={mapSetData}
       onMapSwitch={handleMapSwitch}
       currentMapId={mapState.currentMapId}
-      currentMap={getCurrentMap()} // ADD THIS
+      currentMap={getCurrentMap()}
       weather={mapState.weather}
       onWeatherChange={handleWeatherChange}
       isPlayerWindowOpen={isPlayerWindowOpen}
@@ -108,11 +108,11 @@ const DMPanelWrapper = ({
       setQuickNotes={setQuickNotes}
       onEndCombat={handleEndCombat}
       onRequestEndSessionConfirm={onRequestEndSessionConfirm}
+      onOpenPrepNotes={onOpenPrepNotes}
     />
   );
 };
 
-// NEW: Wrapper component that can use useCombatState
 const CombatWrapper = ({ children }) => {
   const { combatTransition, setCombatTransition } = useCombatState();
 
@@ -136,6 +136,7 @@ const RunSession = ({ sessionId, mapSetData }) => {
   const [isPlayerWindowOpen, setIsPlayerWindowOpen] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState([]);
+  const [showPrepNotes, setShowPrepNotes] = useState(false);
 
   const base = import.meta.env.BASE_URL || "/web-app-dnd/";
 
@@ -232,7 +233,6 @@ const RunSession = ({ sessionId, mapSetData }) => {
       <MapSyncProvider isDMView={true}>
         <CombatStateProvider>
           <CombatWrapper>
-            {/* WRAP EVERYTHING IN MOTION.DIV FOR FADE-IN */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -268,12 +268,20 @@ const RunSession = ({ sessionId, mapSetData }) => {
                         quickNotes={quickNotes}
                         setQuickNotes={setQuickNotes}
                         onRequestEndSessionConfirm={handleShowEndSessionConfirm}
+                        onOpenPrepNotes={() => setShowPrepNotes(true)}
                       />
                     </div>
                   </div>
                 </div>
               </div>
             </motion.div>
+
+            {/* PREP NOTES OVERLAY - RENDERED AT TOP LEVEL */}
+            <PrepNotesOverlay
+              isOpen={showPrepNotes}
+              onClose={() => setShowPrepNotes(false)}
+              sessionData={sessionData}
+            />
           </CombatWrapper>
         </CombatStateProvider>
       </MapSyncProvider>

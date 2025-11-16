@@ -496,9 +496,33 @@ export default function Session() {
                 </h2>
 
                 {/* DM Notes */}
-                <div className="text-[#bf883c] whitespace-pre-wrap mb-4">
-                  {selectedSession.dmNotes || "No notes yet"}
-                </div>
+                <div
+                  className="text-[#bf883c] mb-4"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      selectedSession.dmNotes ||
+                      "<p class='italic opacity-60'>No notes yet</p>",
+                  }}
+                  style={{
+                    direction: "ltr",
+                    textAlign: "left",
+                  }}
+                />
+
+                <style>{`
+  /* Ensure HTML content renders properly */
+  [dangerouslySetInnerHTML] b,
+  [dangerouslySetInnerHTML] strong {
+    font-weight: bold;
+  }
+  [dangerouslySetInnerHTML] i,
+  [dangerouslySetInnerHTML] em {
+    font-style: italic;
+  }
+  [dangerouslySetInnerHTML] u {
+    text-decoration: underline;
+  }
+`}</style>
 
                 {/* Session Notes */}
                 <div>

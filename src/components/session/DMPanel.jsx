@@ -11,6 +11,7 @@ import { useCombatState } from "./CombatStateContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapSelectionTab } from "./MapSelectionTab";
 import SpellBook from "./Spells";
+import ActionButton from "../ActionButton";
 
 export const DMPanel = ({
   sessionData,
@@ -24,6 +25,7 @@ export const DMPanel = ({
   setQuickNotes,
   onEndCombat,
   onRequestEndSessionConfirm,
+  onOpenPrepNotes,
 }) => {
   const { mapState, updateMapState } = useMapSync();
   const { combatActive, isSetupMode, endCombat } = useCombatState();
@@ -742,7 +744,7 @@ export const DMPanel = ({
                   transition={{ duration: 0.3 }}
                   className="space-y-3 px-6"
                 >
-                  {/* SESSION NOTES */}
+                  {/* SESSION NOTES (Quick Notes) */}
                   <section className="relative w-full">
                     <AnimatePresence>
                       {notesOpen && (
@@ -758,22 +760,27 @@ export const DMPanel = ({
                             <SessionNotes
                               initialNotes={quickNotes}
                               onNotesChange={setQuickNotes}
+                              selectedSession={sessionData}
                             />
                           </div>
                         </motion.div>
                       )}
-                      <motion.div
-                        key="dm-notes"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-[#bf883c] whitespace-pre-wrap px-4 pt-10"
-                      >
-                        {sessionData?.dmNotes || "No notes yet"}
-                      </motion.div>
                     </AnimatePresence>
                   </section>
+
+                  {/* PREP NOTES BUTTON */}
+                  <div className="flex justify-center pt-6">
+                    <ActionButton
+                      label="Open Prep Notes"
+                      onClick={onOpenPrepNotes}
+                      size="md"
+                      color="var(--primary)"
+                      bgColor="var(--primary)"
+                      textColor="var(--dark-muted-bg)"
+                      shadowColor="rgba(191,136,60,0.4)"
+                      arrowDropShadow="rgba(191,136,60,0.6)"
+                    />
+                  </div>
                 </motion.div>
               )}
 
