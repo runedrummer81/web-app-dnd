@@ -22,6 +22,7 @@ export default function SessionEdit() {
   const location = useLocation();
 
   const encountersContainerRef = useRef(null);
+  const editorRef = useRef(null);
   const [visibleEncounters, setVisibleEncounters] = useState(5);
 
   const [sessionData, setSessionData] = useState(null);
@@ -69,7 +70,6 @@ export default function SessionEdit() {
   const draftData = location.state?.isDraft ? location.state : null;
 
   useEffect(() => {
-    // Hvis det er en draft
     if (draftData && draftData.isDraft) {
       console.log("📝 Creating new draft session");
       setIsDraft(true);
@@ -91,7 +91,6 @@ export default function SessionEdit() {
       return;
     }
 
-    // Hvis det er en eksisterende session
     if (!sessionId) {
       console.warn("No sessionId found — redirect");
       navigate("/session");
@@ -117,6 +116,13 @@ export default function SessionEdit() {
 
     fetchSession();
   }, [sessionId, draftData, navigate]);
+
+  // Load content into editor when sessionData changes
+  useEffect(() => {
+    if (editorRef.current && sessionData) {
+      editorRef.current.innerHTML = sessionData.dmNotes || "";
+    }
+  }, [sessionData?.dmNotes]);
 
   useEffect(() => {
     async function fetchCreatureImages() {
@@ -153,10 +159,8 @@ export default function SessionEdit() {
     }
   }, [encounters]);
 
-  // Track changes - KUN hvis IKKE draft
   useEffect(() => {
     if (isDraft) {
-      // For drafts, kun marker som changed hvis de faktisk har lavet noget
       const hasContent =
         (sessionData?.dmNotes && sessionData.dmNotes.trim() !== "") ||
         (sessionData?.notesHeadline &&
@@ -185,7 +189,6 @@ export default function SessionEdit() {
     setHasUnsavedChanges(changed);
   }, [sessionData, encounters, combatMaps, originalSessionData, isDraft]);
 
-  // Navigation listener
   useEffect(() => {
     const handleNavigationEvent = () => {
       if (hasUnsavedChanges) {
@@ -201,8 +204,16 @@ export default function SessionEdit() {
       window.removeEventListener("attemptNavigation", handleNavigationEvent);
   }, [hasUnsavedChanges, navigate]);
 
-  const handleNotesChange = (e) => {
-    setSessionData({ ...sessionData, dmNotes: e.target.value });
+  // Rich text formatting functions
+  const formatText = (command) => {
+    document.execCommand(command, false, null);
+    editorRef.current?.focus();
+  };
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setSessionData({ ...sessionData, dmNotes: editorRef.current.innerHTML });
+    }
   };
 
   const handleRemoveEncounter = (id) => {
@@ -221,7 +232,12 @@ export default function SessionEdit() {
     setEncounters(newSelectedEncounters);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (!sessionData.notesHeadline || sessionData.notesHeadline.trim() === "") {
       setHeadlineError(true);
       setTimeout(() => setHeadlineError(false), 600);
@@ -229,7 +245,6 @@ export default function SessionEdit() {
     }
 
     try {
-      // Hvis det er en draft, opret ny session
       if (isDraft) {
         const newSessionId = `${
           sessionData.campaignId
@@ -247,7 +262,6 @@ export default function SessionEdit() {
           lastEdited: new Date(),
         });
 
-        // Opdater campaign sessions count
         const campaignRef = doc(db, "Campaigns", sessionData.campaignId);
         const q = query(
           collection(db, "Sessions"),
@@ -261,7 +275,6 @@ export default function SessionEdit() {
 
         console.log("✅ New session created:", newSessionId);
       } else {
-        // Opdater eksisterende session
         const sessionRef = doc(db, "Sessions", sessionId);
         await updateDoc(sessionRef, {
           dmNotes: sessionData.dmNotes,
@@ -326,14 +339,13 @@ export default function SessionEdit() {
   }, [encountersContainerRef, encounters]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--dark-muted-bg)] text-[var(--primary)] font-serif p-20 pt-40 gap-8">
+    <div className="min-h-screen flex flex-col bg-[var(--dark-muted-bg)] text-[var(--primary)] font-serif p-20 pt-40 gap-8 overflow-y-auto">
       {!sessionData ? (
         <p className="text-center mt-20 text-[var(--primary)]">
           Loading session...
         </p>
       ) : (
         <>
-          {/* Draft indicator */}
           {isDraft && (
             <motion.div
               className="text-[var(--secondary)] text-center text-sm italic"
@@ -344,10 +356,10 @@ export default function SessionEdit() {
             </motion.div>
           )}
 
-          <div className="flex gap-8 flex-1">
+          <div className="flex gap-8 flex-1 min-h-0">
             {/* Notes Section */}
             <motion.section
-              className="flex flex-col flex-1"
+              className="flex flex-col flex-1 min-h-0"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
@@ -356,13 +368,14 @@ export default function SessionEdit() {
                 <h3 className="text-lg uppercase tracking-widest">Notes</h3>
               </div>
 
-              <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 overflow-hidden text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
-                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125" />
-                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125" />
-                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125" />
-                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125" />
+              <div className="relative border-2 border-[var(--secondary)] p-6 flex flex-col flex-1 min-h-0 text-[var(--secondary)] focus-within:border-[var(--primary)] focus-within:text-[var(--primary)]">
+                <CornerArrow className="absolute top-0 left-0 w-8 h-8 rotate-[270deg] scale-125 pointer-events-none" />
+                <CornerArrow className="absolute top-0 right-0 w-8 h-8 scale-125 pointer-events-none" />
+                <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 rotate-[180deg] scale-125 pointer-events-none" />
+                <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 rotate-[90deg] scale-125 pointer-events-none" />
 
-                <div className="flex flex-row">
+                {/* Headline */}
+                <div className="flex flex-row mb-2 flex-shrink-0">
                   <motion.input
                     type="text"
                     value={sessionData.notesHeadline || ""}
@@ -372,8 +385,14 @@ export default function SessionEdit() {
                         notesHeadline: e.target.value,
                       })
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        editorRef.current?.focus();
+                      }
+                    }}
                     placeholder="Add Headline..."
-                    className={`p-2 text-[var(--primary)] outline-none text-2xl uppercase font-bold bg-transparent`}
+                    className={`p-2 text-[var(--primary)] outline-none text-2xl uppercase font-bold bg-transparent flex-1`}
                     animate={
                       headlineError
                         ? {
@@ -385,24 +404,142 @@ export default function SessionEdit() {
                     transition={{ duration: 0.4 }}
                   />
                 </div>
+
+                {/* Formatting Toolbar */}
+                <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-[var(--secondary)]/30 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<b>${selectedText}</b>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 7); // 7 = length of <b></b>
+                        }, 0);
+                      }
+                    }}
+                    className="px-3 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors font-bold"
+                    title="Bold"
+                  >
+                    B
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<i>${selectedText}</i>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 7);
+                        }, 0);
+                      }
+                    }}
+                    className="px-3 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors italic"
+                    title="Italic"
+                  >
+                    I
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<u>${selectedText}</u>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 7);
+                        }, 0);
+                      }
+                    }}
+                    className="px-3 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors underline"
+                    title="Underline"
+                  >
+                    U
+                  </button>
+                </div>
+
+                {/* Textarea Editor */}
                 <textarea
+                  ref={editorRef}
                   value={sessionData.dmNotes || ""}
-                  onChange={handleNotesChange}
+                  onChange={(e) =>
+                    setSessionData({ ...sessionData, dmNotes: e.target.value })
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.stopPropagation(); // Stop Enter from bubbling to parent/buttons
+                    }
+                  }}
                   placeholder="Your journey starts..."
-                  className="w-full font-light focus:outline-none resize-none bg-transparent flex-1"
+                  className="w-full font-light focus:outline-none resize-none bg-transparent flex-1 min-h-0"
                 />
+
+                <style>{`
+  textarea::placeholder {
+    color: var(--secondary);
+    opacity: 0.5;
+  }
+`}</style>
               </div>
             </motion.section>
 
             {/* Right Column - Encounters & Maps */}
-            <motion.section className="flex flex-col overflow-y-auto max-h-full">
-              {/* Encounters section - samme som før */}
+            <motion.section className="flex flex-col overflow-y-auto max-h-full w-[400px] flex-shrink-0">
+              {/* Encounters */}
               <div className="mb-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg uppercase tracking-widest select-none">
                     Encounters
                   </h3>
                   <button
+                    type="button"
                     onClick={() => setShowEncounterModal(true)}
                     className="text-4xl leading-none transition hover:text-[var(--primary)]"
                   >
@@ -481,6 +618,7 @@ export default function SessionEdit() {
                                   </div>
                                 </div>
                                 <button
+                                  type="button"
                                   onClick={() => handleRemoveEncounter(e.id)}
                                   className="text-red-400 hover:text-red-300 transition text-xl z-20 ml-4 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
                                 >
@@ -491,7 +629,6 @@ export default function SessionEdit() {
                           );
                         })}
 
-                        {/* More encounters */}
                         {encounters.length > visibleEncounters && (
                           <div
                             className="flex items-center justify-center border-2 border-[var(--secondary)] text-[var(--primary)]/70 italic text-center p-4 hover:border-[var(--primary)] cursor-pointer transition-all duration-300 select-none"
@@ -508,6 +645,7 @@ export default function SessionEdit() {
                           <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
                             <div className="bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] p-6 rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto relative">
                               <button
+                                type="button"
                                 onClick={() =>
                                   setShowMoreEncountersModal(false)
                                 }
@@ -586,6 +724,7 @@ export default function SessionEdit() {
                 <div className="relative  p-4 ">
                   <div className="flex flex-wrap gap-3">
                     <button
+                      type="button"
                       onClick={() => setShowMapModal(true)}
                       className="cursor-pointer py-1 text-4xl leading-none px-3 transition hover:text-[var(--primary)] "
                     >
@@ -607,6 +746,7 @@ export default function SessionEdit() {
                               className="object-cover w-full h-full"
                             />
                             <button
+                              type="button"
                               onClick={() => handleRemoveMap(map.id)}
                               className="cursor-pointer absolute top-1 right-1 text-red-400 hover:text-red-300 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
                             >
@@ -635,19 +775,17 @@ export default function SessionEdit() {
             </motion.section>
           </div>
 
-          {/* Save Button with Arrows */}
-          <div className="flex justify-end">
-            <div className="col-span-3 flex justify-between items-center">
-              <ArrowButton
-                label={isDraft ? "Create Session" : "Save Session"}
-                onClick={handleSave}
-                size="md"
-                color="var(--primary)"
-                glow="rgba(191,136,60,0.6)"
-                hoverOffset={20}
-                gradient={true}
-              />
-            </div>
+          {/* Save Button */}
+          <div className="flex justify-end flex-shrink-0 mt-6">
+            <ArrowButton
+              label={isDraft ? "Create Session" : "Save Session"}
+              onClick={handleSave}
+              size="md"
+              color="var(--primary)"
+              glow="rgba(191,136,60,0.6)"
+              hoverOffset={20}
+              gradient={true}
+            />
           </div>
 
           <EncounterBrowserModal
