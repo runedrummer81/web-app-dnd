@@ -710,6 +710,32 @@ export const DMPanel = ({
                     transition={{ duration: 0.6, delay: 0.2 }}
                   />
 
+                  {/* SESSION NOTES BUTTON - NEW! */}
+                  <section className="flex justify-center py-4">
+                    <motion.button
+                      onClick={onOpenPrepNotes}
+                      className="px-8 py-4 bg-[#8b7355] hover:bg-[#6d5a42] text-[#f4e8d0] font-bold uppercase tracking-[0.2em] transition-all duration-300 border-2 border-[#f4e8d0]/20"
+                      style={{
+                        fontFamily: "EB Garamond, serif",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                      }}
+                      whileHover={{
+                        scale: 1.05,
+                        boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Open Session Notes
+                    </motion.button>
+                  </section>
+
+                  <motion.div
+                    className={`h-[2px] w-100 mt-2 mx-auto bg-gradient-to-r ${"from-transparent via-[var(--secondary)] to-transparent"}`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
+
                   {/* DICE ROLLER */}
                   <DiceRoller />
                 </motion.div>
@@ -742,45 +768,14 @@ export const DMPanel = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-3 px-6"
+                  className="px-6 py-12 text-center"
                 >
-                  {/* SESSION NOTES (Quick Notes) */}
-                  <section className="relative w-full">
-                    <AnimatePresence>
-                      {notesOpen && (
-                        <motion.div
-                          key="session-notes"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="w-full">
-                            <SessionNotes
-                              initialNotes={quickNotes}
-                              onNotesChange={setQuickNotes}
-                              selectedSession={sessionData}
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </section>
-
-                  {/* PREP NOTES BUTTON */}
-                  <div className="flex justify-center pt-6">
-                    <ActionButton
-                      label="Open Prep Notes"
-                      onClick={onOpenPrepNotes}
-                      size="md"
-                      color="var(--primary)"
-                      bgColor="var(--primary)"
-                      textColor="var(--dark-muted-bg)"
-                      shadowColor="rgba(191,136,60,0.4)"
-                      arrowDropShadow="rgba(191,136,60,0.6)"
-                    />
-                  </div>
+                  <p className="text-[var(--secondary)] italic text-lg mb-4">
+                    This tab is reserved for future features
+                  </p>
+                  <p className="text-[var(--secondary)]/60 text-sm">
+                    Session notes have been moved to the Overview tab
+                  </p>
                 </motion.div>
               )}
 
