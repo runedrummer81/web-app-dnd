@@ -407,6 +407,7 @@ export default function SessionEdit() {
 
                 {/* Formatting Toolbar */}
                 <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-[var(--secondary)]/30 flex-shrink-0">
+                  {/* Text Style */}
                   <button
                     type="button"
                     onClick={() => {
@@ -430,7 +431,7 @@ export default function SessionEdit() {
 
                         setTimeout(() => {
                           textarea.focus();
-                          textarea.setSelectionRange(start, end + 7); // 7 = length of <b></b>
+                          textarea.setSelectionRange(start, end + 7);
                         }, 0);
                       }
                     }}
@@ -439,6 +440,7 @@ export default function SessionEdit() {
                   >
                     B
                   </button>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -471,6 +473,7 @@ export default function SessionEdit() {
                   >
                     I
                   </button>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -502,6 +505,312 @@ export default function SessionEdit() {
                     title="Underline"
                   >
                     U
+                  </button>
+
+                  <div className="w-px bg-[var(--secondary)]/30 mx-1"></div>
+
+                  {/* Font Sizes */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="font-size: 0.875rem">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 40);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-xs border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                    title="Small Text"
+                  >
+                    Small
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="font-size: 1.25rem">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 39);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-base border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                    title="Large Text"
+                  >
+                    Large
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="font-size: 1.5rem">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 38);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-lg border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                    title="Extra Large Text"
+                  >
+                    XL
+                  </button>
+
+                  <div className="w-px bg-[var(--secondary)]/30 mx-1"></div>
+
+                  {/* Headings */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<h1>${selectedText}</h1>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 9);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-base border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors font-bold"
+                    title="Heading 1"
+                  >
+                    H1
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<h2>${selectedText}</h2>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 9);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors font-bold"
+                    title="Heading 2"
+                  >
+                    H2
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<h3>${selectedText}</h3>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 9);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-xs border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors font-bold"
+                    title="Heading 3"
+                  >
+                    H3
+                  </button>
+
+                  <div className="w-px bg-[var(--secondary)]/30 mx-1"></div>
+
+                  {/* Text Color */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="color: #ef4444">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 37);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-red-500"
+                    title="Red Text"
+                  >
+                    Red
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="color: #10b981">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 37);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-green-500"
+                    title="Green Text"
+                  >
+                    Green
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = editorRef.current;
+                      if (!textarea) return;
+
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = sessionData.dmNotes.substring(
+                        start,
+                        end
+                      );
+
+                      if (selectedText) {
+                        const newText =
+                          sessionData.dmNotes.substring(0, start) +
+                          `<span style="color: #3b82f6">${selectedText}</span>` +
+                          sessionData.dmNotes.substring(end);
+
+                        setSessionData({ ...sessionData, dmNotes: newText });
+
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start, end + 37);
+                        }, 0);
+                      }
+                    }}
+                    className="px-2 py-1 text-sm border border-[var(--secondary)]/50 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-blue-500"
+                    title="Blue Text"
+                  >
+                    Blue
                   </button>
                 </div>
 

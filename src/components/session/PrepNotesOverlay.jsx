@@ -1,54 +1,74 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "../../firebase";
 
-export default function PrepNotesOverlay({ isOpen, onClose, sessionData }) {
-  const [scrollPosition, setScrollPosition] = useState(0);
+export default function PrepNotesOverlay({
+  isOpen,
+  onClose,
+  sessionData,
+  quickNotes,
+  onQuickNotesChange,
+}) {
+  const [activeTab, setActiveTab] = useState("prep"); // "prep" | "quick" | "quests"
+  const [quests, setQuests] = useState([]);
+  const [newQuestTitle, setNewQuestTitle] = useState("");
+  const [newQuestDescription, setNewQuestDescription] = useState("");
+  const [newQuestGiver, setNewQuestGiver] = useState("");
+  const [newQuestReward, setNewQuestReward] = useState("");
+
   const contentRef = useRef(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expandedSections, setExpandedSections] = useState(new Set());
+  const [newNoteText, setNewNoteText] = useState("");
+  const [newNoteCategory, setNewNoteCategory] = useState("story");
+  const [particles, setParticles] = useState([]);
 
-  // Corner arrow paths (same as SessionEdit)
-  const cornerArrowPaths = [
-    "M35.178,1.558l0,32.25",
-    "M35.178,1.558l-33.179,-0",
-    "M26.941,9.558l0,16.06",
-    "M26.941,25.571l8.237,8.237",
-    "M1.999,1.558l8,8",
-    "M18.911,1.558l0,16.06",
-    "M26.941,9.558l-16.705,-0",
-    "M34.971,17.588l-16.06,-0",
-  ];
+  const campaignId = sessionData?.campaignId;
 
-  const CornerArrow = ({ className }) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 37 36"
-      className={className}
-      fill="none"
-      strokeWidth="2"
-    >
-      {cornerArrowPaths.map((d, i) => (
-        <path key={i} d={d} stroke="currentColor" />
-      ))}
-    </svg>
-  );
-
-  // Save scroll position when closing
+  // Fetch quests from Firestore
   useEffect(() => {
-    if (!isOpen && contentRef.current) {
-      setScrollPosition(contentRef.current.scrollTop);
+    if (!campaignId || !isOpen) return;
+
+    const q = query(
+      collection(db, "Quests"),
+      where("campaignId", "==", campaignId)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedQuests = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setQuests(fetchedQuests);
+    });
+
+    return () => unsubscribe();
+  }, [campaignId, isOpen]);
+
+  // Generate floating particles
+  useEffect(() => {
+    if (isOpen) {
+      const newParticles = Array.from({ length: 25 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2 + 1,
+        duration: Math.random() * 8 + 12,
+        delay: Math.random() * 4,
+      }));
+      setParticles(newParticles);
     }
   }, [isOpen]);
 
-  // Restore scroll position when opening
-  useEffect(() => {
-    if (isOpen && contentRef.current) {
-      contentRef.current.scrollTop = scrollPosition;
-    }
-  }, [isOpen, scrollPosition]);
-
-  // Prevent body scroll when overlay is open
+  // Prevent body scroll
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -60,254 +80,817 @@ export default function PrepNotesOverlay({ isOpen, onClose, sessionData }) {
     };
   }, [isOpen]);
 
-  // Parse notes into sections (split by ## headers)
-  const parseNotesIntoSections = (notes) => {
-    if (!notes) return [{ title: null, content: notes || "" }];
+  // Add quick note
+  const handleAddNote = () => {
+    if (!newNoteText.trim()) return;
 
-    const lines = notes.split("\n");
-    const sections = [];
-    let currentSection = { title: null, content: "" };
+    const newNote = {
+      id: Date.now().toString(),
+      text: newNoteText,
+      category: newNoteCategory,
+      timestamp: new Date().toISOString(),
+    };
 
-    lines.forEach((line) => {
-      // Check if line is a header (## Header or **Header**)
-      if (line.trim().startsWith("##")) {
-        if (currentSection.content || currentSection.title) {
-          sections.push(currentSection);
-        }
-        currentSection = {
-          title: line.replace(/^##\s*/, "").trim(),
-          content: "",
-        };
-      } else if (line.trim().match(/^\*\*.*\*\*$/)) {
-        if (currentSection.content || currentSection.title) {
-          sections.push(currentSection);
-        }
-        currentSection = {
-          title: line.replace(/\*\*/g, "").trim(),
-          content: "",
-        };
-      } else {
-        currentSection.content += line + "\n";
-      }
-    });
-
-    if (currentSection.content || currentSection.title) {
-      sections.push(currentSection);
-    }
-
-    return sections;
+    onQuickNotesChange([...quickNotes, newNote]);
+    setNewNoteText("");
   };
 
-  // Simple markdown-like formatting
-  const formatText = (text) => {
-    if (!text) return "";
-
-    // Bold: **text** or __text__
-    text = text.replace(
-      /\*\*(.*?)\*\*/g,
-      '<strong class="text-[var(--primary)] font-bold">$1</strong>'
-    );
-    text = text.replace(
-      /__(.*?)__/g,
-      '<strong class="text-[var(--primary)] font-bold">$1</strong>'
-    );
-
-    // Italic: *text* or _text_
-    text = text.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-    text = text.replace(/_(.*?)_/g, '<em class="italic">$1</em>');
-
-    // Bullet points: - item or • item
-    text = text.replace(
-      /^[\-•]\s+(.+)$/gm,
-      '<div class="ml-4 flex gap-2"><span class="text-[var(--secondary)]">•</span><span>$1</span></div>'
-    );
-
-    return text;
+  // Delete quick note
+  const handleDeleteNote = (noteId) => {
+    onQuickNotesChange(quickNotes.filter((note) => note.id !== noteId));
   };
 
-  const sections = parseNotesIntoSections(sessionData?.dmNotes);
+  // Add quest
+  const handleAddQuest = async () => {
+    if (!newQuestTitle.trim() || !campaignId) return;
 
-  // Filter sections based on search
-  const filteredSections = searchTerm
-    ? sections.filter(
-        (section) =>
-          section.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          section.content?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : sections;
+    try {
+      await addDoc(collection(db, "Quests"), {
+        campaignId,
+        title: newQuestTitle,
+        description: newQuestDescription,
+        questGiver: newQuestGiver,
+        reward: newQuestReward,
+        status: "active", // "active" | "completed" | "failed"
+        dateAdded: new Date(),
+        dateCompleted: null,
+      });
 
-  const toggleSection = (index) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(index)) {
-      newExpanded.delete(index);
-    } else {
-      newExpanded.add(index);
+      // Clear form
+      setNewQuestTitle("");
+      setNewQuestDescription("");
+      setNewQuestGiver("");
+      setNewQuestReward("");
+    } catch (err) {
+      console.error("Error adding quest:", err);
     }
-    setExpandedSections(newExpanded);
   };
 
-  // Expand all sections by default on first open
-  useEffect(() => {
-    if (isOpen && expandedSections.size === 0) {
-      setExpandedSections(new Set(sections.map((_, i) => i)));
+  // Update quest status
+  const handleUpdateQuestStatus = async (questId, newStatus) => {
+    try {
+      await updateDoc(doc(db, "Quests", questId), {
+        status: newStatus,
+        dateCompleted:
+          newStatus === "completed" || newStatus === "failed"
+            ? new Date()
+            : null,
+      });
+    } catch (err) {
+      console.error("Error updating quest:", err);
     }
-  }, [isOpen]);
+  };
+
+  // Delete quest
+  const handleDeleteQuest = async (questId) => {
+    try {
+      await deleteDoc(doc(db, "Quests", questId));
+    } catch (err) {
+      console.error("Error deleting quest:", err);
+    }
+  };
+
+  // Category colors
+  const categoryColors = {
+    story: "#3b82f6",
+    npc: "#8b5cf6",
+    loot: "#f59e0b",
+    quest: "#10b981",
+    combat: "#ef4444",
+    other: "#6b7280",
+  };
+
+  // Quest status icons
+  const questStatusIcons = {
+    active: { icon: "📜", color: "#f59e0b", label: "Active" },
+    completed: { icon: "✅", color: "#10b981", label: "Completed" },
+    failed: { icon: "❌", color: "#ef4444", label: "Failed" },
+  };
 
   if (!sessionData) return null;
+
+  const activeQuests = quests.filter((q) => q.status === "active");
+  const completedQuests = quests.filter((q) => q.status === "completed");
+  const failedQuests = quests.filter((q) => q.status === "failed");
 
   const overlayContent = (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Magical Backdrop - CLICK TO CLOSE */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.4 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/85 backdrop-blur-sm cursor-pointer"
             style={{ zIndex: 9998 }}
-          />
-
-          {/* Overlay Panel */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed inset-0 flex items-center justify-center p-[5vh]"
-            style={{ zIndex: 9999 }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-[80vw] h-[90vh] bg-[var(--dark-muted-bg)] border-2 border-[var(--secondary)] flex flex-col overflow-hidden">
-              {/* Corner Arrows */}
-              <CornerArrow className="absolute top-0 left-0 w-8 h-8 text-[var(--secondary)] rotate-[270deg] scale-125 z-10" />
-              <CornerArrow className="absolute top-0 right-0 w-8 h-8 text-[var(--secondary)] scale-125 z-10" />
-              <CornerArrow className="absolute bottom-0 left-0 w-8 h-8 text-[var(--secondary)] rotate-[180deg] scale-125 z-10" />
-              <CornerArrow className="absolute bottom-0 right-0 w-8 h-8 text-[var(--secondary)] rotate-[90deg] scale-125 z-10" />
+            {/* Floating Particles */}
+            {particles.map((particle) => (
+              <motion.div
+                key={particle.id}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: `${particle.x}%`,
+                  top: `${particle.y}%`,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                  background:
+                    "radial-gradient(circle, rgba(191,136,60,0.6) 0%, transparent 70%)",
+                  boxShadow: "0 0 8px rgba(191,136,60,0.4)",
+                }}
+                animate={{
+                  y: [0, -40, 0],
+                  opacity: [0, 0.8, 0],
+                }}
+                transition={{
+                  duration: particle.duration,
+                  repeat: Infinity,
+                  delay: particle.delay,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </motion.div>
 
-              {/* Header */}
-              <div className="relative border-b-2 border-[var(--secondary)] p-6 flex justify-between items-center bg-[var(--dark-muted-bg)]">
-                <div className="flex-1">
-                  <h2 className="text-3xl font-bold uppercase text-[var(--primary)] mb-1">
-                    {sessionData.notesHeadline || "Session Prep Notes"}
-                  </h2>
-                  <p className="text-sm text-[var(--secondary)] uppercase tracking-wider">
-                    Preparation Notes
-                  </p>
+          {/* Open Journal Container */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="fixed inset-0 flex items-center justify-center p-[5vh] pointer-events-none"
+            style={{ zIndex: 9999 }}
+          >
+            <div
+              className="relative flex w-[90vw] h-[85vh] pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                filter:
+                  "drop-shadow(0 25px 50px rgba(0,0,0,0.7)) drop-shadow(0 10px 30px rgba(0,0,0,0.5))",
+              }}
+            >
+              {/* LEFT PAGE - Prep Notes (Static) */}
+              <div
+                className="relative w-[48%] h-full"
+                style={{
+                  background: "#f5ead6",
+                  backgroundImage: `
+                    linear-gradient(90deg, rgba(139,115,85,0.03) 1px, transparent 1px),
+                    linear-gradient(rgba(139,115,85,0.03) 1px, transparent 1px),
+                    radial-gradient(circle at 10% 20%, rgba(101,67,33,0.05) 0%, transparent 50%),
+                    radial-gradient(circle at 90% 80%, rgba(101,67,33,0.04) 0%, transparent 40%)
+                  `,
+                  backgroundSize: "30px 30px, 30px 30px, 100% 100%, 100% 100%",
+                  clipPath: "polygon(0 0, 100% 0, 98% 100%, 0 100%)",
+                  boxShadow: `
+                    inset 15px 0 40px rgba(0,0,0,0.12),
+                    inset 0 8px 15px rgba(139,115,85,0.08),
+                    inset 0 -8px 15px rgba(139,115,85,0.08)
+                  `,
+                }}
+              >
+                {/* Decorations */}
+                <div
+                  className="absolute top-12 left-8 w-16 h-16 rounded-full pointer-events-none"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(101,67,33,0.08) 0%, transparent 70%)",
+                    filter: "blur(3px)",
+                  }}
+                />
+
+                <svg
+                  className="absolute top-6 left-6 w-24 h-24 opacity-30"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  stroke="#8b7355"
+                  strokeWidth="1.2"
+                >
+                  <path d="M 10,10 Q 30,8 50,10 Q 70,12 90,10" />
+                  <path d="M 10,10 Q 8,30 10,50 Q 12,70 10,90" />
+                  <circle cx="10" cy="10" r="3" fill="#8b7355" />
+                </svg>
+
+                {/* Title */}
+                <div className="relative pt-10 pb-5 px-12">
+                  <div
+                    className="text-center mb-3 pb-3"
+                    style={{
+                      borderBottom: "2px solid #8b7355",
+                      borderImage:
+                        "linear-gradient(90deg, transparent, #8b7355, transparent) 1",
+                    }}
+                  >
+                    <h3
+                      className="text-3xl font-bold text-[#3d2817]"
+                      style={{
+                        fontFamily: "EB Garamond, serif",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      Preparation Notes
+                    </h3>
+                  </div>
                 </div>
 
-                {/* Close Button */}
-                <button
-                  onClick={onClose}
-                  className="text-3xl text-[var(--secondary)] hover:text-red-400 transition-colors duration-200 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(255,100,100,0.6)]"
+                {/* Content */}
+                <div
+                  className="h-[calc(100%-160px)] overflow-y-auto px-12 py-4"
+                  style={{
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#8b7355 transparent",
+                  }}
                 >
-                  ✕
-                </button>
+                  <div
+                    className="prose prose-sm max-w-none"
+                    style={{
+                      fontFamily: "EB Garamond, serif",
+                      color: "#3d2817",
+                      lineHeight: "2",
+                      fontSize: "1.1rem",
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        sessionData.dmNotes ||
+                        `<p style="text-align: center; opacity: 0.4; font-style: italic; margin-top: 80px;">No preparation notes yet...</p>`,
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Search Bar */}
-              <div className="border-b-2 border-[var(--secondary)] p-4 bg-[var(--dark-muted-bg)]">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search notes..."
-                  className="w-full bg-transparent border border-[var(--secondary)] px-4 py-2 text-[var(--primary)] placeholder-[var(--secondary)]/50 focus:outline-none focus:border-[var(--primary)] transition-colors"
-                />
-              </div>
-
-              {/* Content */}
+              {/* CENTER SPINE */}
               <div
-                ref={contentRef}
-                className="flex-1 overflow-y-auto p-8 text-[var(--secondary)]"
+                className="relative w-[4%] h-full z-20"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3d2817 0%, #5a3f2a 30%, #6b4d35 50%, #5a3f2a 70%, #3d2817 100%)",
+                  boxShadow: `
+                    inset 0 0 40px rgba(0,0,0,0.6),
+                    -8px 0 25px rgba(0,0,0,0.4),
+                    8px 0 25px rgba(0,0,0,0.4)
+                  `,
+                }}
               >
-                {filteredSections.length === 0 ? (
-                  <p className="text-center text-[var(--secondary)]/60 italic py-8">
-                    No notes found matching "{searchTerm}"
-                  </p>
-                ) : (
-                  <div className="space-y-6">
-                    {filteredSections.map((section, index) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-[var(--secondary)]/30 pl-6"
-                      >
-                        {section.title ? (
-                          <button
-                            onClick={() => toggleSection(index)}
-                            className="w-full text-left group mb-3 flex items-center gap-3 hover:text-[var(--primary)] transition-colors"
-                          >
-                            <motion.svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 20 20"
-                              className="text-[var(--primary)] flex-shrink-0"
-                              animate={{
-                                rotate: expandedSections.has(index) ? 180 : 0,
-                              }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <path
-                                d="M 5,7 L 10,12 L 15,7"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                fill="none"
-                                strokeLinecap="square"
-                              />
-                            </motion.svg>
-                            <h3 className="text-2xl font-bold uppercase text-[var(--primary)]">
-                              {section.title}
-                            </h3>
-                          </button>
-                        ) : null}
+                {[...Array(15)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute left-0 right-0 h-[2px]"
+                    style={{
+                      top: `${(i + 1) * 6.25}%`,
+                      background:
+                        "linear-gradient(90deg, transparent 20%, rgba(101,67,33,0.4) 50%, transparent 80%)",
+                    }}
+                  />
+                ))}
 
-                        <AnimatePresence>
-                          {(expandedSections.has(index) || !section.title) && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden"
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background:
+                      "radial-gradient(circle, #bf883c 0%, #8b7355 100%)",
+                    boxShadow:
+                      "inset 0 2px 8px rgba(0,0,0,0.5), 0 0 15px rgba(191,136,60,0.4)",
+                  }}
+                >
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    className="opacity-80"
+                  >
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="15"
+                      stroke="#3d2817"
+                      strokeWidth="1"
+                      fill="none"
+                    />
+                    <path
+                      d="M 20,8 L 20,32 M 8,20 L 32,20"
+                      stroke="#3d2817"
+                      strokeWidth="1.5"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* RIGHT PAGE - DYNAMIC CONTENT */}
+              <div className="relative w-[48%] h-full">
+                {/* BOOKMARK TABS at top */}
+                <div className="absolute -top-3 right-8 flex gap-2 z-30">
+                  <button
+                    onClick={() => setActiveTab("quick")}
+                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeTab === "quick"
+                        ? "bg-[#f5ead6] text-[#3d2817] translate-y-1"
+                        : "bg-[#8b7355] text-[#f5ead6] hover:bg-[#9b8365]"
+                    }`}
+                    style={{
+                      fontFamily: "EB Garamond, serif",
+                      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)",
+                      boxShadow:
+                        activeTab === "quick"
+                          ? "0 2px 8px rgba(0,0,0,0.3)"
+                          : "0 1px 4px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    📝 Quick Notes
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("quests")}
+                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeTab === "quests"
+                        ? "bg-[#f5ead6] text-[#3d2817] translate-y-1"
+                        : "bg-[#8b7355] text-[#f5ead6] hover:bg-[#9b8365]"
+                    }`}
+                    style={{
+                      fontFamily: "EB Garamond, serif",
+                      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)",
+                      boxShadow:
+                        activeTab === "quests"
+                          ? "0 2px 8px rgba(0,0,0,0.3)"
+                          : "0 1px 4px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    ⚔️ Quest Log
+                  </button>
+                </div>
+
+                {/* PAGE CONTENT with flip animation */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ rotateY: 90, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    exit={{ rotateY: -90, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="absolute inset-0"
+                    style={{
+                      background: "#f5ead6",
+                      backgroundImage: `
+                        linear-gradient(90deg, rgba(139,115,85,0.03) 1px, transparent 1px),
+                        linear-gradient(rgba(139,115,85,0.03) 1px, transparent 1px),
+                        radial-gradient(circle at 90% 20%, rgba(101,67,33,0.05) 0%, transparent 50%)
+                      `,
+                      backgroundSize: "30px 30px, 30px 30px, 100% 100%",
+                      clipPath: "polygon(0 0, 100% 0, 100% 100%, 2% 100%)",
+                      boxShadow: `
+                        inset -15px 0 40px rgba(0,0,0,0.12),
+                        inset 0 8px 15px rgba(139,115,85,0.08)
+                      `,
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    {/* Close Button */}
+                    <button
+                      onClick={onClose}
+                      className="absolute top-6 right-6 z-30 text-2xl text-[#8b7355] hover:text-[#3d2817] transition-colors cursor-pointer"
+                      style={{ fontFamily: "EB Garamond, serif" }}
+                    >
+                      ✕
+                    </button>
+
+                    {/* Decorations */}
+                    <div
+                      className="absolute top-16 right-12 w-20 h-20 rounded-full pointer-events-none"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(101,67,33,0.06) 0%, transparent 70%)",
+                        filter: "blur(4px)",
+                      }}
+                    />
+
+                    <svg
+                      className="absolute top-6 right-6 w-24 h-24 opacity-30"
+                      viewBox="0 0 100 100"
+                      fill="none"
+                      stroke="#8b7355"
+                      strokeWidth="1.2"
+                      style={{ transform: "rotate(90deg)" }}
+                    >
+                      <path d="M 10,10 Q 30,8 50,10 Q 70,12 90,10" />
+                      <path d="M 10,10 Q 8,30 10,50 Q 12,70 10,90" />
+                      <circle cx="10" cy="10" r="3" fill="#8b7355" />
+                    </svg>
+
+                    {/* QUICK NOTES CONTENT */}
+                    {activeTab === "quick" && (
+                      <>
+                        <div className="relative pt-10 pb-5 px-12">
+                          <div
+                            className="text-center mb-3 pb-3"
+                            style={{
+                              borderBottom: "2px solid #8b7355",
+                              borderImage:
+                                "linear-gradient(90deg, transparent, #8b7355, transparent) 1",
+                            }}
+                          >
+                            <h3
+                              className="text-3xl font-bold text-[#3d2817]"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                letterSpacing: "0.08em",
+                              }}
                             >
-                              <div
-                                className="text-base leading-relaxed whitespace-pre-wrap"
-                                dangerouslySetInnerHTML={{
-                                  __html: formatText(section.content),
+                              Quick Notes
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div
+                          className="h-[calc(100%-160px)] overflow-y-auto px-12 py-4 space-y-5"
+                          style={{
+                            scrollbarWidth: "thin",
+                            scrollbarColor: "#8b7355 transparent",
+                          }}
+                        >
+                          {/* Add Note Form */}
+                          <div className="space-y-3 pb-5 border-b border-[#8b7355]/40">
+                            <textarea
+                              value={newNoteText}
+                              onChange={(e) => setNewNoteText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && e.ctrlKey) {
+                                  handleAddNote();
+                                }
+                              }}
+                              placeholder="Scribe your thoughts... (Ctrl+Enter)"
+                              className="w-full p-3 bg-white/70 border border-[#8b7355]/50 focus:border-[#8b7355] outline-none resize-none cursor-text"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                fontSize: "1rem",
+                                color: "#3d2817",
+                                minHeight: "80px",
+                              }}
+                            />
+
+                            <div className="flex gap-3">
+                              <select
+                                value={newNoteCategory}
+                                onChange={(e) =>
+                                  setNewNoteCategory(e.target.value)
+                                }
+                                className="flex-1 px-3 py-2 bg-white/70 border border-[#8b7355]/50 outline-none cursor-pointer"
+                                style={{
+                                  fontFamily: "EB Garamond, serif",
+                                  color: "#3d2817",
+                                }}
+                              >
+                                <option value="story">📖 Story</option>
+                                <option value="npc">👤 NPC</option>
+                                <option value="loot">💰 Loot</option>
+                                <option value="quest">⚔️ Quest</option>
+                                <option value="combat">⚡ Combat</option>
+                                <option value="other">📝 Other</option>
+                              </select>
+
+                              <button
+                                onClick={handleAddNote}
+                                className="px-5 py-2 font-bold uppercase tracking-wider cursor-pointer hover:opacity-90"
+                                style={{
+                                  fontFamily: "EB Garamond, serif",
+                                  background:
+                                    "linear-gradient(135deg, #8b7355 0%, #6d5a42 100%)",
+                                  color: "#f5ead6",
+                                }}
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Notes List */}
+                          <div className="space-y-3">
+                            {quickNotes.length === 0 ? (
+                              <p
+                                className="text-center text-[#8b7355] italic py-16"
+                                style={{ fontFamily: "EB Garamond, serif" }}
+                              >
+                                No notes yet...
+                              </p>
+                            ) : (
+                              quickNotes.map((note) => (
+                                <div
+                                  key={note.id}
+                                  className="p-3 bg-white/60 border-l-4 group hover:bg-white/80"
+                                  style={{
+                                    borderLeftColor:
+                                      categoryColors[note.category],
+                                  }}
+                                >
+                                  <div className="flex justify-between items-start gap-3">
+                                    <div className="flex-1">
+                                      <span
+                                        className="text-xs font-bold uppercase px-2 py-0.5"
+                                        style={{
+                                          fontFamily: "EB Garamond, serif",
+                                          backgroundColor:
+                                            categoryColors[note.category],
+                                          color: "white",
+                                        }}
+                                      >
+                                        {note.category}
+                                      </span>
+                                      <p
+                                        className="text-[#3d2817] mt-2 whitespace-pre-wrap"
+                                        style={{
+                                          fontFamily: "EB Garamond, serif",
+                                          fontSize: "1rem",
+                                        }}
+                                      >
+                                        {note.text}
+                                      </p>
+                                    </div>
+
+                                    <button
+                                      onClick={() => handleDeleteNote(note.id)}
+                                      className="opacity-0 group-hover:opacity-100 text-red-600 cursor-pointer"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* QUEST LOG CONTENT */}
+                    {activeTab === "quests" && (
+                      <>
+                        <div className="relative pt-10 pb-5 px-12">
+                          <div
+                            className="text-center mb-3 pb-3"
+                            style={{
+                              borderBottom: "2px solid #8b7355",
+                              borderImage:
+                                "linear-gradient(90deg, transparent, #8b7355, transparent) 1",
+                            }}
+                          >
+                            <h3
+                              className="text-3xl font-bold text-[#3d2817]"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                letterSpacing: "0.08em",
+                              }}
+                            >
+                              Quest Log
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div
+                          className="h-[calc(100%-160px)] overflow-y-auto px-12 py-4 space-y-6"
+                          style={{
+                            scrollbarWidth: "thin",
+                            scrollbarColor: "#8b7355 transparent",
+                          }}
+                        >
+                          {/* Add Quest Form */}
+                          <div className="space-y-3 pb-5 border-b-2 border-[#8b7355]/40">
+                            <input
+                              type="text"
+                              value={newQuestTitle}
+                              onChange={(e) => setNewQuestTitle(e.target.value)}
+                              placeholder="Quest Title..."
+                              className="w-full p-3 bg-white/70 border border-[#8b7355]/50 focus:border-[#8b7355] outline-none cursor-text"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                fontSize: "1.1rem",
+                                color: "#3d2817",
+                                fontWeight: "bold",
+                              }}
+                            />
+
+                            <textarea
+                              value={newQuestDescription}
+                              onChange={(e) =>
+                                setNewQuestDescription(e.target.value)
+                              }
+                              placeholder="Quest description..."
+                              className="w-full p-3 bg-white/70 border border-[#8b7355]/50 focus:border-[#8b7355] outline-none resize-none cursor-text"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                fontSize: "0.95rem",
+                                color: "#3d2817",
+                                minHeight: "60px",
+                              }}
+                            />
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <input
+                                type="text"
+                                value={newQuestGiver}
+                                onChange={(e) =>
+                                  setNewQuestGiver(e.target.value)
+                                }
+                                placeholder="Quest Giver"
+                                className="p-2 bg-white/70 border border-[#8b7355]/50 outline-none cursor-text"
+                                style={{
+                                  fontFamily: "EB Garamond, serif",
+                                  color: "#3d2817",
                                 }}
                               />
-                            </motion.div>
+
+                              <input
+                                type="text"
+                                value={newQuestReward}
+                                onChange={(e) =>
+                                  setNewQuestReward(e.target.value)
+                                }
+                                placeholder="Reward"
+                                className="p-2 bg-white/70 border border-[#8b7355]/50 outline-none cursor-text"
+                                style={{
+                                  fontFamily: "EB Garamond, serif",
+                                  color: "#3d2817",
+                                }}
+                              />
+                            </div>
+
+                            <button
+                              onClick={handleAddQuest}
+                              className="w-full py-2 font-bold uppercase tracking-wider cursor-pointer hover:opacity-90"
+                              style={{
+                                fontFamily: "EB Garamond, serif",
+                                background:
+                                  "linear-gradient(135deg, #8b7355 0%, #6d5a42 100%)",
+                                color: "#f5ead6",
+                              }}
+                            >
+                              Add Quest
+                            </button>
+                          </div>
+
+                          {/* Active Quests */}
+                          {activeQuests.length > 0 && (
+                            <div>
+                              <h4
+                                className="text-xl font-bold text-[#3d2817] mb-3 flex items-center gap-2"
+                                style={{ fontFamily: "EB Garamond, serif" }}
+                              >
+                                📜 Active Quests
+                              </h4>
+                              <div className="space-y-3">
+                                {activeQuests.map((quest) => (
+                                  <div
+                                    key={quest.id}
+                                    className="p-4 bg-white/60 border-l-4 border-[#f59e0b] group hover:bg-white/80"
+                                  >
+                                    <div className="flex justify-between items-start gap-3">
+                                      <div className="flex-1">
+                                        <h5
+                                          className="text-lg font-bold text-[#3d2817] mb-1"
+                                          style={{
+                                            fontFamily: "EB Garamond, serif",
+                                          }}
+                                        >
+                                          {quest.title}
+                                        </h5>
+                                        {quest.description && (
+                                          <p
+                                            className="text-sm text-[#3d2817]/80 mb-2"
+                                            style={{
+                                              fontFamily: "EB Garamond, serif",
+                                            }}
+                                          >
+                                            {quest.description}
+                                          </p>
+                                        )}
+                                        <div className="flex gap-4 text-xs text-[#8b7355]">
+                                          {quest.questGiver && (
+                                            <span>🧙 {quest.questGiver}</span>
+                                          )}
+                                          {quest.reward && (
+                                            <span>💰 {quest.reward}</span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="flex gap-1">
+                                        <button
+                                          onClick={() =>
+                                            handleUpdateQuestStatus(
+                                              quest.id,
+                                              "completed"
+                                            )
+                                          }
+                                          className="px-2 py-1 text-xs bg-green-600 text-white hover:bg-green-700 cursor-pointer"
+                                          title="Mark Complete"
+                                        >
+                                          ✓
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleUpdateQuestStatus(
+                                              quest.id,
+                                              "failed"
+                                            )
+                                          }
+                                          className="px-2 py-1 text-xs bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+                                          title="Mark Failed"
+                                        >
+                                          ✕
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteQuest(quest.id)
+                                          }
+                                          className="px-2 py-1 text-xs bg-gray-600 text-white hover:bg-gray-700 cursor-pointer"
+                                          title="Delete"
+                                        >
+                                          🗑
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Footer Controls */}
-              <div className="border-t-2 border-[var(--secondary)] p-4 bg-[var(--dark-muted-bg)] flex justify-between items-center">
-                <button
-                  onClick={() => {
-                    if (expandedSections.size === sections.length) {
-                      setExpandedSections(new Set());
-                    } else {
-                      setExpandedSections(new Set(sections.map((_, i) => i)));
-                    }
-                  }}
-                  className="text-sm text-[var(--secondary)] hover:text-[var(--primary)] uppercase tracking-wider transition-colors"
-                >
-                  {expandedSections.size === sections.length
-                    ? "Collapse All"
-                    : "Expand All"}
-                </button>
+                          {/* Completed Quests */}
+                          {completedQuests.length > 0 && (
+                            <div>
+                              <h4
+                                className="text-xl font-bold text-[#10b981] mb-3 flex items-center gap-2"
+                                style={{ fontFamily: "EB Garamond, serif" }}
+                              >
+                                ✅ Completed Quests
+                              </h4>
+                              <div className="space-y-2">
+                                {completedQuests.map((quest) => (
+                                  <div
+                                    key={quest.id}
+                                    className="p-3 bg-green-50/50 border-l-4 border-green-500 opacity-70"
+                                    style={{ textDecoration: "line-through" }}
+                                  >
+                                    <p
+                                      className="font-bold text-[#3d2817]"
+                                      style={{
+                                        fontFamily: "EB Garamond, serif",
+                                      }}
+                                    >
+                                      {quest.title}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
-                <p className="text-xs text-[var(--secondary)]/60 uppercase tracking-wider">
-                  {filteredSections.length} Section
-                  {filteredSections.length !== 1 ? "s" : ""}
-                </p>
+                          {/* Failed Quests */}
+                          {failedQuests.length > 0 && (
+                            <div>
+                              <h4
+                                className="text-xl font-bold text-[#ef4444] mb-3 flex items-center gap-2"
+                                style={{ fontFamily: "EB Garamond, serif" }}
+                              >
+                                ❌ Failed Quests
+                              </h4>
+                              <div className="space-y-2">
+                                {failedQuests.map((quest) => (
+                                  <div
+                                    key={quest.id}
+                                    className="p-3 bg-red-50/50 border-l-4 border-red-500 opacity-70"
+                                  >
+                                    <p
+                                      className="font-bold text-[#3d2817]"
+                                      style={{
+                                        fontFamily: "EB Garamond, serif",
+                                      }}
+                                    >
+                                      {quest.title}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {quests.length === 0 && (
+                            <p
+                              className="text-center text-[#8b7355] italic py-16"
+                              style={{ fontFamily: "EB Garamond, serif" }}
+                            >
+                              No quests yet. Begin your adventure above!
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>
@@ -316,6 +899,5 @@ export default function PrepNotesOverlay({ isOpen, onClose, sessionData }) {
     </AnimatePresence>
   );
 
-  // Use portal to render at document.body level
   return createPortal(overlayContent, document.body);
 }

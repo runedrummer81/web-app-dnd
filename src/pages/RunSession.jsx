@@ -276,11 +276,12 @@ const RunSession = ({ sessionId, mapSetData }) => {
               </div>
             </motion.div>
 
-            {/* PREP NOTES OVERLAY - RENDERED AT TOP LEVEL */}
             <PrepNotesOverlay
               isOpen={showPrepNotes}
               onClose={() => setShowPrepNotes(false)}
               sessionData={sessionData}
+              quickNotes={quickNotes}
+              onQuickNotesChange={setQuickNotes}
             />
           </CombatWrapper>
         </CombatStateProvider>
