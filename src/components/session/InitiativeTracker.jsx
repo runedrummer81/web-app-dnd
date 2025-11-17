@@ -6,35 +6,80 @@ import { useMapSync } from "./MapSyncContext";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 
-// Parse attack description to extract to-hit and damage info
+// ✅ Parse ALL damage instances from an attack description
 const parseAttack = (description) => {
   const toHitMatch = description.match(/([+-]\d+)\s+to hit/);
   const toHit = toHitMatch ? parseInt(toHitMatch[1]) : 0;
 
-  const damageMatch = description.match(/Hit:\s*\d+\s*\(([^)]+)\)\s*(\w+)/);
-  const damageDice = damageMatch ? damageMatch[1] : null;
-  const damageType = damageMatch ? damageMatch[2] : "damage";
+  // Find ALL damage patterns: "7 (1d6 + 4) slashing damage plus 3 (1d6) cold damage"
+  const damagePattern = /(\d+)\s*\(([^)]+)\)\s*(\w+)\s*damage/g;
+  const damages = [];
+  let match;
 
-  return { toHit, damageDice, damageType };
+  while ((match = damagePattern.exec(description)) !== null) {
+    damages.push({
+      average: parseInt(match[1]),
+      dice: match[2].trim(),
+      type: match[3],
+    });
+  }
+
+  return { toHit, damages };
 };
 
-// Roll dice based on notation like "1d10 + 4"
+// ✅ NEW: Parse saving throw info (DC and type)
+const parseSavingThrow = (description) => {
+  // Match patterns like "DC 13 Constitution" or "DC 15 Dexterity"
+  const dcMatch = description.match(/DC\s+(\d+)\s+(\w+)\s+saving throw/i);
+  if (dcMatch) {
+    return {
+      dc: parseInt(dcMatch[1]),
+      type: dcMatch[2], // e.g., "Constitution", "Dexterity"
+    };
+  }
+  return null;
+};
+
+// ✅ Check if action requires a saving throw (not an attack roll)
+const isSavingThrowAction = (description) => {
+  const hasSavingThrow = /saving throw|DC \d+/i.test(description);
+  const hasAttackRoll = /to hit/i.test(description);
+  return hasSavingThrow && !hasAttackRoll;
+};
+
+// ✅ Roll dice and return detailed results
 const rollDice = (notation) => {
-  if (!notation) return 0;
+  if (!notation) return { total: 0, rolls: [], modifier: 0 };
 
   const match = notation.match(/(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?/);
-  if (!match) return 0;
+  if (!match) {
+    const flatNum = parseInt(notation);
+    if (!isNaN(flatNum)) {
+      return { total: flatNum, rolls: [], modifier: flatNum };
+    }
+    return { total: 0, rolls: [], modifier: 0 };
+  }
 
   const numDice = parseInt(match[1]);
   const diceSize = parseInt(match[2]);
   const modifier = match[3] && match[4] ? parseInt(match[3] + match[4]) : 0;
 
+  const rolls = [];
   let total = 0;
+
   for (let i = 0; i < numDice; i++) {
-    total += Math.floor(Math.random() * diceSize) + 1;
+    const roll = Math.floor(Math.random() * diceSize) + 1;
+    rolls.push(roll);
+    total += roll;
   }
 
-  return total + modifier;
+  return {
+    total: total + modifier,
+    rolls,
+    modifier,
+    diceSize,
+    numDice,
+  };
 };
 
 export const InitiativeTracker = () => {
@@ -52,9 +97,12 @@ export const InitiativeTracker = () => {
   const [creatures, setCreatures] = useState([]);
   const [hpChange, setHpChange] = useState(0);
   const [attackRoll, setAttackRoll] = useState(null);
-  const [damageRoll, setDamageRoll] = useState(null);
+  const [damageRolls, setDamageRolls] = useState(null);
   const [activeTab, setActiveTab] = useState("actions");
-  const [selectedCreatureId, setSelectedCreatureId] = useState(null); // NEW: Track which creature is selected
+  const [selectedCreatureId, setSelectedCreatureId] = useState(null);
+  const [expandedActionId, setExpandedActionId] = useState(null);
+  const [expandedTraitId, setExpandedTraitId] = useState(null);
+  const [savingThrowResult, setSavingThrowResult] = useState(null);
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -63,27 +111,14 @@ export const InitiativeTracker = () => {
         id: doc.id,
         ...doc.data(),
       }));
-
-      // ✅ Debug: Log fetched creatures
-      console.log(
-        "📊 Fetched creatures:",
-        data.map((c) => ({
-          id: c.id,
-          name: c.name,
-          hp: c.hp,
-        }))
-      );
-
       setCreatures(data);
     };
     fetchCreatures();
   }, []);
 
-  // NEW: Listen for token clicks to select creatures
   useEffect(() => {
     const handleTokenClicked = (event) => {
       const clickedToken = event.detail.token;
-      // Find the combatant by name
       const combatant = initiativeOrder.find(
         (c) => c.name === clickedToken.name
       );
@@ -96,19 +131,20 @@ export const InitiativeTracker = () => {
     return () => window.removeEventListener("tokenClicked", handleTokenClicked);
   }, [initiativeOrder]);
 
-  // Get enriched data for any combatant
   const getEnrichedCombatantData = (combatant) => {
     if (!combatant) return null;
 
     if (!combatant.isPlayer) {
       const creatureData = creatures.find((c) => {
-        return combatant.name.startsWith(c.name);
+        if (c.name === combatant.name) return true;
+        if (combatant.name.startsWith(c.name)) return true;
+        if (c.name.toLowerCase() === combatant.name.toLowerCase()) return true;
+        return false;
       });
 
       return {
         ...combatant,
         ...creatureData,
-
         id: combatant.id,
         currentHp: combatant.currentHp,
         isDead: combatant.isDead,
@@ -120,19 +156,16 @@ export const InitiativeTracker = () => {
     return combatant;
   };
 
-  // Get current turn combatant
   const currentCombatant = getEnrichedCombatantData(
     initiativeOrder[currentTurnIndex]
   );
 
-  // Get selected creature (if any)
   const selectedCombatant = selectedCreatureId
     ? getEnrichedCombatantData(
         initiativeOrder.find((c) => c.id === selectedCreatureId)
       )
     : null;
 
-  // The creature to display in the detail view
   const displayedCombatant = selectedCombatant || currentCombatant;
 
   if (!currentCombatant || initiativeOrder.length === 0) {
@@ -153,8 +186,9 @@ export const InitiativeTracker = () => {
     return combatant.currentHp ?? combatant.hp ?? combatant.maxHp;
   };
 
+  // ✅ Handle attack roll (for normal attacks with "to hit")
   const handleAttackRoll = (action) => {
-    const { toHit, damageDice, damageType } = parseAttack(action.description);
+    const { toHit, damages } = parseAttack(action.description);
     const d20Roll = Math.floor(Math.random() * 20) + 1;
     const total = d20Roll + toHit;
 
@@ -163,16 +197,15 @@ export const InitiativeTracker = () => {
       d20: d20Roll,
       modifier: toHit,
       total,
-      damageDice,
-      damageType,
+      damages,
       isCrit: d20Roll === 20,
       isFail: d20Roll === 1,
+      isSavingThrow: false,
     };
 
     setAttackRoll(rollResult);
-    setDamageRoll(null);
+    setDamageRolls(null);
 
-    // NEW: Log the attack roll
     addToCombatLog({
       type: "attack-roll",
       attacker: displayedCombatant.name,
@@ -185,31 +218,101 @@ export const InitiativeTracker = () => {
     });
   };
 
-  const handleDamageRoll = () => {
-    if (!attackRoll || !attackRoll.damageDice) return;
+  // ✅ NEW: Handle saving throw action (no attack roll, just damage + DC)
+  const handleSavingThrowAction = (action) => {
+    const { damages } = parseAttack(action.description);
+    const savingThrowInfo = parseSavingThrow(action.description);
 
-    let damage = rollDice(attackRoll.damageDice);
-
-    if (attackRoll.isCrit) {
-      damage = damage * 2;
-    }
-
-    const damageResult = {
-      damage,
-      type: attackRoll.damageType,
-      isCrit: attackRoll.isCrit,
+    const rollResult = {
+      name: action.name,
+      damages,
+      isSavingThrow: true,
+      savingThrowDC: savingThrowInfo?.dc || null,
+      savingThrowType: savingThrowInfo?.type || "unknown",
     };
 
-    setDamageRoll(damageResult);
+    setAttackRoll(rollResult);
+    setDamageRolls(null);
 
-    // NEW: Log the damage roll
+    addToCombatLog({
+      type: "saving-throw-action",
+      attacker: displayedCombatant.name,
+      actionName: action.name,
+      dc: savingThrowInfo?.dc,
+      saveType: savingThrowInfo?.type,
+    });
+  };
+
+  // ✅ Handle damage roll
+  const handleDamageRoll = () => {
+    if (!attackRoll || !attackRoll.damages || attackRoll.damages.length === 0)
+      return;
+
+    const rolledDamages = attackRoll.damages.map((dmg) => {
+      const rollResult = rollDice(dmg.dice);
+
+      let finalTotal = rollResult.total;
+      let critRolls = [];
+
+      // Only double on crit if it's an attack (not a saving throw)
+      if (attackRoll.isCrit && !attackRoll.isSavingThrow) {
+        const critResult = rollDice(dmg.dice);
+        critRolls = critResult.rolls;
+        finalTotal = rollResult.total + critResult.total;
+      }
+
+      return {
+        type: dmg.type,
+        ...rollResult,
+        critRolls,
+        isCrit: attackRoll.isCrit && !attackRoll.isSavingThrow,
+        finalTotal,
+      };
+    });
+
+    setDamageRolls(rolledDamages);
+
+    const totalDamage = rolledDamages.reduce((sum, d) => sum + d.finalTotal, 0);
+
     addToCombatLog({
       type: "damage-roll",
       attacker: displayedCombatant.name,
       attackName: attackRoll.name,
-      damage: damage,
-      damageType: attackRoll.damageType,
-      isCrit: attackRoll.isCrit,
+      damage: totalDamage,
+      damageBreakdown: rolledDamages.map((d) => ({
+        amount: d.finalTotal,
+        type: d.type,
+      })),
+      isCrit: attackRoll.isCrit && !attackRoll.isSavingThrow,
+    });
+  };
+
+  // ✅ Handle stat-based saving throw
+  const handleSavingThrow = (stat) => {
+    const d20Roll = Math.floor(Math.random() * 20) + 1;
+    const modifier = displayedCombatant.modifiers?.[`${stat}_save`] || 0;
+    const total = d20Roll + modifier;
+
+    const result = {
+      stat: stat.toUpperCase(),
+      d20: d20Roll,
+      modifier,
+      total,
+      isCrit: d20Roll === 20,
+      isFail: d20Roll === 1,
+    };
+
+    setSavingThrowResult(result);
+
+    addToCombatLog({
+      type: "saving-throw",
+      creature: displayedCombatant.name,
+      stat: stat.toUpperCase(),
+      d20: d20Roll,
+      modifier,
+      total,
+      isCrit: d20Roll === 20,
+      isFail: d20Roll === 1,
     });
   };
 
@@ -224,9 +327,12 @@ export const InitiativeTracker = () => {
           onClick={() => {
             nextTurn();
             setAttackRoll(null);
-            setDamageRoll(null);
+            setDamageRolls(null);
             setHpChange(0);
-            setSelectedCreatureId(null); // Clear selection on next turn
+            setSelectedCreatureId(null);
+            setExpandedActionId(null);
+            setExpandedTraitId(null);
+            setSavingThrowResult(null);
           }}
           className="text-[var(--primary)] font-black uppercase text-2xl hover:scale-105 transition-transform"
           whileHover={{ scale: 1.05 }}
@@ -247,27 +353,28 @@ export const InitiativeTracker = () => {
               ? "border-gray-600 opacity-60"
               : "border-[var(--primary)]"
           }`}
+          style={{ minHeight: "600px" }}
         >
-          {/* Background Image */}
+          {/* Background Image - Fixed */}
           {displayedCombatant.imageURL &&
             displayedCombatant.imageURL !== "/placeholder.png" && (
               <>
                 <div
-                  className="absolute top-0 right-0 h-full w-80 bg-cover bg-no-repeat"
+                  className="absolute top-0 right-0 w-80 bg-cover bg-no-repeat"
                   style={{
                     backgroundImage: `url('${displayedCombatant.imageURL}')`,
                     backgroundPosition: "center center",
                     opacity: displayedCombatant.isDead ? 0.05 : 0.6,
+                    height: "100%",
                   }}
                 />
-
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/100 to-transparent pointer-events-none" />
               </>
             )}
 
           <div className="relative z-10">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 ">
+            <div className="flex justify-between items-center p-4">
               <div>
                 <div className="flex items-center gap-3">
                   <h3
@@ -341,7 +448,7 @@ export const InitiativeTracker = () => {
                 {/* LEFT COLUMN */}
                 <div className="space-y-4">
                   {/* HP & Quick Stats */}
-                  <div className="">
+                  <div>
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <p className="text-xs text-[var(--secondary)] uppercase mb-1">
@@ -376,7 +483,7 @@ export const InitiativeTracker = () => {
                       </div>
                     </div>
 
-                    {/* HP Adjustment - Available anytime for creatures */}
+                    {/* HP Adjustment */}
                     <div className="flex items-center gap-2">
                       <motion.button
                         onClick={() => {
@@ -386,7 +493,7 @@ export const InitiativeTracker = () => {
                           updateCreatureHp(displayedCombatant.id, newHp);
                           setHpChange(0);
                         }}
-                        className="flex-1 py-2 text-[var(--combat)]  font-black text-xs uppercase "
+                        className="flex-1 py-2 text-[var(--combat)] font-black text-xs uppercase"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -403,7 +510,6 @@ export const InitiativeTracker = () => {
                         }}
                         className="no-arrows w-16 border-2 border-[var(--primary)] bg-black/50 text-[var(--primary)] text-center text-base font-bold outline-none py-2"
                       />
-
                       <motion.button
                         onClick={() => {
                           const currentHp =
@@ -415,7 +521,7 @@ export const InitiativeTracker = () => {
                           updateCreatureHp(displayedCombatant.id, newHp);
                           setHpChange(0);
                         }}
-                        className="flex-1 py-2 text-green-600 font-black text-xs uppercase "
+                        className="flex-1 py-2 text-green-600 font-black text-xs uppercase"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -459,48 +565,124 @@ export const InitiativeTracker = () => {
                     </div>
 
                     <div className="p-3 max-h-60 overflow-y-auto">
+                      {/* Stats with Clickable Saving Throws */}
                       {activeTab === "stats" && displayedCombatant.stats && (
-                        <div className="grid grid-cols-3 gap-3">
-                          {["str", "dex", "con", "int", "wis", "cha"].map(
-                            (stat) => (
-                              <div key={stat} className="text-center">
-                                <p className="text-xs text-[var(--secondary)] uppercase mb-1">
-                                  {stat}
-                                </p>
-                                <p className="text-xl font-bold text-[var(--primary)]">
-                                  {displayedCombatant.stats[stat]}
-                                </p>
-                                <p className="text-sm text-[var(--secondary)]">
-                                  (
-                                  {displayedCombatant.modifiers?.[
-                                    `${stat}_mod`
-                                  ] >= 0
-                                    ? "+"
-                                    : ""}
-                                  {
-                                    displayedCombatant.modifiers?.[
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-3 gap-3">
+                            {["str", "dex", "con", "int", "wis", "cha"].map(
+                              (stat) => (
+                                <motion.button
+                                  key={stat}
+                                  onClick={() => handleSavingThrow(stat)}
+                                  className="text-center border border-[var(--secondary)]/30 p-2 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition cursor-pointer"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  <p className="text-xs text-[var(--secondary)] uppercase mb-1">
+                                    {stat}
+                                  </p>
+                                  <p className="text-xl font-bold text-[var(--primary)]">
+                                    {displayedCombatant.stats[stat]}
+                                  </p>
+                                  <p className="text-sm text-[var(--secondary)]">
+                                    (
+                                    {displayedCombatant.modifiers?.[
                                       `${stat}_mod`
-                                    ]
-                                  }
-                                  )
+                                    ] >= 0
+                                      ? "+"
+                                      : ""}
+                                    {
+                                      displayedCombatant.modifiers?.[
+                                        `${stat}_mod`
+                                      ]
+                                    }
+                                    )
+                                  </p>
+                                </motion.button>
+                              )
+                            )}
+                          </div>
+
+                          {/* Saving Throw Result */}
+                          <AnimatePresence>
+                            {savingThrowResult && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className={`p-3 border-2 ${
+                                  savingThrowResult.isCrit
+                                    ? "border-yellow-400 bg-yellow-900/40"
+                                    : savingThrowResult.isFail
+                                    ? "border-red-500 bg-red-900/40"
+                                    : "border-[var(--primary)] bg-[var(--primary)]/10"
+                                }`}
+                              >
+                                <p className="text-xs text-[var(--secondary)] uppercase mb-1">
+                                  {savingThrowResult.stat} Saving Throw
                                 </p>
-                              </div>
-                            )
-                          )}
+                                <p
+                                  className={`text-3xl font-bold ${
+                                    savingThrowResult.isCrit
+                                      ? "text-yellow-400"
+                                      : savingThrowResult.isFail
+                                      ? "text-red-400"
+                                      : "text-[var(--primary)]"
+                                  }`}
+                                >
+                                  {savingThrowResult.total}
+                                  {savingThrowResult.isCrit && " ✓"}
+                                  {savingThrowResult.isFail && " ✗"}
+                                </p>
+                                <p className="text-xs text-[var(--secondary)] mt-1">
+                                  (d20: {savingThrowResult.d20}{" "}
+                                  {savingThrowResult.modifier >= 0 ? "+" : ""}
+                                  {savingThrowResult.modifier})
+                                </p>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       )}
 
+                      {/* Collapsible Traits */}
                       {activeTab === "traits" && displayedCombatant.traits && (
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-2">
                           {displayedCombatant.traits.map((trait, idx) => (
-                            <div key={idx} className="text-center">
-                              <p className="text-xs text-[var(--secondary)] uppercase mb-1">
-                                {trait.name}
-                              </p>
-                              <p className="text-sm font-bold text-[var(--primary)]">
-                                {trait.description}
-                              </p>
-                            </div>
+                            <motion.div
+                              key={idx}
+                              className="border border-[var(--secondary)]/30 hover:border-[var(--primary)] transition"
+                            >
+                              <button
+                                onClick={() =>
+                                  setExpandedTraitId(
+                                    expandedTraitId === idx ? null : idx
+                                  )
+                                }
+                                className="w-full p-2 text-left flex justify-between items-center"
+                              >
+                                <p className="text-sm font-bold text-[var(--primary)] uppercase">
+                                  {trait.name}
+                                </p>
+                                <span className="text-[var(--secondary)]">
+                                  {expandedTraitId === idx ? "▲" : "▼"}
+                                </span>
+                              </button>
+                              <AnimatePresence>
+                                {expandedTraitId === idx && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="px-2 pb-2"
+                                  >
+                                    <p className="text-xs text-[var(--secondary)]">
+                                      {trait.description}
+                                    </p>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </motion.div>
                           ))}
                         </div>
                       )}
@@ -509,7 +691,7 @@ export const InitiativeTracker = () => {
 
                   {/* Roll Results */}
                   <AnimatePresence>
-                    {(attackRoll || damageRoll) &&
+                    {(attackRoll || damageRolls) &&
                       !selectedCreatureId &&
                       !displayedCombatant.isDead && (
                         <motion.div
@@ -518,7 +700,8 @@ export const InitiativeTracker = () => {
                           exit={{ opacity: 0, scale: 0.9 }}
                           className="space-y-2"
                         >
-                          {attackRoll && (
+                          {/* ✅ Attack Roll (for normal attacks) */}
+                          {attackRoll && !attackRoll.isSavingThrow && (
                             <div
                               className={`p-3 border-2 ${
                                 attackRoll.isCrit
@@ -546,7 +729,7 @@ export const InitiativeTracker = () => {
                                   {attackRoll.isFail && " ✗"}
                                 </p>
                                 {!attackRoll.isFail &&
-                                  attackRoll.damageDice && (
+                                  attackRoll.damages?.length > 0 && (
                                     <motion.button
                                       onClick={handleDamageRoll}
                                       className="px-3 py-2 bg-orange-700 hover:bg-orange-600 text-white font-bold text-sm uppercase border border-orange-500"
@@ -563,19 +746,95 @@ export const InitiativeTracker = () => {
                             </div>
                           )}
 
-                          {damageRoll && (
-                            <div className="p-3 border-2 border-orange-500 bg-orange-900/40">
-                              <p className="text-xs text-[var(--secondary)] uppercase mb-1">
-                                Damage
+                          {/* ✅ NEW: Saving Throw Action Display */}
+                          {attackRoll && attackRoll.isSavingThrow && (
+                            <div className="p-3 border-2 border-blue-500 bg-blue-900/40">
+                              <p className="text-xs text-blue-300 uppercase mb-2">
+                                {attackRoll.name}
                               </p>
-                              <p className="text-5xl font-bold text-orange-400">
-                                {damageRoll.damage}
-                                {damageRoll.isCrit && " 💥"}
-                              </p>
-                              <p className="text-sm text-orange-300 capitalize mt-1">
-                                {damageRoll.type}{" "}
-                                {damageRoll.isCrit && "(Critical!)"}
-                              </p>
+                              <div className="mb-3">
+                                <p className="text-sm text-blue-200 font-bold mb-1">
+                                  🎲 Player Must Roll Saving Throw
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-3xl font-bold text-blue-300">
+                                    DC {attackRoll.savingThrowDC}
+                                  </p>
+                                  <p className="text-lg text-blue-200 uppercase">
+                                    {attackRoll.savingThrowType}
+                                  </p>
+                                </div>
+                              </div>
+                              {attackRoll.damages?.length > 0 && (
+                                <motion.button
+                                  onClick={handleDamageRoll}
+                                  className="w-full px-3 py-2 bg-orange-700 hover:bg-orange-600 text-white font-bold text-sm uppercase border border-orange-500"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  Roll Damage
+                                </motion.button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Consolidated Damage Display */}
+                          {damageRolls && (
+                            <div className="p-4 border-2 border-orange-500 bg-orange-900/40">
+                              {/* Total Damage - Prominent */}
+                              <div className="mb-3 pb-3 border-b-2 border-yellow-400">
+                                <p className="text-xs text-yellow-300 uppercase mb-1">
+                                  Total Damage
+                                  {attackRoll?.isSavingThrow && (
+                                    <span className="ml-2 text-blue-300">
+                                      (On Failed Save)
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-6xl font-bold text-yellow-400">
+                                  {damageRolls.reduce(
+                                    (sum, d) => sum + d.finalTotal,
+                                    0
+                                  )}
+                                  {damageRolls[0]?.isCrit && " 💥"}
+                                </p>
+                              </div>
+
+                              {/* Damage Breakdown */}
+                              <div className="space-y-2">
+                                {damageRolls.map((dmg, idx) => (
+                                  <div key={idx}>
+                                    <p className="text-sm text-orange-300 capitalize font-bold">
+                                      {dmg.type}: {dmg.finalTotal}
+                                    </p>
+                                    <p className="text-xs text-orange-200/60">
+                                      (
+                                      {dmg.rolls.length > 0 && (
+                                        <>
+                                          {dmg.numDice}d{dmg.diceSize}:{" "}
+                                          {dmg.rolls.join(" + ")}
+                                        </>
+                                      )}
+                                      {dmg.modifier !== 0 && (
+                                        <>
+                                          {" "}
+                                          {dmg.modifier > 0 ? "+" : ""}
+                                          {dmg.modifier}
+                                        </>
+                                      )}
+                                      {dmg.isCrit &&
+                                        dmg.critRolls.length > 0 && (
+                                          <>
+                                            {" + "}
+                                            {dmg.numDice}d{dmg.diceSize}:{" "}
+                                            {dmg.critRolls.join(" + ")}
+                                          </>
+                                        )}
+                                      )
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </motion.div>
@@ -584,7 +843,7 @@ export const InitiativeTracker = () => {
                 </div>
 
                 {/* RIGHT COLUMN - Actions */}
-                <div className="">
+                <div>
                   <h4 className="text-[var(--secondary)] uppercase text-xs pb-2">
                     Actions
                   </h4>
@@ -592,33 +851,74 @@ export const InitiativeTracker = () => {
                     {displayedCombatant.actions &&
                     displayedCombatant.actions.length > 0 ? (
                       displayedCombatant.actions.map((action, idx) => {
-                        const { toHit, damageDice } = parseAttack(
+                        const { toHit, damages } = parseAttack(
                           action.description
                         );
-                        const isAttack = toHit !== 0 || damageDice;
+                        const isAttack = toHit !== 0 || damages.length > 0;
+                        const isSavingThrow = isSavingThrowAction(
+                          action.description
+                        );
+                        const isExpanded = expandedActionId === idx;
 
                         return (
-                          <div key={idx} className="  transition">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <p className="text-[var(--primary)] font-black uppercase text-base flex-1">
-                                {action.name}
-                              </p>
+                          <div
+                            key={idx}
+                            className="border border-[var(--secondary)]/30 hover:border-[var(--primary)] transition"
+                          >
+                            {/* Action Header */}
+                            <div className="flex items-start justify-between gap-2 p-2">
+                              <button
+                                onClick={() =>
+                                  setExpandedActionId(isExpanded ? null : idx)
+                                }
+                                className="flex-1 text-left"
+                              >
+                                <p className="text-[var(--primary)] font-black uppercase text-base flex items-center gap-2">
+                                  {action.name}
+                                  {isSavingThrow && (
+                                    <span className="text-xs bg-blue-600/30 border border-blue-500 text-blue-300 px-2 py-0.5 uppercase">
+                                      Save
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-[var(--secondary)]">
+                                    {isExpanded ? "▲" : "▼"}
+                                  </span>
+                                </p>
+                              </button>
+                              {/* ✅ Button for all actions that can deal damage */}
                               {isAttack &&
                                 !selectedCreatureId &&
                                 !displayedCombatant.isDead && (
                                   <motion.button
-                                    onClick={() => handleAttackRoll(action)}
-                                    className="px-3 py-1 bg-[var(--combat)] text-white text-xs font-bold uppercase "
+                                    onClick={() =>
+                                      isSavingThrow
+                                        ? handleSavingThrowAction(action)
+                                        : handleAttackRoll(action)
+                                    }
+                                    className="px-3 py-1 bg-[var(--combat)] text-white text-xs font-bold uppercase"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                   >
-                                    Attack
+                                    {isSavingThrow ? "Use" : "Attack"}
                                   </motion.button>
                                 )}
                             </div>
-                            <p className="text-[var(--secondary)] text-sm leading-relaxed">
-                              {action.description}
-                            </p>
+
+                            {/* Collapsible Description */}
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="px-2 pb-2"
+                                >
+                                  <p className="text-[var(--secondary)] text-xs leading-relaxed">
+                                    {action.description}
+                                  </p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                         );
                       })
@@ -649,7 +949,7 @@ export const InitiativeTracker = () => {
         </motion.div>
       )}
 
-      {/* Initiative Order List */}
+      {/* Initiative Order List - keeping your existing code */}
       <motion.div className="px-6 py-4">
         <h3 className="text-base text-[var(--primary)] uppercase mb-3 font-bold">
           Initiative Order
