@@ -63,6 +63,17 @@ export const InitiativeTracker = () => {
         id: doc.id,
         ...doc.data(),
       }));
+
+      // ✅ Debug: Log fetched creatures
+      console.log(
+        "📊 Fetched creatures:",
+        data.map((c) => ({
+          id: c.id,
+          name: c.name,
+          hp: c.hp,
+        }))
+      );
+
       setCreatures(data);
     };
     fetchCreatures();

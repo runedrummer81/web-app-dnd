@@ -68,6 +68,17 @@ export default function CreateEncounters() {
         id: doc.id,
         ...doc.data(),
       }));
+
+      // ✅ Debug: Log all creatures
+      console.log("📊 All fetched creatures:", creatureList);
+
+      // ✅ Debug: Check Yeti specifically
+      const yeti = creatureList.find(
+        (c) => c.name === "Yeti" || c.id === "Yeti"
+      );
+      console.log("🐉 Yeti data:", yeti);
+      console.log("🐉 Yeti HP:", yeti?.hp);
+
       setCreatures(creatureList);
     };
     fetchCreatures();
