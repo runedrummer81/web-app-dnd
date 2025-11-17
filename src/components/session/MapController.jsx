@@ -8,7 +8,9 @@ export const MapController = ({ mapDimensions, currentMap }) => {
   const updateTimeoutRef = useRef(null);
   const lastUpdateRef = useRef(null);
   const lastMapIdRef = useRef(null);
+  const lastIsCombatRef = useRef(false);
 
+  // Helper to write viewport to shared state (rounded)
   const writeViewport = (center, zoom, bounds) => {
     const newData = {
       centerLat: Math.round(center.lat * 100) / 100,
@@ -47,13 +49,113 @@ export const MapController = ({ mapDimensions, currentMap }) => {
     }
   };
 
+  // ✅ Calculate optimal zoom for combat maps
+  const calculateCombatZoom = (
+    mapWidth,
+    mapHeight,
+    containerWidth,
+    containerHeight
+  ) => {
+    // Calculate zoom needed to fit width
+    const zoomForWidth = Math.log2(containerWidth / mapWidth);
+    // Calculate zoom needed to fit height
+    const zoomForHeight = Math.log2(containerHeight / mapHeight);
+
+    // Use the smaller zoom (ensures entire map fits)
+    const calculatedZoom = Math.min(zoomForWidth, zoomForHeight);
+
+    // Ensure zoom is at least 0 for combat maps
+    const finalZoom = Math.max(0, calculatedZoom);
+
+    console.log(`📊 Combat zoom calculation:`, {
+      mapWidth,
+      mapHeight,
+      containerWidth,
+      containerHeight,
+      zoomForWidth,
+      zoomForHeight,
+      calculatedZoom,
+      finalZoom,
+    });
+
+    return finalZoom;
+  };
+
+  // ✅ SINGLE EFFECT: Handle all map changes and updates
   useEffect(() => {
     if (!isDMView) return;
 
     const currentMapId = currentMap?.id || mapState.currentMapId;
+    const isCombat = currentMap?.isCombat || false;
+    const mapChanged = lastMapIdRef.current !== currentMapId;
 
-    if (lastMapIdRef.current !== currentMapId) {
-      console.log(`🗺️ Map switched to: ${currentMapId}`);
+    console.log("🗺️ MapController state:", {
+      currentMapId,
+      isCombat,
+      mapChanged,
+      width: currentMap?.width,
+      height: currentMap?.height,
+    });
+
+    // ✅ COMBAT MAP LOGIC
+    if (isCombat) {
+      console.log("⚔️ COMBAT MAP - Fitting to screen and locking");
+
+      const mapWidth = currentMap.width || 2000;
+      const mapHeight = currentMap.height || 2000;
+      const containerWidth = map.getContainer().offsetWidth;
+      const containerHeight = map.getContainer().offsetHeight;
+
+      // Calculate center of map
+      const centerLat = mapHeight / 2;
+      const centerLng = mapWidth / 2;
+
+      // ✅ Calculate proper zoom level
+      const optimalZoom = calculateCombatZoom(
+        mapWidth,
+        mapHeight,
+        containerWidth,
+        containerHeight
+      );
+
+      console.log(
+        `🎯 Setting combat map center: [${centerLat}, ${centerLng}], zoom: ${optimalZoom}`
+      );
+
+      // Set view with calculated zoom
+      map.setView([centerLat, centerLng], optimalZoom, { animate: false });
+
+      // Wait a tick, then lock everything
+      setTimeout(() => {
+        const currentZoom = map.getZoom();
+        console.log(`🔒 Locking combat map at zoom: ${currentZoom}`);
+
+        // Lock zoom to current level
+        map.setMinZoom(currentZoom);
+        map.setMaxZoom(currentZoom);
+
+        // Disable all interactions
+        map.dragging.disable();
+        map.scrollWheelZoom.disable();
+        map.doubleClickZoom.disable();
+        map.touchZoom.disable();
+        map.boxZoom.disable();
+        map.keyboard.disable();
+
+        // Broadcast locked viewport
+        const lockedCenter = map.getCenter();
+        const lockedBounds = map.getBounds();
+        writeViewport(lockedCenter, currentZoom, lockedBounds);
+      }, 100);
+
+      lastMapIdRef.current = currentMapId;
+      lastIsCombatRef.current = isCombat;
+      return;
+    }
+
+    // ✅ NON-COMBAT MAP LOGIC
+    if (mapChanged && !isCombat) {
+      console.log(`🌍 Non-combat map switched to: ${currentMapId}`);
 
       const mapWidth = currentMap?.width || 2000;
       const mapHeight = currentMap?.height || 2000;
@@ -62,167 +164,74 @@ export const MapController = ({ mapDimensions, currentMap }) => {
         [mapHeight, mapWidth],
       ];
 
+      // Reset zoom limits for free navigation
       map.setMinZoom(-5);
       map.setMaxZoom(8);
 
-      // Only enable if not drawing fog
-      const isFogDrawing =
-        mapState.fogOfWar?.isDrawing && mapState.fogOfWar?.enabled;
-      if (!isFogDrawing) {
-        try {
-          map.dragging.enable();
-          map.scrollWheelZoom.enable();
-          map.doubleClickZoom.enable();
-          map.touchZoom.enable();
-          map.boxZoom.enable();
-          map.keyboard.enable();
-        } catch (e) {
-          console.error("Error enabling interactions:", e);
-        }
+      // Enable all interactions
+      try {
+        map.dragging.enable();
+        map.scrollWheelZoom.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoom.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
+      } catch (e) {
+        console.error("Error enabling interactions:", e);
       }
 
+      // Fit bounds with padding
+      map.fitBounds(boundsArr, {
+        animate: false,
+        padding: [50, 50],
+      });
+
+      // Broadcast new viewport
       setTimeout(() => {
-        map.fitBounds(boundsArr, {
-          animate: false,
-          padding: [50, 50],
-        });
-      }, 50);
-    }
-
-    lastMapIdRef.current = currentMapId;
-  }, [
-    currentMap,
-    mapState.currentMapId,
-    mapState.fogOfWar?.isDrawing,
-    mapState.fogOfWar?.enabled,
-    isDMView,
-    map,
-  ]);
-
-  // Control map dragging based on fog drawing state
-  useEffect(() => {
-    if (!isDMView) return;
-
-    const fogDrawing =
-      mapState.fogOfWar?.isDrawing && mapState.fogOfWar?.enabled;
-
-    if (fogDrawing) {
-      map.dragging.disable();
-      map.scrollWheelZoom.disable();
-      map.doubleClickZoom.disable();
-      console.log("🎨 Map interactions DISABLED for fog drawing");
-    } else if (!currentMap?.isCombat) {
-      map.dragging.enable();
-      map.scrollWheelZoom.enable();
-      map.doubleClickZoom.enable();
-      console.log("✅ Map interactions ENABLED");
-    }
-  }, [
-    mapState.fogOfWar?.isDrawing,
-    mapState.fogOfWar?.enabled,
-    isDMView,
-    map,
-    currentMap?.isCombat,
-  ]);
-
-  useEffect(() => {
-    if (!isDMView) return;
-
-    const handleUpdate = () => {
-      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
-      updateTimeoutRef.current = setTimeout(() => {
-        if (currentMap?.isCombat) {
-          const mapWidth = currentMap.width || 2000;
-          const mapHeight = currentMap.height || 2000;
-          const boundsArr = [
-            [0, 0],
-            [mapHeight, mapWidth],
-          ];
-
-          map.fitBounds(boundsArr, {
-            animate: false,
-            padding: [0, 0],
-          });
-
-          const fittedZoom = map.getZoom();
-
-          map.setMinZoom(fittedZoom);
-          map.setMaxZoom(fittedZoom);
-
-          map.dragging.disable();
-          map.scrollWheelZoom.disable();
-          map.doubleClickZoom.disable();
-          map.touchZoom.disable();
-          map.boxZoom.disable();
-          map.keyboard.disable();
-
-          const lockedCenter = map.getCenter();
-          const lockedBounds = map.getBounds();
-          writeViewport(lockedCenter, fittedZoom, lockedBounds);
-          return;
-        }
-
-        // CRITICAL FIX: Check if fog drawing is active before re-enabling
-        const isFogDrawing =
-          mapState.fogOfWar?.isDrawing && mapState.fogOfWar?.enabled;
-
-        if (!isFogDrawing) {
-          try {
-            map.dragging.enable();
-            map.scrollWheelZoom.enable();
-            map.doubleClickZoom.enable();
-            map.touchZoom.enable();
-            map.boxZoom.enable();
-            map.keyboard.enable();
-
-            map.setMinZoom(-5);
-            map.setMaxZoom(8);
-          } catch (e) {
-            console.error("Error enabling map interactions:", e);
-          }
-        }
-
         const center = map.getCenter();
         const zoom = map.getZoom();
         const bounds = map.getBounds();
         writeViewport(center, zoom, bounds);
-      }, 50);
+      }, 100);
+    }
+
+    // Handle viewport updates for non-combat maps
+    const handleViewportUpdate = () => {
+      if (!isCombat) {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        const bounds = map.getBounds();
+        writeViewport(center, zoom, bounds);
+      }
     };
 
-    setTimeout(handleUpdate, 100);
+    map.on("moveend", handleViewportUpdate);
+    map.on("zoomend", handleViewportUpdate);
 
-    map.on("moveend", handleUpdate);
-    map.on("zoomend", handleUpdate);
-
-    const resizeObserver = new ResizeObserver(handleUpdate);
-    resizeObserver.observe(map.getContainer());
+    lastMapIdRef.current = currentMapId;
+    lastIsCombatRef.current = isCombat;
 
     return () => {
-      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
-      map.off("moveend", handleUpdate);
-      map.off("zoomend", handleUpdate);
-      resizeObserver.disconnect();
+      map.off("moveend", handleViewportUpdate);
+      map.off("zoomend", handleViewportUpdate);
     };
-  }, [
-    map,
-    isDMView,
-    updateMapState,
-    currentMap,
-    mapState.fogOfWar?.isDrawing,
-    mapState.fogOfWar?.enabled,
-  ]);
+  }, [map, isDMView, updateMapState, currentMap, mapState.currentMapId]);
 
+  // ✅ Player window: match DM viewport exactly
   useEffect(() => {
     if (isDMView) return;
     if (!mapState.viewport) return;
 
     const { center, zoom } = mapState.viewport;
 
+    // Apply exact viewport from DM
     map.setView(center, zoom, { animate: false });
 
+    // Lock to DM's zoom
     map.setMinZoom(zoom);
     map.setMaxZoom(zoom);
 
+    // Disable all interactions
     map.dragging.disable();
     map.scrollWheelZoom.disable();
     map.doubleClickZoom.disable();
