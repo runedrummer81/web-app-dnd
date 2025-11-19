@@ -5,13 +5,13 @@ import { useCombatState } from "./CombatStateContext";
 import { useMapSync } from "./MapSyncContext";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
+import { ConditionsPanel, CONDITIONS } from "./ConditionsPanel";
 
 // ✅ Parse ALL damage instances from an attack description
 const parseAttack = (description) => {
   const toHitMatch = description.match(/([+-]\d+)\s+to hit/);
   const toHit = toHitMatch ? parseInt(toHitMatch[1]) : 0;
 
-  // Find ALL damage patterns: "7 (1d6 + 4) slashing damage plus 3 (1d6) cold damage"
   const damagePattern = /(\d+)\s*\(([^)]+)\)\s*(\w+)\s*damage/g;
   const damages = [];
   let match;
@@ -27,27 +27,23 @@ const parseAttack = (description) => {
   return { toHit, damages };
 };
 
-// ✅ NEW: Parse saving throw info (DC and type)
 const parseSavingThrow = (description) => {
-  // Match patterns like "DC 13 Constitution" or "DC 15 Dexterity"
   const dcMatch = description.match(/DC\s+(\d+)\s+(\w+)\s+saving throw/i);
   if (dcMatch) {
     return {
       dc: parseInt(dcMatch[1]),
-      type: dcMatch[2], // e.g., "Constitution", "Dexterity"
+      type: dcMatch[2],
     };
   }
   return null;
 };
 
-// ✅ Check if action requires a saving throw (not an attack roll)
 const isSavingThrowAction = (description) => {
   const hasSavingThrow = /saving throw|DC \d+/i.test(description);
   const hasAttackRoll = /to hit/i.test(description);
   return hasSavingThrow && !hasAttackRoll;
 };
 
-// ✅ Roll dice and return detailed results
 const rollDice = (notation) => {
   if (!notation) return { total: 0, rolls: [], modifier: 0 };
 
@@ -90,6 +86,7 @@ export const InitiativeTracker = () => {
     combatRound,
     updateCreatureHp,
     addToCombatLog,
+    setInitiativeOrder, // ✅ Need this for conditions
   } = useCombatState();
 
   const { mapState } = useMapSync();
@@ -150,10 +147,11 @@ export const InitiativeTracker = () => {
         isDead: combatant.isDead,
         initiative: combatant.initiative,
         name: combatant.name,
+        conditions: combatant.conditions || [], // ✅ Include conditions
       };
     }
 
-    return combatant;
+    return { ...combatant, conditions: combatant.conditions || [] }; // ✅ Include conditions for players
   };
 
   const currentCombatant = getEnrichedCombatantData(
@@ -167,6 +165,11 @@ export const InitiativeTracker = () => {
     : null;
 
   const displayedCombatant = selectedCombatant || currentCombatant;
+
+  const isOpportunityAttack =
+    selectedCombatant &&
+    !selectedCombatant.isPlayer &&
+    selectedCombatant.id !== currentCombatant?.id;
 
   if (!currentCombatant || initiativeOrder.length === 0) {
     return (
@@ -186,7 +189,49 @@ export const InitiativeTracker = () => {
     return combatant.currentHp ?? combatant.hp ?? combatant.maxHp;
   };
 
-  // ✅ Handle attack roll (for normal attacks with "to hit")
+  // ✅ NEW: Add condition to combatant
+  const addCondition = (combatantId, conditionName) => {
+    setInitiativeOrder((prev) =>
+      prev.map((c) => {
+        if (c.id === combatantId) {
+          const conditions = c.conditions || [];
+          if (!conditions.includes(conditionName)) {
+            return { ...c, conditions: [...conditions, conditionName] };
+          }
+        }
+        return c;
+      })
+    );
+
+    addToCombatLog({
+      type: "condition-added",
+      target: initiativeOrder.find((c) => c.id === combatantId)?.name,
+      condition: conditionName,
+    });
+  };
+
+  // ✅ NEW: Remove condition from combatant
+  const removeCondition = (combatantId, conditionName) => {
+    setInitiativeOrder((prev) =>
+      prev.map((c) => {
+        if (c.id === combatantId) {
+          const conditions = c.conditions || [];
+          return {
+            ...c,
+            conditions: conditions.filter((cond) => cond !== conditionName),
+          };
+        }
+        return c;
+      })
+    );
+
+    addToCombatLog({
+      type: "condition-removed",
+      target: initiativeOrder.find((c) => c.id === combatantId)?.name,
+      condition: conditionName,
+    });
+  };
+
   const handleAttackRoll = (action) => {
     const { toHit, damages } = parseAttack(action.description);
     const d20Roll = Math.floor(Math.random() * 20) + 1;
@@ -207,7 +252,7 @@ export const InitiativeTracker = () => {
     setDamageRolls(null);
 
     addToCombatLog({
-      type: "attack-roll",
+      type: isOpportunityAttack ? "opportunity-attack" : "attack-roll",
       attacker: displayedCombatant.name,
       attackName: action.name,
       d20: d20Roll,
@@ -218,7 +263,6 @@ export const InitiativeTracker = () => {
     });
   };
 
-  // ✅ NEW: Handle saving throw action (no attack roll, just damage + DC)
   const handleSavingThrowAction = (action) => {
     const { damages } = parseAttack(action.description);
     const savingThrowInfo = parseSavingThrow(action.description);
@@ -243,7 +287,6 @@ export const InitiativeTracker = () => {
     });
   };
 
-  // ✅ Handle damage roll
   const handleDamageRoll = () => {
     if (!attackRoll || !attackRoll.damages || attackRoll.damages.length === 0)
       return;
@@ -254,7 +297,6 @@ export const InitiativeTracker = () => {
       let finalTotal = rollResult.total;
       let critRolls = [];
 
-      // Only double on crit if it's an attack (not a saving throw)
       if (attackRoll.isCrit && !attackRoll.isSavingThrow) {
         const critResult = rollDice(dmg.dice);
         critRolls = critResult.rolls;
@@ -287,7 +329,6 @@ export const InitiativeTracker = () => {
     });
   };
 
-  // ✅ Handle stat-based saving throw
   const handleSavingThrow = (stat) => {
     const d20Roll = Math.floor(Math.random() * 20) + 1;
     const modifier = displayedCombatant.modifiers?.[`${stat}_save`] || 0;
@@ -351,11 +392,13 @@ export const InitiativeTracker = () => {
           className={`relative border-2 overflow-hidden ${
             displayedCombatant.isDead
               ? "border-gray-600 opacity-60"
+              : isOpportunityAttack
+              ? "border-orange-500"
               : "border-[var(--primary)]"
           }`}
           style={{ minHeight: "600px" }}
         >
-          {/* Background Image - Fixed */}
+          {/* Background Image */}
           {displayedCombatant.imageURL &&
             displayedCombatant.imageURL !== "/placeholder.png" && (
               <>
@@ -389,7 +432,12 @@ export const InitiativeTracker = () => {
                   {displayedCombatant.isDead && (
                     <span className="text-red-500 text-2xl">💀</span>
                   )}
-                  {selectedCreatureId && (
+                  {isOpportunityAttack && (
+                    <span className="text-xs bg-orange-600/30 border border-orange-500 text-orange-300 px-2 py-1 uppercase">
+                      ⚡ Reaction
+                    </span>
+                  )}
+                  {selectedCreatureId && !isOpportunityAttack && (
                     <span className="text-xs bg-purple-600/30 border border-purple-500 text-purple-300 px-2 py-1 uppercase">
                       Viewing
                     </span>
@@ -412,30 +460,54 @@ export const InitiativeTracker = () => {
               </div>
             </div>
 
-            {/* PLAYER TURN MESSAGE */}
-            {displayedCombatant.isPlayer && !selectedCreatureId && (
+            {/* Player Turn Indicator */}
+            {currentCombatant.isPlayer && !selectedCreatureId && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-blue-900/40 border-b-2 border-blue-400 p-6"
+                className="bg-blue-900/40 border-b-2 border-blue-400 p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#60a5fa"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-blue-300 font-bold text-lg uppercase tracking-wider">
+                        {currentCombatant.name}'s Turn
+                      </p>
+                      <p className="text-blue-200/60 text-sm">
+                        Click creatures for opportunity attacks
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Opportunity Attack Banner */}
+            {isOpportunityAttack && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-orange-900/40 border-b-2 border-orange-500 p-4"
               >
                 <div className="flex items-center gap-3">
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#60a5fa"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <span className="text-3xl">⚡</span>
                   <div>
-                    <p className="text-blue-300 font-bold text-xl uppercase tracking-wider">
-                      Player's Turn
+                    <p className="text-orange-300 font-bold text-lg uppercase tracking-wider">
+                      Opportunity Attack
                     </p>
-                    <p className="text-blue-200/80 text-base">
-                      Waiting for player to complete their turn...
+                    <p className="text-orange-200/80 text-sm">
+                      {displayedCombatant.name} uses their reaction during{" "}
+                      {currentCombatant.name}'s turn
                     </p>
                   </div>
                 </div>
@@ -530,6 +602,19 @@ export const InitiativeTracker = () => {
                     </div>
                   </div>
 
+                  {/* ✅ NEW: Conditions Panel */}
+                  <div className="bg-black/40 p-3">
+                    <h4 className="text-[var(--secondary)] uppercase text-xs mb-2">
+                      Conditions
+                    </h4>
+                    <ConditionsPanel
+                      combatantId={displayedCombatant.id}
+                      conditions={displayedCombatant.conditions}
+                      onAddCondition={addCondition}
+                      onRemoveCondition={removeCondition}
+                    />
+                  </div>
+
                   {/* Stats/Traits Tabs */}
                   <div className="bg-black/40">
                     <div className="flex gap-4">
@@ -565,7 +650,7 @@ export const InitiativeTracker = () => {
                     </div>
 
                     <div className="p-3 max-h-60 overflow-y-auto">
-                      {/* Stats with Clickable Saving Throws */}
+                      {/* Stats */}
                       {activeTab === "stats" && displayedCombatant.stats && (
                         <div className="space-y-2">
                           <div className="grid grid-cols-3 gap-3">
@@ -603,7 +688,6 @@ export const InitiativeTracker = () => {
                             )}
                           </div>
 
-                          {/* Saving Throw Result */}
                           <AnimatePresence>
                             {savingThrowResult && (
                               <motion.div
@@ -645,7 +729,7 @@ export const InitiativeTracker = () => {
                         </div>
                       )}
 
-                      {/* Collapsible Traits */}
+                      {/* Traits */}
                       {activeTab === "traits" && displayedCombatant.traits && (
                         <div className="space-y-2">
                           {displayedCombatant.traits.map((trait, idx) => (
@@ -674,7 +758,7 @@ export const InitiativeTracker = () => {
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className="px-2 pb-2"
+                                    className="px-2 pb-2 bg-black/80"
                                   >
                                     <p className="text-xs text-[var(--secondary)]">
                                       {trait.description}
@@ -692,7 +776,6 @@ export const InitiativeTracker = () => {
                   {/* Roll Results */}
                   <AnimatePresence>
                     {(attackRoll || damageRolls) &&
-                      !selectedCreatureId &&
                       !displayedCombatant.isDead && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
@@ -700,7 +783,7 @@ export const InitiativeTracker = () => {
                           exit={{ opacity: 0, scale: 0.9 }}
                           className="space-y-2"
                         >
-                          {/* ✅ Attack Roll (for normal attacks) */}
+                          {/* Attack Roll */}
                           {attackRoll && !attackRoll.isSavingThrow && (
                             <div
                               className={`p-3 border-2 ${
@@ -713,6 +796,11 @@ export const InitiativeTracker = () => {
                             >
                               <p className="text-xs text-[var(--secondary)] uppercase mb-1">
                                 {attackRoll.name} - To Hit
+                                {isOpportunityAttack && (
+                                  <span className="ml-2 text-orange-400">
+                                    (Reaction)
+                                  </span>
+                                )}
                               </p>
                               <div className="flex items-center justify-between">
                                 <p
@@ -746,7 +834,7 @@ export const InitiativeTracker = () => {
                             </div>
                           )}
 
-                          {/* ✅ NEW: Saving Throw Action Display */}
+                          {/* Saving Throw Action */}
                           {attackRoll && attackRoll.isSavingThrow && (
                             <div className="p-3 border-2 border-blue-500 bg-blue-900/40">
                               <p className="text-xs text-blue-300 uppercase mb-2">
@@ -778,10 +866,9 @@ export const InitiativeTracker = () => {
                             </div>
                           )}
 
-                          {/* Consolidated Damage Display */}
+                          {/* Damage Display */}
                           {damageRolls && (
                             <div className="p-4 border-2 border-orange-500 bg-orange-900/40">
-                              {/* Total Damage - Prominent */}
                               <div className="mb-3 pb-3 border-b-2 border-yellow-400">
                                 <p className="text-xs text-yellow-300 uppercase mb-1">
                                   Total Damage
@@ -800,7 +887,6 @@ export const InitiativeTracker = () => {
                                 </p>
                               </div>
 
-                              {/* Damage Breakdown */}
                               <div className="space-y-2">
                                 {damageRolls.map((dmg, idx) => (
                                   <div key={idx}>
@@ -845,86 +931,101 @@ export const InitiativeTracker = () => {
                 {/* RIGHT COLUMN - Actions */}
                 <div>
                   <h4 className="text-[var(--secondary)] uppercase text-xs pb-2">
-                    Actions
+                    {isOpportunityAttack
+                      ? "Available Melee Attacks"
+                      : "Actions"}
                   </h4>
                   <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
                     {displayedCombatant.actions &&
                     displayedCombatant.actions.length > 0 ? (
-                      displayedCombatant.actions.map((action, idx) => {
-                        const { toHit, damages } = parseAttack(
-                          action.description
-                        );
-                        const isAttack = toHit !== 0 || damages.length > 0;
-                        const isSavingThrow = isSavingThrowAction(
-                          action.description
-                        );
-                        const isExpanded = expandedActionId === idx;
+                      displayedCombatant.actions
+                        .filter((action) => {
+                          if (isOpportunityAttack) {
+                            return action.description.includes(
+                              "Melee Weapon Attack"
+                            );
+                          }
+                          return true;
+                        })
+                        .map((action, idx) => {
+                          const { toHit, damages } = parseAttack(
+                            action.description
+                          );
+                          const isAttack = toHit !== 0 || damages.length > 0;
+                          const isSavingThrow = isSavingThrowAction(
+                            action.description
+                          );
+                          const isExpanded = expandedActionId === idx;
 
-                        return (
-                          <div
-                            key={idx}
-                            className="border border-[var(--secondary)]/30 hover:border-[var(--primary)] transition"
-                          >
-                            {/* Action Header */}
-                            <div className="flex items-start justify-between gap-2 p-2">
-                              <button
-                                onClick={() =>
-                                  setExpandedActionId(isExpanded ? null : idx)
-                                }
-                                className="flex-1 text-left"
-                              >
-                                <p className="text-[var(--primary)] font-black uppercase text-base flex items-center gap-2">
-                                  {action.name}
-                                  {isSavingThrow && (
-                                    <span className="text-xs bg-blue-600/30 border border-blue-500 text-blue-300 px-2 py-0.5 uppercase">
-                                      Save
+                          return (
+                            <div
+                              key={idx}
+                              className="border border-[var(--secondary)]/30 hover:border-[var(--primary)] transition"
+                            >
+                              <div className="flex items-start justify-between gap-2 p-2">
+                                <button
+                                  onClick={() =>
+                                    setExpandedActionId(isExpanded ? null : idx)
+                                  }
+                                  className="flex-1 text-left"
+                                >
+                                  <p className="text-[var(--primary)] font-black uppercase text-base flex items-center gap-2">
+                                    {action.name}
+                                    {isSavingThrow && (
+                                      <span className="text-xs bg-blue-600/30 border border-blue-500 text-blue-300 px-2 py-0.5 uppercase">
+                                        Save
+                                      </span>
+                                    )}
+                                    <span className="text-xs text-[var(--secondary)]">
+                                      {isExpanded ? "▲" : "▼"}
                                     </span>
-                                  )}
-                                  <span className="text-xs text-[var(--secondary)]">
-                                    {isExpanded ? "▲" : "▼"}
-                                  </span>
-                                </p>
-                              </button>
-                              {/* ✅ Button for all actions that can deal damage */}
-                              {isAttack &&
-                                !selectedCreatureId &&
-                                !displayedCombatant.isDead && (
+                                  </p>
+                                </button>
+                                {isAttack && !displayedCombatant.isDead && (
                                   <motion.button
                                     onClick={() =>
                                       isSavingThrow
                                         ? handleSavingThrowAction(action)
                                         : handleAttackRoll(action)
                                     }
-                                    className="px-3 py-1 bg-[var(--combat)] text-white text-xs font-bold uppercase"
+                                    className={`px-3 py-1 text-white text-xs font-bold uppercase ${
+                                      isOpportunityAttack
+                                        ? "bg-orange-700 hover:bg-orange-600"
+                                        : "bg-[var(--combat)]"
+                                    }`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                   >
-                                    {isSavingThrow ? "Use" : "Attack"}
+                                    {isSavingThrow
+                                      ? "Use"
+                                      : isOpportunityAttack
+                                      ? "⚡ Attack"
+                                      : "Attack"}
                                   </motion.button>
                                 )}
-                            </div>
+                              </div>
 
-                            {/* Collapsible Description */}
-                            <AnimatePresence>
-                              {isExpanded && (
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  className="px-2 pb-2"
-                                >
-                                  <p className="text-[var(--secondary)] text-xs leading-relaxed">
-                                    {action.description}
-                                  </p>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        );
-                      })
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="px-2 pb-2 bg-black/80"
+                                  >
+                                    <p className="text-[var(--secondary)] text-xs leading-relaxed">
+                                      {action.description}
+                                    </p>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          );
+                        })
                     ) : (
                       <p className="text-[var(--secondary)] text-sm italic">
-                        No actions available
+                        No {isOpportunityAttack ? "melee attacks" : "actions"}{" "}
+                        available
                       </p>
                     )}
                   </div>
@@ -936,7 +1037,11 @@ export const InitiativeTracker = () => {
             {selectedCreatureId && (
               <div className="p-4 border-t border-[var(--primary)]/30">
                 <motion.button
-                  onClick={() => setSelectedCreatureId(null)}
+                  onClick={() => {
+                    setSelectedCreatureId(null);
+                    setAttackRoll(null);
+                    setDamageRolls(null);
+                  }}
                   className="w-full p-3 bg-gray-700 hover:bg-gray-600 text-white font-bold uppercase"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -949,7 +1054,7 @@ export const InitiativeTracker = () => {
         </motion.div>
       )}
 
-      {/* Initiative Order List - keeping your existing code */}
+      {/* Initiative Order List */}
       <motion.div className="px-6 py-4">
         <h3 className="text-base text-[var(--primary)] uppercase mb-3 font-bold">
           Initiative Order
@@ -968,20 +1073,20 @@ export const InitiativeTracker = () => {
               <motion.div
                 key={combatant.id}
                 onClick={() => {
-                  if (!combatant.isPlayer) {
-                    setSelectedCreatureId(combatant.id);
-                  }
+                  setSelectedCreatureId(combatant.id);
+                  setAttackRoll(null);
+                  setDamageRolls(null);
                 }}
-                className={`flex items-center justify-between p-2 border transition-all ${
+                className={`flex items-center justify-between p-2 border transition-all cursor-pointer ${
                   combatant.isDead
                     ? "border-gray-700 bg-gray-900/40 opacity-60"
                     : isSelected
-                    ? "border-purple-500 bg-purple-900/30 cursor-pointer"
+                    ? "border-purple-500 bg-purple-900/30"
                     : isCurrent
-                    ? "border-[var(--primary)] bg-[var(--primary)]/20 cursor-pointer"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/20"
                     : combatant.isPlayer
-                    ? "border-[var(--secondary)]/20 bg-black/20"
-                    : "border-[var(--secondary)]/20 bg-black/20 cursor-pointer hover:border-[var(--primary)]/50"
+                    ? "border-[var(--secondary)]/20 bg-black/20 hover:border-blue-400/50"
+                    : "border-[var(--secondary)]/20 bg-black/20 hover:border-[var(--primary)]/50"
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1">
@@ -1019,6 +1124,14 @@ export const InitiativeTracker = () => {
                     <span className="text-xs bg-purple-600/30 border border-purple-500 text-purple-300 px-2 py-0.5 uppercase">
                       Viewing
                     </span>
+                  )}
+
+                  {/* ✅ NEW: Compact Condition Icons in Initiative List */}
+                  {combatant.conditions?.length > 0 && (
+                    <ConditionsPanel
+                      conditions={combatant.conditions}
+                      isCompact={true}
+                    />
                   )}
                 </div>
 

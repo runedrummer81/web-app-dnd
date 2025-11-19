@@ -342,6 +342,7 @@ export const CombatStateProvider = ({ children }) => {
         combatActive,
         isSetupMode,
         initiativeOrder,
+        setInitiativeOrder,
         currentTurnIndex,
         combatLog,
         combatRound,
@@ -357,7 +358,7 @@ export const CombatStateProvider = ({ children }) => {
         updateCreatureHp,
         addToCombatLog,
         rollAttack,
-        setGridSettings,        
+        setGridSettings,
         setCombatTransition,
       }}
     >
