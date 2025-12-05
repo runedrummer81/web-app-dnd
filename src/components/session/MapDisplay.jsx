@@ -135,6 +135,20 @@ export const MapDisplay = () => {
       };
     }
 
+    if (
+      mapState.fillerMapData &&
+      mapState.currentMapId === mapState.fillerMapData.id
+    ) {
+      return {
+        id: mapState.fillerMapData.id,
+        name: mapState.fillerMapData.name || "Filler Map",
+        imageUrl: mapState.fillerMapData.imageUrl,
+        width: mapState.fillerMapData.width || 2000,
+        height: mapState.fillerMapData.height || 2000,
+        isCombat: false,
+      };
+    }
+
     return { ...mapSetData.worldMap, isCombat: false };
   };
 
