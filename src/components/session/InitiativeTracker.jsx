@@ -941,8 +941,11 @@ export const InitiativeTracker = () => {
                       displayedCombatant.actions
                         .filter((action) => {
                           if (isOpportunityAttack) {
-                            return action.description.includes(
-                              "Melee Weapon Attack"
+                            return (
+                              action.description.includes(
+                                "Melee Weapon Attack"
+                              ) ||
+                              action.description.includes("Melee Attack Roll")
                             );
                           }
                           return true;
