@@ -66,13 +66,18 @@ const DMPanelWrapper = ({
       };
     }
 
+    if (mapState.fillerMapData) {
+      return mapState.fillerMapData;
+    }
+
     return mapSetData.worldMap || { width: 2000, height: 2000 };
   };
 
-  const handleMapSwitch = (mapId) => {
+  const handleMapSwitch = (mapId, fillerMapData = null) => {
     updateMapState({
       currentMapId: mapId,
       markers: [],
+      fillerMapData: fillerMapData,
       fogOfWar: {
         enabled: false,
         revealedMask: null,

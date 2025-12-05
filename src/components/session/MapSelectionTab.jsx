@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMapSync } from "./MapSyncContext";
+import { collection, query, getDocs } from "firebase/firestore";
+import { db } from "../../firebase";
 
 export const MapSelectionTab = ({
   mapSetData,
@@ -11,11 +13,80 @@ export const MapSelectionTab = ({
   const [openSection, setOpenSection] = useState(null); // null, 'towns', 'dungeons', or 'locations'
   const [selectedLocation, setSelectedLocation] = useState(null);
 
+  // Search states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+
   // Add fog state
   const { mapState, updateMapState } = useMapSync();
   const fogSettings = mapState.fogOfWar || {
     enabled: false,
     revealedMask: null,
+  };
+
+  // Search function
+  const searchFillerMaps = async (searchTerm) => {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Query Firebase for filler maps
+      // This searches for maps where the name or tags contain the search term
+      const fillerMapsRef = collection(db, "fillerMaps");
+      const q = query(fillerMapsRef);
+      const querySnapshot = await getDocs(q);
+
+      const results = [];
+      querySnapshot.forEach((doc) => {
+        const mapData = doc.data();
+        const searchLower = searchTerm.toLowerCase();
+
+        // Check if name includes search term
+        const nameMatch = mapData.name?.toLowerCase().includes(searchLower);
+
+        // Check if any tags include search term
+        const tagsMatch = mapData.tags?.some((tag) =>
+          tag.toLowerCase().includes(searchLower)
+        );
+
+        if (nameMatch || tagsMatch) {
+          results.push({
+            id: doc.id,
+            ...mapData,
+          });
+        }
+      });
+
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error("Error searching filler maps:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchFillerMaps(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Clear search when closing
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
   };
 
   if (!mapSetData) {
@@ -64,13 +135,235 @@ export const MapSelectionTab = ({
 
   return (
     <div className="space-y-4">
+      {/* FILLER MAP SEARCH BAR */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="relative"
+      >
+        <div className="relative group">
+          {/* Decorative corner borders */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[var(--primary)] opacity-60" />
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[var(--primary)] opacity-60" />
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[var(--primary)] opacity-60" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[var(--primary)] opacity-60" />
+
+          <div className="border-2 border-[var(--secondary)] bg-[var(--dark-muted-bg)] p-4 relative overflow-hidden group-hover:border-[var(--primary)] transition-colors duration-300">
+            {/* Subtle glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--primary)]/5 to-transparent" />
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth="2"
+                  className="flex-shrink-0"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+                <h3 className="text-[var(--primary)] font-bold uppercase tracking-[0.2em] text-sm">
+                  Filler Maps
+                </h3>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for maps... (e.g., 'old house', 'tavern', 'forest')"
+                  className="w-full bg-black/40 border-2 border-[var(--secondary)]/50 text-[var(--secondary)] placeholder-[var(--secondary)]/40 px-4 py-3 uppercase tracking-wider text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  style={{ letterSpacing: "0.1em" }}
+                />
+
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--secondary)] hover:text-[var(--primary)] transition-colors p-1"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {isSearching && (
+                <div className="mt-2 flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full"
+                  />
+                  <span className="text-[var(--secondary)]/70 text-xs uppercase tracking-wider">
+                    Searching...
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* SEARCH RESULTS */}
+        <AnimatePresence>
+          {showSearchResults && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden mt-2"
+            >
+              <div className="border-2 border-[var(--primary)]/30 bg-black/60 p-4">
+                {searchResults.length > 0 ? (
+                  <div>
+                    <p className="text-[var(--primary)] text-xs uppercase tracking-wider mb-3 font-bold">
+                      {searchResults.length}{" "}
+                      {searchResults.length === 1 ? "result" : "results"} found
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                      {searchResults.map((map, index) => (
+                        <motion.button
+                          key={map.id}
+                          onClick={() => {
+                            onMapSwitch(map.id, map);
+                            clearSearch();
+                          }}
+                          className="relative group"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <div className="relative aspect-square overflow-hidden border-2 border-[var(--secondary)] group-hover:border-[var(--primary)] transition-colors duration-300">
+                            {map.imageUrl ? (
+                              <img
+                                src={map.imageUrl}
+                                alt={map.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-[var(--dark-muted-bg)] flex items-center justify-center">
+                                <svg
+                                  width="48"
+                                  height="48"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="var(--secondary)"
+                                  strokeWidth="2"
+                                  className="opacity-30"
+                                >
+                                  <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                              </div>
+                            )}
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                              <h3 className="text-[var(--secondary)] group-hover:text-[var(--primary)] font-bold uppercase tracking-wider text-xs transition-colors duration-300">
+                                {map.name}
+                              </h3>
+                              {map.tags && map.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {map.tags.slice(0, 2).map((tag, i) => (
+                                    <span
+                                      key={i}
+                                      className="text-[10px] px-1.5 py-0.5 bg-[var(--primary)]/20 text-[var(--primary)] uppercase tracking-wider"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {currentMapId === map.id && (
+                              <>
+                                <motion.div
+                                  layoutId="activeMapTab"
+                                  className="absolute inset-0 border-4 border-[var(--primary)] pointer-events-none"
+                                  initial={false}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 30,
+                                  }}
+                                />
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="absolute top-2 right-2 bg-[var(--primary)] rounded-full p-1"
+                                >
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="var(--dark-muted-bg)"
+                                    strokeWidth="3"
+                                  >
+                                    <path d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </motion.div>
+                              </>
+                            )}
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--secondary)"
+                      strokeWidth="2"
+                      className="mx-auto mb-3 opacity-30"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <p className="text-[var(--secondary)]/50 text-sm uppercase tracking-wider">
+                      No maps found for "{searchQuery}"
+                    </p>
+                    <p className="text-[var(--secondary)]/30 text-xs mt-2">
+                      Try different keywords
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
       {/* WORLD MAP BANNER */}
       <motion.button
         onClick={() => onMapSwitch("world")}
         className="relative w-full h-32 overflow-hidden border-2 border-[var(--secondary)] group"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="absolute inset-0">
           {worldMap?.imageUrl && (
