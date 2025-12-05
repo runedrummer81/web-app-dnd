@@ -195,9 +195,15 @@ export const MapDisplay = () => {
     opacity: 0.3,
   };
 
-  const handleTokenMove = (tokenId, newPosition) => {
+  const handleTokenMove = (tokenId, newPosition, newSize) => {
     const updatedTokens = (mapState.tokens || []).map((token) =>
-      token.id === tokenId ? { ...token, position: newPosition } : token
+      token.id === tokenId
+        ? {
+            ...token,
+            position: newPosition,
+            size: newSize !== undefined ? newSize : token.size, // Update size if provided
+          }
+        : token
     );
     updateMapState({ tokens: updatedTokens });
   };
