@@ -6,6 +6,8 @@ import { useMapSync } from "./MapSyncContext";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import { ConditionsPanel, CONDITIONS } from "./ConditionsPanel";
+import { SummonCreatures } from "./Summoncreatures";
+import { ActiveSummonsPanel } from "./ActiveSummonsPanel";
 
 // ✅ Parse ALL damage instances from an attack description
 const parseAttack = (description) => {
@@ -86,10 +88,10 @@ export const InitiativeTracker = () => {
     combatRound,
     updateCreatureHp,
     addToCombatLog,
-    setInitiativeOrder, // ✅ Need this for conditions
+    setInitiativeOrder, // ✅ Need this for conditions AND summons
   } = useCombatState();
 
-  const { mapState } = useMapSync();
+  const { mapState, addToken, updateMapState } = useMapSync();
 
   const [creatures, setCreatures] = useState([]);
   const [hpChange, setHpChange] = useState(0);
@@ -112,6 +114,28 @@ export const InitiativeTracker = () => {
     };
     fetchCreatures();
   }, []);
+
+  useEffect(() => {
+    const handleSummonCreated = (event) => {
+      const { id, name, summonedBy } = event.detail;
+
+      console.log("✨ Summon token created:", { id, name, summonedBy });
+
+      // ✅ FIXED: Use functional update to avoid stale closure
+      updateMapState((prevState) => ({
+        activeSummons: [
+          ...(prevState.activeSummons || []),
+          { id, name, summonedBy },
+        ],
+      }));
+    };
+
+    window.addEventListener("summonTokenCreated", handleSummonCreated);
+
+    return () => {
+      window.removeEventListener("summonTokenCreated", handleSummonCreated);
+    };
+  }, [updateMapState]);
 
   useEffect(() => {
     const handleTokenClicked = (event) => {
@@ -147,11 +171,11 @@ export const InitiativeTracker = () => {
         isDead: combatant.isDead,
         initiative: combatant.initiative,
         name: combatant.name,
-        conditions: combatant.conditions || [], // ✅ Include conditions
+        conditions: combatant.conditions || [],
       };
     }
 
-    return { ...combatant, conditions: combatant.conditions || [] }; // ✅ Include conditions for players
+    return { ...combatant, conditions: combatant.conditions || [] };
   };
 
   const currentCombatant = getEnrichedCombatantData(
@@ -189,7 +213,7 @@ export const InitiativeTracker = () => {
     return combatant.currentHp ?? combatant.hp ?? combatant.maxHp;
   };
 
-  // ✅ NEW: Add condition to combatant
+  // ✅ Add condition to combatant
   const addCondition = (combatantId, conditionName) => {
     setInitiativeOrder((prev) =>
       prev.map((c) => {
@@ -210,7 +234,7 @@ export const InitiativeTracker = () => {
     });
   };
 
-  // ✅ NEW: Remove condition from combatant
+  // ✅ Remove condition from combatant
   const removeCondition = (combatantId, conditionName) => {
     setInitiativeOrder((prev) =>
       prev.map((c) => {
@@ -231,6 +255,232 @@ export const InitiativeTracker = () => {
       condition: conditionName,
     });
   };
+
+  const handleDispelAll = (summonerName) => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🗑️ DISPEL ALL STARTED");
+    console.log("=".repeat(80));
+    console.log("Summoner:", summonerName);
+    console.log("Timestamp:", new Date().toISOString());
+
+    // Capture current state
+    const currentSummons = mapState.activeSummons || [];
+    const currentTokens = mapState.tokens || [];
+    const currentEffects = mapState.summonEffects || [];
+
+    console.log("\n📊 CURRENT STATE SNAPSHOT:");
+    console.log("  - activeSummons:", currentSummons.length, "items");
+    console.log("  - tokens:", currentTokens.length, "items");
+    console.log("  - summonEffects:", currentEffects.length, "items");
+
+    // Find summons to remove
+    const playerSummons = currentSummons.filter(
+      (s) => s.summonedBy === summonerName
+    );
+
+    console.log(`\n🎯 FOUND ${playerSummons.length} SUMMONS TO REMOVE:`);
+    playerSummons.forEach((s, i) => {
+      console.log(`  ${i + 1}. ${s.name} (ID: ${s.id})`);
+    });
+
+    if (playerSummons.length === 0) {
+      console.log("\n❌ NO SUMMONS FOUND - ABORTING");
+      console.log("=".repeat(80) + "\n");
+      return;
+    }
+
+    // Get IDs to remove
+    const tokenIdsToRemove = playerSummons.map((s) => s.id);
+    console.log("\n🔑 TOKEN IDS TO REMOVE:");
+    console.log(tokenIdsToRemove);
+
+    // Create dispel effects
+    const newDispelEffects = [];
+
+    playerSummons.forEach((summon, index) => {
+      const token = currentTokens.find((t) => t.id === summon.id);
+      if (token) {
+        const effect = {
+          id: `dispel-${summon.id}-${Date.now() + index}`,
+          type: "dispel",
+          position: token.position,
+          name: token.name,
+          timestamp: Date.now() + index * 200,
+        };
+        newDispelEffects.push(effect);
+        console.log(`  ✓ Created dispel effect for: ${token.name}`);
+      } else {
+        console.warn(
+          `  ⚠️ No token found for summon: ${summon.name} (${summon.id})`
+        );
+      }
+    });
+
+    // Calculate new arrays
+    const newActiveSummons = currentSummons.filter(
+      (s) => !tokenIdsToRemove.includes(s.id)
+    );
+    const newTokens = currentTokens.filter(
+      (t) => !tokenIdsToRemove.includes(t.id)
+    );
+    const newEffects = [...currentEffects, ...newDispelEffects];
+
+    console.log("\n📋 CALCULATED NEW ARRAYS:");
+    console.log(
+      "  activeSummons:",
+      currentSummons.length,
+      "→",
+      newActiveSummons.length
+    );
+    console.log("  tokens:", currentTokens.length, "→", newTokens.length);
+    console.log(
+      "  summonEffects:",
+      currentEffects.length,
+      "→",
+      newEffects.length
+    );
+
+    console.log("\n🔍 NEW ACTIVE SUMMONS IDS:");
+    console.log(newActiveSummons.map((s) => s.id));
+
+    console.log("\n🔍 NEW TOKEN IDS:");
+    console.log(newTokens.map((t) => t.id));
+
+    console.log("\n🚀 CALLING updateMapState...");
+
+    // SINGLE BATCH UPDATE
+    updateMapState({
+      activeSummons: newActiveSummons,
+      tokens: newTokens,
+      summonEffects: newEffects,
+    });
+
+    console.log("✅ updateMapState CALLED");
+
+    // Check state after delay to see if it stuck
+    setTimeout(() => {
+      console.log("\n⏰ CHECKING STATE 300ms AFTER UPDATE:");
+      console.log(
+        "  - mapState.activeSummons:",
+        mapState.activeSummons?.length || 0
+      );
+      console.log("  - mapState.tokens:", mapState.tokens?.length || 0);
+      console.log(
+        "  - mapState.summonEffects:",
+        mapState.summonEffects?.length || 0
+      );
+
+      // Check if any removed IDs still exist
+      const stillExistInSummons = tokenIdsToRemove.filter((id) =>
+        (mapState.activeSummons || []).some((s) => s.id === id)
+      );
+      const stillExistInTokens = tokenIdsToRemove.filter((id) =>
+        (mapState.tokens || []).some((t) => t.id === id)
+      );
+
+      if (stillExistInSummons.length > 0) {
+        console.error("❌ SUMMONS STILL EXIST:", stillExistInSummons);
+      } else {
+        console.log("✅ All summons removed from activeSummons");
+      }
+
+      if (stillExistInTokens.length > 0) {
+        console.error("❌ TOKENS STILL EXIST:", stillExistInTokens);
+        console.error(
+          "🐛 THIS IS THE BUG! Tokens were not removed from state."
+        );
+      } else {
+        console.log("✅ All tokens removed from tokens array");
+      }
+
+      console.log("=".repeat(80) + "\n");
+    }, 300);
+
+    // Add to combat log
+    addToCombatLog({
+      type: "dispel-all",
+      summoner: summonerName,
+      count: playerSummons.length,
+    });
+
+    console.log("=".repeat(80));
+    console.log("🗑️ DISPEL ALL FUNCTION COMPLETED");
+    console.log("=".repeat(80) + "\n");
+  };
+
+  const handleDispelSingle = (summonId) => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🗑️ DISPEL SINGLE STARTED");
+    console.log("=".repeat(80));
+    console.log("Summon ID:", summonId);
+
+    const currentSummons = mapState.activeSummons || [];
+    const currentTokens = mapState.tokens || [];
+    const currentEffects = mapState.summonEffects || [];
+
+    const summonToRemove = currentSummons.find((s) => s.id === summonId);
+    const tokenToRemove = currentTokens.find((t) => t.id === summonId);
+
+    if (!summonToRemove) {
+      console.log("❌ Summon not found");
+      console.log(
+        "Available summon IDs:",
+        currentSummons.map((s) => s.id)
+      );
+      console.log("=".repeat(80) + "\n");
+      return;
+    }
+
+    console.log(`Removing: ${summonToRemove.name}`);
+
+    const dispelEffect = tokenToRemove
+      ? {
+          id: `dispel-${summonId}-${Date.now()}`,
+          type: "dispel",
+          position: tokenToRemove.position,
+          name: tokenToRemove.name,
+          timestamp: Date.now(),
+        }
+      : null;
+
+    console.log("\n🚀 CALLING updateMapState...");
+
+    updateMapState({
+      activeSummons: currentSummons.filter((s) => s.id !== summonId),
+      tokens: currentTokens.filter((t) => t.id !== summonId),
+      summonEffects: dispelEffect
+        ? [...currentEffects, dispelEffect]
+        : currentEffects,
+    });
+
+    console.log("✅ updateMapState CALLED");
+
+    setTimeout(() => {
+      console.log("\n⏰ State after 300ms:");
+      const stillExists = (mapState.tokens || []).some(
+        (t) => t.id === summonId
+      );
+      if (stillExists) {
+        console.error("❌ TOKEN STILL EXISTS");
+      } else {
+        console.log("✅ Token successfully removed");
+      }
+    }, 300);
+
+    addToCombatLog({
+      type: "dispel-single",
+      summon: summonToRemove.name,
+    });
+
+    console.log("=".repeat(80) + "\n");
+  };
+
+  // Get active summons for current player
+  const currentPlayerSummons = currentCombatant?.isPlayer
+    ? (mapState.activeSummons || []).filter(
+        (s) => s.summonedBy === currentCombatant.name
+      )
+    : [];
 
   const handleAttackRoll = (action) => {
     const { toHit, damages } = parseAttack(action.description);
@@ -383,6 +633,24 @@ export const InitiativeTracker = () => {
         </motion.button>
       </motion.div>
 
+      <ActiveSummonsPanel
+        activeSummons={mapState.activeSummons || []}
+        onDispelSingle={handleDispelSingle}
+        onDispelAll={handleDispelAll}
+      />
+
+      {/* ✅ Summon Creatures Panel (only on player's turn for summoning NEW creatures) */}
+      {currentCombatant.isPlayer && !selectedCreatureId && (
+        <div className="px-6 pb-4">
+          <SummonCreatures
+            playerName={currentCombatant.name}
+            activeSummons={currentPlayerSummons}
+            onDispelSingle={handleDispelSingle}
+            onDispelAll={() => handleDispelAll(currentCombatant.name)}
+          />
+        </div>
+      )}
+
       {/* Current/Selected Creature Display */}
       {displayedCombatant && (
         <motion.div
@@ -448,6 +716,8 @@ export const InitiativeTracker = () => {
                     ? "Player Character"
                     : displayedCombatant.type || "Creature"}
                   {displayedCombatant.isDead && " (Dead)"}
+                  {displayedCombatant.isSummoned &&
+                    ` (by ${displayedCombatant.summonedBy})`}
                 </p>
               </div>
               <div className="text-right">
@@ -602,7 +872,7 @@ export const InitiativeTracker = () => {
                     </div>
                   </div>
 
-                  {/* ✅ NEW: Conditions Panel */}
+                  {/* Conditions Panel */}
                   <div className="bg-black/40 p-3">
                     <h4 className="text-[var(--secondary)] uppercase text-xs mb-2">
                       Conditions
@@ -1096,6 +1366,9 @@ export const InitiativeTracker = () => {
                   {combatant.isDead && (
                     <span className="text-red-500 text-xl">💀</span>
                   )}
+                  {combatant.isSummoned && (
+                    <span className="text-purple-400 text-xl">✨</span>
+                  )}
                   <div
                     className={`text-lg font-bold w-8 text-center ${
                       combatant.isDead
@@ -1129,7 +1402,7 @@ export const InitiativeTracker = () => {
                     </span>
                   )}
 
-                  {/* ✅ NEW: Compact Condition Icons in Initiative List */}
+                  {/* Compact Condition Icons in Initiative List */}
                   {combatant.conditions?.length > 0 && (
                     <ConditionsPanel
                       conditions={combatant.conditions}

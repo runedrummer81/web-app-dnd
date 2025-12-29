@@ -110,24 +110,73 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
   }, [isDMView]);
 
   const updateMapState = (updates) => {
-    console.log(
-      `🔄 updateMapState called (${isDMView ? "DM" : "Player"} View):`,
-      updates
-    );
+    console.log("\n" + "=".repeat(60));
+    console.log("🔧 updateMapState called");
+    console.log("=".repeat(60));
+
+    // Check if updates is a function (functional update)
+    const isFunction = typeof updates === "function";
+    console.log("Update type:", isFunction ? "FUNCTION" : "OBJECT");
+
+    if (!isFunction) {
+      console.log("Updates received:", updates);
+      console.log("Keys being updated:", Object.keys(updates));
+    }
+
     setMapState((prev) => {
-      const newState = { ...prev, ...updates };
-      console.log("📦 New state:", newState);
+      // If updates is a function, call it with previous state
+      const actualUpdates = isFunction ? updates(prev) : updates;
+
+      console.log("\n📊 BEFORE UPDATE:");
+      console.log("  - activeSummons:", prev.activeSummons?.length || 0);
+      console.log("  - tokens:", prev.tokens?.length || 0);
+      console.log("  - summonEffects:", prev.summonEffects?.length || 0);
+
+      const newState = { ...prev, ...actualUpdates };
+
+      console.log("\n📊 AFTER UPDATE:");
+      console.log("  - activeSummons:", newState.activeSummons?.length || 0);
+      console.log("  - tokens:", newState.tokens?.length || 0);
+      console.log("  - summonEffects:", newState.summonEffects?.length || 0);
+
+      // Detailed logging for activeSummons and tokens
+      if (actualUpdates.hasOwnProperty("activeSummons")) {
+        console.log("\n🔍 activeSummons change:");
+        console.log(
+          "  FROM:",
+          prev.activeSummons?.map((s) => s.id)
+        );
+        console.log(
+          "  TO:",
+          newState.activeSummons?.map((s) => s.id)
+        );
+      }
+
+      if (actualUpdates.hasOwnProperty("tokens")) {
+        console.log("\n🔍 tokens change:");
+        console.log(
+          "  FROM:",
+          prev.tokens?.map((t) => t.id)
+        );
+        console.log(
+          "  TO:",
+          newState.tokens?.map((t) => t.id)
+        );
+      }
+
       if (isDMView && broadcastChannelRef.current) {
         try {
           broadcastChannelRef.current.postMessage({
             type: "MAP_STATE_UPDATE",
             payload: newState,
           });
-          console.log("📡 Broadcasting state update to players");
+          console.log("\n📡 Broadcasting state update to players");
         } catch (error) {
           console.error("❌ Error broadcasting state:", error);
         }
       }
+
+      console.log("=".repeat(60) + "\n");
       return newState;
     });
   };

@@ -1,3 +1,28 @@
+// UPDATED TokenOverlay.jsx - Remove the removeToken event listener entirely
+// Since we're doing batch updates, we don't need individual removal events
+
+// FIND THIS SECTION IN YOUR TokenOverlay.jsx:
+// useEffect(() => {
+//   const handleRemoveToken = (event) => {
+//     ...
+//   };
+//   window.addEventListener("removeToken", handleRemoveToken);
+//   ...
+// }, [...]);
+
+// AND REPLACE IT WITH:
+
+// REMOVED: No longer listening for removeToken events
+// Token removal is now handled by batch updates in mapState
+// The InitiativeTracker directly updates mapState.tokens
+
+// That's it! By removing this event listener, we eliminate the race condition
+// The tokens will be removed directly through Firebase sync
+
+// ============================================
+// FULL UPDATED TokenOverlay.jsx
+// ============================================
+
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import { useMapSync } from "./MapSyncContext";
@@ -5,13 +30,235 @@ import L from "leaflet";
 
 export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
   const map = useMap();
-  const { mapState } = useMapSync();
+  const { mapState, updateMapState } = useMapSync();
   const [selectedTokenId, setSelectedTokenId] = useState(null);
+  const [placementMode, setPlacementMode] = useState(null);
+  const [placementPositions, setPlacementPositions] = useState([]);
 
   // Get initiative order from mapState
   const initiativeOrder = mapState.initiativeOrder || [];
   const currentTurnIndex = mapState.currentTurnIndex || 0;
   const currentCombatant = initiativeOrder[currentTurnIndex];
+
+  // Listen for addToken events - sync directly to mapState (Firebase)
+  useEffect(() => {
+    const handleAddToken = (event) => {
+      const { id, name, x, y, imageUrl, isPlayer } = event.detail;
+
+      console.log("TokenOverlay received addToken event:", event.detail);
+
+      const newToken = {
+        id,
+        name,
+        position: [y, x],
+        imageUrl,
+        isPlayer: isPlayer || false,
+        size: 60,
+      };
+
+      const currentTokens = mapState.tokens || [];
+      console.log("Current tokens:", currentTokens.length, "Adding:", name);
+
+      updateMapState({
+        tokens: [...currentTokens, newToken],
+      });
+
+      console.log("Token synced to mapState");
+    };
+
+    window.addEventListener("addToken", handleAddToken);
+
+    return () => {
+      window.removeEventListener("addToken", handleAddToken);
+    };
+  }, [mapState.tokens, updateMapState]);
+
+  // Handle summon placement mode
+  useEffect(() => {
+    const handleEnterPlacementMode = (event) => {
+      console.log("Entering placement mode:", event.detail);
+      setPlacementMode(event.detail);
+      setPlacementPositions([]);
+    };
+
+    const handleCancelPlacement = () => {
+      console.log("Cancelled placement mode");
+      setPlacementMode(null);
+      setPlacementPositions([]);
+    };
+
+    window.addEventListener(
+      "enterSummonPlacementMode",
+      handleEnterPlacementMode
+    );
+    window.addEventListener("cancelSummonPlacement", handleCancelPlacement);
+
+    return () => {
+      window.removeEventListener(
+        "enterSummonPlacementMode",
+        handleEnterPlacementMode
+      );
+      window.removeEventListener(
+        "cancelSummonPlacement",
+        handleCancelPlacement
+      );
+    };
+  }, []);
+
+  // Handle map clicks during placement mode
+  useEffect(() => {
+    if (!map || !placementMode) return;
+
+    const placementMarkers = [];
+
+    const handleMapClick = (e) => {
+      const { lat, lng } = e.latlng;
+      const newPositions = [...placementPositions, { lat, lng }];
+
+      console.log(`Placed ${newPositions.length}/${placementMode.quantity}`);
+
+      // Create visual marker at click location
+      const marker = L.DomUtil.create("div", "placement-marker");
+      marker.style.cssText = `
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background: radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, rgba(147, 51, 234, 0.1) 70%, transparent 100%);
+        border: 3px solid #a855f7;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 499;
+        animation: pulse 1s infinite;
+      `;
+
+      const numberLabel = L.DomUtil.create("div", "placement-number");
+      numberLabel.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #e9d5ff;
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(147, 51, 234, 0.8);
+      `;
+      numberLabel.textContent = newPositions.length;
+      marker.appendChild(numberLabel);
+
+      const updateMarkerPosition = () => {
+        const point = map.latLngToLayerPoint([lat, lng]);
+        marker.style.left = `${point.x - 30}px`;
+        marker.style.top = `${point.y - 30}px`;
+      };
+
+      map.getPane("overlayPane").appendChild(marker);
+      placementMarkers.push(marker);
+      updateMarkerPosition();
+      map.on("zoom viewreset move", updateMarkerPosition);
+
+      setPlacementPositions(newPositions);
+
+      window.dispatchEvent(
+        new CustomEvent("summonPlacementUpdate", {
+          detail: { placedCount: newPositions.length },
+        })
+      );
+
+      if (newPositions.length === placementMode.quantity) {
+        console.log("All positions placed, spawning creatures");
+
+        setTimeout(() => {
+          const newTokens = [];
+
+          newPositions.forEach((pos, i) => {
+            const timestamp = Date.now() + i * 10;
+            const summonId = `${placementMode.creature.name}-${timestamp}`;
+            const summonName =
+              placementMode.quantity > 1
+                ? `${placementMode.creature.name} ${i + 1}`
+                : placementMode.creature.name;
+
+            newTokens.push({
+              id: summonId,
+              name: summonName,
+              position: [pos.lat, pos.lng],
+              imageUrl: placementMode.creature.imageUrl,
+              isPlayer: false,
+              size: 60,
+            });
+
+            window.dispatchEvent(
+              new CustomEvent("summonTokenCreated", {
+                detail: {
+                  id: summonId,
+                  name: summonName,
+                  summonedBy: placementMode.playerName,
+                },
+              })
+            );
+          });
+
+          const currentTokens = mapState.tokens || [];
+          console.log(`Adding ${newTokens.length} tokens in batch`);
+
+          updateMapState({
+            tokens: [...currentTokens, ...newTokens],
+          });
+
+          // Add spawn effects
+          const currentEffects = mapState.summonEffects || [];
+          const newEffects = newTokens.map((token, i) => ({
+            id: `spawn-${token.id}`,
+            type: "spawn",
+            position: token.position,
+            name: token.name,
+            timestamp: Date.now() + i * 200,
+          }));
+
+          updateMapState({
+            summonEffects: [...currentEffects, ...newEffects],
+          });
+
+          placementMarkers.forEach((m) => {
+            if (m.parentNode) {
+              m.parentNode.removeChild(m);
+            }
+          });
+
+          window.dispatchEvent(new CustomEvent("summonPlacementComplete"));
+
+          setPlacementMode(null);
+          setPlacementPositions([]);
+        }, 300);
+      }
+    };
+
+    map.on("click", handleMapClick);
+
+    return () => {
+      map.off("click", handleMapClick);
+      placementMarkers.forEach((m) => {
+        if (m.parentNode) {
+          m.parentNode.removeChild(m);
+        }
+      });
+    };
+  }, [
+    map,
+    placementMode,
+    placementPositions,
+    mapState.tokens,
+    mapState.summonEffects,
+    updateMapState,
+  ]);
+
+  // REMOVED: No longer listening for removeToken events
+  // Token removal now handled by direct mapState updates in InitiativeTracker
+
+  // Use tokens from mapState (synced via Firebase)
+  const allTokens = mapState.tokens || [];
+
+  console.log("Rendering tokens:", allTokens.length);
 
   // Close controls when clicking outside
   useEffect(() => {
@@ -44,14 +291,14 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
 
   const handleTokenResize = (tokenId, newSize) => {
     if (!onTokenMove) return;
-    const token = tokens.find((t) => t.id === tokenId);
+    const token = allTokens.find((t) => t.id === tokenId);
     if (!token) return;
     onTokenMove(tokenId, token.position, newSize);
   };
 
   return (
     <>
-      {tokens.map((token) => {
+      {allTokens.map((token) => {
         const isActiveTurn = isTokenActiveTurn(token);
         const isDead = isTokenDead(token);
         const isSelected = selectedTokenId === token.id;
@@ -75,6 +322,7 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
   );
 };
 
+// Token component remains the same...
 const Token = ({
   token,
   map,
@@ -140,7 +388,7 @@ const Token = ({
     tokenVisual.style.pointerEvents = "none";
 
     if (isDead) {
-      tokenVisual.innerHTML = '<div style="font-size: 40px;">💀</div>';
+      tokenVisual.innerHTML = '<div style="font-size: 40px;">DEAD</div>';
     } else if (token.isPlayer) {
       tokenVisual.innerHTML = `
         <div style="position: absolute; width: ${tokenSize - 10}px; height: ${

@@ -329,13 +329,343 @@ body,
 }
 
 /* For Chrome, Safari, Edge, Opera */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* For Firefox */
-input[type=number] {
+input[type="number"] {
   -moz-appearance: textfield;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.placement-marker {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ========================================
+   SPAWN EFFECT - Magical summoning circle
+   ======================================== */
+
+.summon-spawn-effect {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 600;
+  animation: spawnFadeIn 0.5s ease-out;
+}
+
+@keyframes spawnFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Magic Circle */
+.magic-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160px;
+  height: 160px;
+  transform: translate(-50%, -50%);
+  border: 3px solid #a855f7;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #a855f7, 0 0 40px #a855f7, inset 0 0 20px #a855f7;
+  animation: rotateCircle 3s linear, pulsateCircle 1.5s ease-in-out infinite;
+}
+
+.magic-circle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #c084fc;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #c084fc, inset 0 0 15px #c084fc;
+}
+
+.magic-circle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 2px solid #e9d5ff;
+  box-shadow: 0 0 10px #e9d5ff;
+}
+
+@keyframes rotateCircle {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes pulsateCircle {
+  0%,
+  100% {
+    box-shadow: 0 0 20px #a855f7, 0 0 40px #a855f7, inset 0 0 20px #a855f7;
+  }
+  50% {
+    box-shadow: 0 0 30px #a855f7, 0 0 60px #a855f7, inset 0 0 30px #a855f7;
+  }
+}
+
+/* Central Glow */
+.magic-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.8) 0%,
+    rgba(168, 85, 247, 0.4) 40%,
+    transparent 70%
+  );
+  animation: glowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Magic Particles */
+.magic-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #e9d5ff 0%, #a855f7 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #a855f7, 0 0 12px #a855f7;
+  animation: floatUp 2s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-150px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Light Beams */
+.light-beam {
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 0;
+  background: linear-gradient(
+    to top,
+    rgba(168, 85, 247, 0.8),
+    rgba(192, 132, 252, 0.4),
+    transparent
+  );
+  box-shadow: 0 0 10px #a855f7;
+  animation: beamRise 1.5s ease-out forwards;
+}
+
+@keyframes beamRise {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   DISPEL EFFECT - Fading away
+   ======================================== */
+
+.summon-dispel-effect {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 600;
+  animation: dispelFadeOut 2s ease-out forwards;
+}
+
+@keyframes dispelFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Dispel Circle */
+.dispel-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  border: 3px solid #9333ea;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #9333ea, inset 0 0 20px #9333ea;
+  animation: shrinkCircle 2s ease-in forwards;
+}
+
+@keyframes shrinkCircle {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Smoke Particles */
+.smoke-particle {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  animation: smokeRise 1.5s ease-out forwards;
+}
+
+.smoke-inner {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(147, 51, 234, 0.6) 0%,
+    rgba(168, 85, 247, 0.3) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  filter: blur(8px);
+}
+
+@keyframes smokeRise {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Fade Light */
+.fade-light {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.6) 0%,
+    rgba(168, 85, 247, 0.2) 50%,
+    transparent 100%
+  );
+  animation: fadeLightPulse 2s ease-out forwards;
+}
+
+@keyframes fadeLightPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Dispel Sparkles */
+.dispel-sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #e9d5ff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #a855f7, 0 0 10px #a855f7;
+  animation: sparkleOut 1s ease-out forwards;
+}
+
+@keyframes sparkleOut {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc((var(--random-x, 50) - 50) * 2px),
+        calc((var(--random-y, 50) - 50) * 2px)
+      )
+      scale(0);
+    opacity: 0;
+  }
+}
+
+/* Add some randomness to sparkles */
+.dispel-sparkle:nth-child(odd) {
+  animation-duration: 0.8s;
+}
+
+.dispel-sparkle:nth-child(even) {
+  animation-duration: 1.2s;
 }
