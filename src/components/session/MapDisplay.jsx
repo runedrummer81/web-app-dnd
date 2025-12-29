@@ -20,6 +20,7 @@ import { GridOverlay } from "./GridOverlay";
 import { TokenOverlay } from "./TokenOverlay";
 import { SpellEffectOverlay } from "./SpellEffectOverlay";
 import { FogOfWarOverlay } from "./FogofWarOverlay";
+import { SummonEffects } from "./SummonEffects"; // ✨ NEW IMPORT
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -201,7 +202,7 @@ export const MapDisplay = () => {
         ? {
             ...token,
             position: newPosition,
-            size: newSize !== undefined ? newSize : token.size, // Update size if provided
+            size: newSize !== undefined ? newSize : token.size,
           }
         : token
     );
@@ -227,6 +228,7 @@ export const MapDisplay = () => {
       {currentMap.imageUrl && (
         <ImageOverlay url={currentMap.imageUrl} bounds={mapBounds} />
       )}
+
       {/* 2. Grid overlay (on combat maps) */}
       {currentMap.isCombat && (
         <GridOverlay
@@ -238,6 +240,7 @@ export const MapDisplay = () => {
           visible={gridSettings.visible}
         />
       )}
+
       {/* 2.5. FOG OF WAR OVERLAY - Works on ALL maps */}
       <FogOfWarOverlay
         enabled={mapState.fogOfWar?.enabled || false}
@@ -287,6 +290,7 @@ export const MapDisplay = () => {
           isDMView={isDMView}
         />
       )}
+
       {/* 4. TOKENS - Renders ON TOP of spell effects */}
       {currentMap.isCombat && (
         <TokenOverlay
@@ -295,8 +299,13 @@ export const MapDisplay = () => {
           isDMView={isDMView}
         />
       )}
+
+      {/* ✨ 4.5. SUMMON EFFECTS - Magical animations */}
+      {currentMap.isCombat && <SummonEffects />}
+
       {/* 5. Spell drop handler - enables dragging spells onto map */}
       <SpellDropHandler isDMView={isDMView} />
+
       {/* 6. Map controller and events */}
       <MapController
         mapDimensions={{
@@ -306,6 +315,7 @@ export const MapDisplay = () => {
         currentMap={currentMap}
       />
       <MapEventsHandler />
+
       {/* 7. Markers */}
       {mapState.markers.map((marker) => (
         <Marker
@@ -334,6 +344,7 @@ export const MapDisplay = () => {
           </Popup>
         </Marker>
       ))}
+
       {/* 8. Route display */}
       <RouteDisplay
         route={mapState.route}
@@ -357,7 +368,7 @@ export const MapDisplay = () => {
       className="relative w-full h-full bg-black overflow-hidden"
     >
       <motion.div
-        key={currentMap.id} // Re-triggers animation when map changes
+        key={currentMap.id}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
