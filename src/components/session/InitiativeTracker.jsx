@@ -6,8 +6,9 @@ import { useMapSync } from "./MapSyncContext";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import { ConditionsPanel, CONDITIONS } from "./ConditionsPanel";
-import { SummonCreatures } from "./Summoncreatures";
 import { ActiveSummonsPanel } from "./ActiveSummonsPanel";
+import { SummonRitualInterface } from "./SummonRitualInterface";
+import { GiSparkles } from "react-icons/gi";
 
 // ✅ Parse ALL damage instances from an attack description
 const parseAttack = (description) => {
@@ -102,6 +103,7 @@ export const InitiativeTracker = () => {
   const [expandedActionId, setExpandedActionId] = useState(null);
   const [expandedTraitId, setExpandedTraitId] = useState(null);
   const [savingThrowResult, setSavingThrowResult] = useState(null);
+  const [showSummonRitual, setShowSummonRitual] = useState(false);
 
   useEffect(() => {
     const fetchCreatures = async () => {
@@ -639,18 +641,6 @@ export const InitiativeTracker = () => {
         onDispelAll={handleDispelAll}
       />
 
-      {/* ✅ Summon Creatures Panel (only on player's turn for summoning NEW creatures) */}
-      {currentCombatant.isPlayer && !selectedCreatureId && (
-        <div className="px-6 pb-4">
-          <SummonCreatures
-            playerName={currentCombatant.name}
-            activeSummons={currentPlayerSummons}
-            onDispelSingle={handleDispelSingle}
-            onDispelAll={() => handleDispelAll(currentCombatant.name)}
-          />
-        </div>
-      )}
-
       {/* Current/Selected Creature Display */}
       {displayedCombatant && (
         <motion.div
@@ -730,36 +720,76 @@ export const InitiativeTracker = () => {
               </div>
             </div>
 
-            {/* Player Turn Indicator */}
             {currentCombatant.isPlayer && !selectedCreatureId && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-blue-900/40 border-b-2 border-blue-400 p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#60a5fa"
-                      strokeWidth="2"
+              <div className="px-4 pb-3 ">
+                {showSummonRitual ? (
+                  // Show ritual interface
+                  <SummonRitualInterface
+                    playerName={currentCombatant.name}
+                    onClose={() => setShowSummonRitual(false)}
+                  />
+                ) : (
+                  // Show action icons
+                  <div className="flex gap-3 items-center py-2">
+                    {/* Summon Creatures Icon */}
+                    <button
+                      onClick={() => setShowSummonRitual(true)}
+                      className="relative group"
                     >
-                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-blue-300 font-bold text-lg uppercase tracking-wider">
-                        {currentCombatant.name}'s Turn
-                      </p>
-                      <p className="text-blue-200/60 text-sm">
-                        Click creatures for opportunity attacks
-                      </p>
-                    </div>
+                      <div className="relative">
+                        {/* Pulsing glow background */}
+                        <motion.div
+                          className="absolute inset-0"
+                          animate={{
+                            scale: [1, 1.3, 1],
+                            opacity: [0.3, 0.6, 0.3],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          style={{
+                            background:
+                              "radial-gradient(circle, rgba(217,202,137,0.5) 0%, transparent 70%)",
+                            filter: "blur(10px)",
+                          }}
+                        />
+
+                        {/* Icon */}
+                        <motion.div
+                          animate={{
+                            filter: [
+                              "drop-shadow(0 0 8px rgba(217,202,137,0.6))",
+                              "drop-shadow(0 0 15px rgba(217,202,137,0.9))",
+                              "drop-shadow(0 0 8px rgba(217,202,137,0.6))",
+                            ],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <GiSparkles
+                            size={100}
+                            className="text-[#D9CA89] relative z-10 transition-all group-hover:text-[#BF883C] cursor-pointer"
+                          />
+                        </motion.div>
+                      </div>
+
+                      {/* Tooltip */}
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                        <div className="bg-black/95 border border-[#BF883C] px-2 py-1">
+                          <p className="text-[#D9CA89] text-xs uppercase tracking-wider">
+                            Summon
+                          </p>
+                        </div>
+                      </div>
+                    </button>
                   </div>
-                </div>
-              </motion.div>
+                )}
+              </div>
             )}
 
             {/* Opportunity Attack Banner */}
