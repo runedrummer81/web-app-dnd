@@ -1,13 +1,15 @@
-// ActiveSummonsPanel.jsx
-// Always-visible summon management panel
-// Works on ANY turn - allows dispelling summons at any time
-import { motion } from "framer-motion";
+// ActiveSummonsPanel.jsx - STREAMLINED & COLLAPSED BY DEFAULT
+// Compact, space-efficient design
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 export const ActiveSummonsPanel = ({
   activeSummons,
   onDispelSingle,
   onDispelAll,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Group summons by summoner
   const summonsBySummoner = activeSummons.reduce((acc, summon) => {
     if (!acc[summon.summonedBy]) {
@@ -18,67 +20,126 @@ export const ActiveSummonsPanel = ({
   }, {});
 
   const summonerNames = Object.keys(summonsBySummoner);
+  const totalSummons = activeSummons.length;
 
   if (summonerNames.length === 0) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="px-6 pb-4"
-    >
-      <div className="bg-purple-900/20 border-2 border-purple-500/50 p-4">
-        <h3 className="text-purple-300 font-bold uppercase tracking-wider text-sm mb-3">
-          Active Summons - All Players
-        </h3>
+    <div className="px-6 pb-3">
+      <div
+        className="bg-black/60 border border-[#BF883C]/40"
+        style={{
+          boxShadow: "inset 0 1px 0 rgba(191, 136, 60, 0.2)",
+        }}
+      >
+        {/* Collapsed Header - Always Visible */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full px-3 py-2 flex items-center justify-between group transition-all"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(191, 136, 60, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <motion.svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              className="text-[#BF883C]"
+              animate={{ rotate: isExpanded ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <path
+                d="M 9,6 L 15,12 L 9,18"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="square"
+              />
+            </motion.svg>
+            <span className="text-[#BF883C] font-bold text-xs uppercase tracking-wider group-hover:text-[#D9CA89] transition-colors">
+              Active Summons
+            </span>
+            <span className="text-[#D9CA89]/60 text-xs">
+              ({totalSummons} creature{totalSummons !== 1 ? "s" : ""})
+            </span>
+          </div>
+        </button>
 
-        <div className="space-y-4">
-          {summonerNames.map((summonerName) => {
-            const summons = summonsBySummoner[summonerName];
-            return (
-              <div key={summonerName} className="space-y-2">
-                {/* Summoner Header */}
-                <div className="flex items-center justify-between bg-purple-900/30 border border-purple-500/30 px-3 py-2 rounded">
-                  <span className="text-purple-200 font-bold text-sm">
-                    {summonerName} ({summons.length} summons)
-                  </span>
-                  <motion.button
-                    onClick={() => onDispelAll(summonerName)}
-                    className="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold uppercase border border-red-500"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Dispel All
-                  </motion.button>
-                </div>
-
-                {/* Individual Summons */}
-                <div className="space-y-1 pl-4">
-                  {summons.map((summon) => (
-                    <div
-                      key={summon.id}
-                      className="flex items-center justify-between bg-purple-900/20 border border-purple-500/20 px-2 py-1 rounded"
-                    >
-                      <span className="text-purple-200 text-xs">
-                        {summon.name}
-                      </span>
-                      <motion.button
-                        onClick={() => onDispelSingle(summon.id)}
-                        className="px-2 py-0.5 bg-red-700 hover:bg-red-600 text-white text-xs font-bold uppercase border border-red-500"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+        {/* Expanded Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden border-t border-[#BF883C]/20"
+            >
+              <div className="p-3 space-y-3">
+                {summonerNames.map((summonerName) => {
+                  const summons = summonsBySummoner[summonerName];
+                  return (
+                    <div key={summonerName} className="space-y-1">
+                      {/* Summoner Header */}
+                      <div
+                        className="flex items-center justify-between bg-black/40 border border-[#BF883C]/20 px-2 py-1"
+                        style={{
+                          boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.3)",
+                        }}
                       >
-                        Dispel
-                      </motion.button>
+                        <span className="text-[#D9CA89] font-bold text-xs uppercase tracking-wide">
+                          {summonerName} ({summons.length})
+                        </span>
+                        <button
+                          onClick={() => onDispelAll(summonerName)}
+                          className="px-2 py-0.5 bg-black/60 border border-red-700/60 text-red-400 text-xs font-bold uppercase tracking-wide transition-all"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor =
+                              "rgb(185, 28, 28)";
+                            e.currentTarget.style.boxShadow =
+                              "0 0 10px rgba(185, 28, 28, 0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor =
+                              "rgba(185, 28, 28, 0.6)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        >
+                          Dispel All
+                        </button>
+                      </div>
+
+                      {/* Individual Summons - Compact List */}
+                      <div className="pl-3 space-y-0.5">
+                        {summons.map((summon) => (
+                          <div
+                            key={summon.id}
+                            className="flex items-center justify-between bg-black/20 px-2 py-0.5 border-l-2 border-[#BF883C]/20"
+                          >
+                            <span className="text-[#D9CA89]/70 text-xs">
+                              {summon.name}
+                            </span>
+                            <button
+                              onClick={() => onDispelSingle(summon.id)}
+                              className="px-1.5 py-0.5 text-red-400/80 text-xs font-bold uppercase tracking-wide transition-colors hover:text-red-400"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 };
