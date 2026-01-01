@@ -111,37 +111,97 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
 
     const placementMarkers = [];
 
+    const cursorPreview = L.DomUtil.create("div", "summon-cursor-preview");
+    cursorPreview.style.cssText = `
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.6) 0%, rgba(147, 51, 234, 0.3) 50%, transparent 100%);
+  border: 3px solid #a855f7;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.9), 
+              0 0 60px rgba(147, 51, 234, 0.6),
+              inset 0 0 20px rgba(168, 85, 247, 0.5);
+  display: none;
+  transition: opacity 0.2s;
+`;
+
+    // Add ✦ symbol in center
+    const iconLabel = L.DomUtil.create("div");
+    iconLabel.style.cssText = `
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #e9d5ff;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 0 0 20px rgba(168, 85, 247, 1),
+               0 0 40px rgba(147, 51, 234, 0.8);
+`;
+    iconLabel.textContent = "✦";
+    cursorPreview.appendChild(iconLabel);
+
+    map.getPane("overlayPane").appendChild(cursorPreview);
+
+    // Update cursor preview position on mouse move
+    const updateCursorPreview = (e) => {
+      const point = map.latLngToLayerPoint(e.latlng);
+      cursorPreview.style.left = `${point.x - 35}px`;
+      cursorPreview.style.top = `${point.y - 35}px`;
+      cursorPreview.style.display = "block";
+      cursorPreview.style.opacity = "1";
+    };
+
+    // Hide cursor preview when mouse leaves map
+    const hideCursorPreview = () => {
+      cursorPreview.style.opacity = "0";
+      setTimeout(() => {
+        cursorPreview.style.display = "none";
+      }, 200);
+    };
+
+    map.on("mousemove", updateCursorPreview);
+    map.on("mouseout", hideCursorPreview);
+
     const handleMapClick = (e) => {
       const { lat, lng } = e.latlng;
       const newPositions = [...placementPositions, { lat, lng }];
 
       console.log(`Placed ${newPositions.length}/${placementMode.quantity}`);
 
-      // Create visual marker at click location
+      // ✨ CREATE VISIBLE MARKER - FIXED VERSION
       const marker = L.DomUtil.create("div", "placement-marker");
-      marker.style.cssText = `
-        position: absolute;
-        width: 60px;
-        height: 60px;
-        background: radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, rgba(147, 51, 234, 0.1) 70%, transparent 100%);
-        border: 3px solid #a855f7;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 499;
-        animation: pulse 1s infinite;
-      `;
 
-      const numberLabel = L.DomUtil.create("div", "placement-number");
+      marker.style.cssText = `
+  position: absolute !important;
+  width: 60px !important;
+  height: 60px !important;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(147, 51, 234, 0.2) 50%, transparent 100%) !important;
+  border: 3px solid #a855f7 !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 999 !important;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.9), inset 0 0 15px rgba(168, 85, 247, 0.4) !important;
+  display: block !important;
+  opacity: 1 !important;
+`;
+
+      const numberLabel = L.DomUtil.create("div");
       numberLabel.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: #e9d5ff;
-        font-size: 24px;
-        font-weight: bold;
-        text-shadow: 0 0 10px rgba(147, 51, 234, 0.8);
-      `;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: #e9d5ff !important;
+  font-size: 32px !important;
+  font-weight: bold !important;
+  text-shadow: 0 0 20px rgba(168, 85, 247, 1), 0 0 40px rgba(147, 51, 234, 0.9) !important;
+  line-height: 1 !important;
+  user-select: none !important;
+`;
       numberLabel.textContent = newPositions.length;
       marker.appendChild(numberLabel);
 
@@ -156,6 +216,8 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
       updateMarkerPosition();
       map.on("zoom viewreset move", updateMarkerPosition);
 
+      console.log(`✅ Marker ${newPositions.length} created and added to map`);
+
       setPlacementPositions(newPositions);
 
       window.dispatchEvent(
@@ -164,6 +226,7 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
         })
       );
 
+      // If all placed, spawn creatures
       if (newPositions.length === placementMode.quantity) {
         console.log("All positions placed, spawning creatures");
 
@@ -219,6 +282,10 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
             summonEffects: [...currentEffects, ...newEffects],
           });
 
+          // ✨ CLEAN UP MARKERS ONLY AFTER SPAWNING
+          console.log(
+            `🗑️ Removing ${placementMarkers.length} placement markers`
+          );
           placementMarkers.forEach((m) => {
             if (m.parentNode) {
               m.parentNode.removeChild(m);
@@ -237,6 +304,13 @@ export const TokenOverlay = ({ tokens, onTokenMove, isDMView }) => {
 
     return () => {
       map.off("click", handleMapClick);
+
+      map.off("mousemove", updateCursorPreview);
+      map.off("mouseout", hideCursorPreview);
+
+      if (cursorPreview.parentNode) {
+        cursorPreview.parentNode.removeChild(cursorPreview);
+      }
       placementMarkers.forEach((m) => {
         if (m.parentNode) {
           m.parentNode.removeChild(m);
