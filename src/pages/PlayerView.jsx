@@ -7,13 +7,17 @@ import {
   useMapSync,
 } from "../components/session/MapSyncContext";
 import { CombatStateProvider } from "../components/session/CombatStateContext";
+import {
+  FortressProvider,
+  useFortress,
+} from "../components/session/fortress/FortressContext";
+import { FortressChoiceOverlay } from "../components/session/fortress/FortressChoiceOverlay";
 import { MapDisplay } from "../components/session/MapDisplay";
 import { CombatTransition } from "../components/session/CombatTransition";
 
-// NEW: Wrapper to show transitions from synced state
+// Wrapper to show transitions from synced state
 const PlayerTransitionWrapper = ({ children }) => {
   const { mapState } = useMapSync();
-
   return (
     <>
       {children}
@@ -29,6 +33,29 @@ const PlayerTransitionWrapper = ({ children }) => {
   );
 };
 
+// NEW: Component that uses FortressContext
+const PlayerViewContent = () => {
+  const { fortressState, makeChoice } = useFortress();
+
+  return (
+    <>
+      {/* Show choice overlay if in choice phase */}
+      {fortressState.phase === "choice" ? (
+        <FortressChoiceOverlay
+          onChoiceSelect={makeChoice}
+          isDMView={false} // ← This rotates the screen 90° CCW!
+        />
+      ) : (
+        <PlayerTransitionWrapper>
+          <div className="w-full h-full bg-black">
+            <MapDisplay />
+          </div>
+        </PlayerTransitionWrapper>
+      )}
+    </>
+  );
+};
+
 export const PlayerView = () => {
   const [mapSetData, setMapSetData] = useState(null);
   const [sessionData, setSessionData] = useState(null);
@@ -39,7 +66,6 @@ export const PlayerView = () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get("session");
-
         if (!sessionId) {
           console.error("❌ No session ID in URL");
           setLoading(false);
@@ -47,7 +73,6 @@ export const PlayerView = () => {
         }
 
         console.log("🔍 Player View fetching session:", sessionId);
-
         const sessionRef = doc(db, "Sessions", sessionId);
         const sessionSnap = await getDoc(sessionRef);
 
@@ -105,12 +130,9 @@ export const PlayerView = () => {
       <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
         <MapSyncProvider isDMView={false}>
           <CombatStateProvider>
-            {/* NEW: Wrap with PlayerTransitionWrapper to show transitions */}
-            <PlayerTransitionWrapper>
-              <div className="w-full h-full bg-black">
-                <MapDisplay />
-              </div>
-            </PlayerTransitionWrapper>
+            <FortressProvider>
+              <PlayerViewContent />
+            </FortressProvider>
           </CombatStateProvider>
         </MapSyncProvider>
       </RunSessionContext.Provider>

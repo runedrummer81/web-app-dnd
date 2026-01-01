@@ -56,6 +56,11 @@ export const MapSyncProvider = ({ children, isDMView = true }) => {
       isDrawing: false,
       brushSize: 50,
     },
+    fortressEncounter: {
+      active: false,
+      phase: null,
+      choiceMade: null,
+    },
   });
 
   const broadcastChannelRef = useRef(null);

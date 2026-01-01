@@ -17,6 +17,11 @@ import BorderRunSession from "../components/session/BorderRunSession";
 import { CombatTransition } from "../components/session/CombatTransition";
 import { useCombatState } from "../components/session/CombatStateContext";
 import PrepNotesOverlay from "../components/session/PrepNotesOverlay";
+import {
+  FortressProvider,
+  useFortress,
+} from "../components/session/fortress/FortressContext";
+import { FortressChoiceOverlay } from "../components/session/fortress/FortressChoiceOverlay";
 
 const DMPanelWrapper = ({
   sessionId,
@@ -133,15 +138,18 @@ const CombatWrapper = ({ children }) => {
   );
 };
 
-const RunSession = ({ sessionId, mapSetData }) => {
+// NEW: Component that uses fortress state
+const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
   const navigate = useNavigate();
-  const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playerWindowRef, setPlayerWindowRef] = useState(null);
   const [isPlayerWindowOpen, setIsPlayerWindowOpen] = useState(false);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const [quickNotes, setQuickNotes] = useState([]);
   const [showPrepNotes, setShowPrepNotes] = useState(false);
+
+  // Access fortress state
+  const { fortressState, makeChoice } = useFortress();
 
   const base = import.meta.env.BASE_URL || "/web-app-dnd/";
 
@@ -173,7 +181,6 @@ const RunSession = ({ sessionId, mapSetData }) => {
     const unsub = onSnapshot(doc(db, "Sessions", sessionId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setSessionData(data);
         setQuickNotes(data.sessionNotes || []);
         setLoading(false);
       } else {
@@ -234,61 +241,81 @@ const RunSession = ({ sessionId, mapSetData }) => {
   }
 
   return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="w-screen h-screen"
+      >
+        <ConfirmEndSessionModal
+          show={showEndSessionConfirm}
+          onCancel={() => setShowEndSessionConfirm(false)}
+          onConfirm={handleEndSession}
+        />
+        {!isPlayerWindowOpen && (
+          <PlayerDisplayButton onClick={openPlayerDisplay} />
+        )}
+        <div className="w-screen h-screen flex bg-black overflow-hidden">
+          {/* Map Display - Left Side */}
+          <div className="lg:block lg:w-[65%] h-full">
+            <MapDisplay className="w-full h-full" />
+          </div>
+
+          {/* DM Info Box - Right Side */}
+          <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
+            <BorderRunSession />
+
+            <div className="absolute inset-0 flex flex-col">
+              <div className="flex-1 overflow-hidden">
+                <DMPanelWrapper
+                  sessionId={sessionId}
+                  sessionData={sessionData}
+                  mapSetData={mapSetData}
+                  isPlayerWindowOpen={isPlayerWindowOpen}
+                  onEndSessionClick={handleShowEndSessionConfirm}
+                  quickNotes={quickNotes}
+                  setQuickNotes={setQuickNotes}
+                  onRequestEndSessionConfirm={handleShowEndSessionConfirm}
+                  onOpenPrepNotes={() => setShowPrepNotes(true)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <PrepNotesOverlay
+        isOpen={showPrepNotes}
+        onClose={() => setShowPrepNotes(false)}
+        sessionData={sessionData}
+        quickNotes={quickNotes}
+        onQuickNotesChange={setQuickNotes}
+      />
+
+      {/* Fortress Choice Overlay - Shows on DM screen during choice phase */}
+      {fortressState.phase === "choice" && (
+        <FortressChoiceOverlay onChoiceSelect={makeChoice} isDMView={true} />
+      )}
+    </>
+  );
+};
+
+// Main RunSession component - NOW WRAPPED with providers
+const RunSession = ({ sessionId, sessionData, mapSetData }) => {
+  return (
     <RunSessionContext.Provider value={{ mapSetData, sessionData }}>
       <MapSyncProvider isDMView={true}>
         <CombatStateProvider>
-          <CombatWrapper>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="w-screen h-screen"
-            >
-              <ConfirmEndSessionModal
-                show={showEndSessionConfirm}
-                onCancel={() => setShowEndSessionConfirm(false)}
-                onConfirm={handleEndSession}
+          <FortressProvider>
+            <CombatWrapper>
+              <RunSessionContent
+                sessionId={sessionId}
+                sessionData={sessionData}
+                mapSetData={mapSetData}
               />
-              {!isPlayerWindowOpen && (
-                <PlayerDisplayButton onClick={openPlayerDisplay} />
-              )}
-              <div className="w-screen h-screen flex bg-black overflow-hidden">
-                {/* Map Display - Left Side */}
-                <div className="lg:block lg:w-[65%] h-full">
-                  <MapDisplay className="w-full h-full" />
-                </div>
-
-                {/* DM Info Box - Right Side */}
-                <div className="hidden lg:flex lg:w-[35%] h-full relative bg-[#151612] flex-col">
-                  <BorderRunSession />
-
-                  <div className="absolute inset-0 flex flex-col">
-                    <div className="flex-1 overflow-hidden">
-                      <DMPanelWrapper
-                        sessionId={sessionId}
-                        sessionData={sessionData}
-                        mapSetData={mapSetData}
-                        isPlayerWindowOpen={isPlayerWindowOpen}
-                        onEndSessionClick={handleShowEndSessionConfirm}
-                        quickNotes={quickNotes}
-                        setQuickNotes={setQuickNotes}
-                        onRequestEndSessionConfirm={handleShowEndSessionConfirm}
-                        onOpenPrepNotes={() => setShowPrepNotes(true)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            <PrepNotesOverlay
-              isOpen={showPrepNotes}
-              onClose={() => setShowPrepNotes(false)}
-              sessionData={sessionData}
-              quickNotes={quickNotes}
-              onQuickNotesChange={setQuickNotes}
-            />
-          </CombatWrapper>
+            </CombatWrapper>
+          </FortressProvider>
         </CombatStateProvider>
       </MapSyncProvider>
     </RunSessionContext.Provider>
