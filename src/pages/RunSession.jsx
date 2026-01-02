@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import {
   MapSyncProvider,
   RunSessionContext,
+  useMapSync,
 } from "../components/session/MapSyncContext";
 import { CombatStateProvider } from "../components/session/CombatStateContext";
 import { MapDisplay } from "../components/session/MapDisplay";
 import { DMPanel } from "../components/session/DMPanel";
 import { PlayerDisplayButton } from "../components/session/PlayerDisplayButton";
-import { useMapSync } from "../components/session/MapSyncContext";
 import { ConfirmEndSessionModal } from "../components/session/ConfirmEndSessionModal";
 import { db } from "../firebase";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
@@ -22,6 +22,7 @@ import {
   useFortress,
 } from "../components/session/fortress/FortressContext";
 import { FortressChoiceOverlay } from "../components/session/fortress/FortressChoiceOverlay";
+import { FortressDMPanel } from "../components/session/fortress/FortressDMPanel";
 
 const DMPanelWrapper = ({
   sessionId,
@@ -138,7 +139,7 @@ const CombatWrapper = ({ children }) => {
   );
 };
 
-// NEW: Component that uses fortress state
+// Component that uses fortress state and switches maps
 const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -148,10 +149,42 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
   const [quickNotes, setQuickNotes] = useState([]);
   const [showPrepNotes, setShowPrepNotes] = useState(false);
 
-  // Access fortress state
-  const { fortressState, makeChoice } = useFortress();
+  // Access fortress state AND map state
+  const { fortressState, makeChoice, endFortressEncounter } = useFortress();
+  const { updateMapState } = useMapSync();
 
   const base = import.meta.env.BASE_URL || "/web-app-dnd/";
+
+  // ✅ THIS IS THE KEY: Switch to fortress map when infiltration begins
+  useEffect(() => {
+    if (
+      fortressState.phase === "infiltration" &&
+      fortressState.choiceMade === "fortress"
+    ) {
+      console.log("🏰 Switching to fortress map!");
+
+      // Switch to fortress map using your existing map system
+      const fortressMapData = {
+        id: "sunblight-fortress",
+        name: "Sunblight Fortress - Command Level",
+        imageUrl: "/fortress-maps/sunblight-fortress-map.webp",
+        width: 2480, // Adjust to your actual image dimensions
+        height: 3508, // Adjust to your actual image dimensions
+        isCombat: false,
+      };
+
+      updateMapState({
+        currentMapId: "sunblight-fortress",
+        fillerMapData: fortressMapData,
+        fogOfWar: {
+          enabled: true,
+          isDrawing: false,
+          revealedMask: null, // Start fully covered
+          brushSize: 100,
+        },
+      });
+    }
+  }, [fortressState.phase, fortressState.choiceMade, updateMapState]);
 
   const openPlayerDisplay = () => {
     const playerUrl = `${base}player-view?session=${sessionId}`;
@@ -258,6 +291,7 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
         )}
         <div className="w-screen h-screen flex bg-black overflow-hidden">
           {/* Map Display - Left Side */}
+          {/* ✅ ALWAYS use MapDisplay - it will show fortress map when currentMapId is fortress */}
           <div className="lg:block lg:w-[65%] h-full">
             <MapDisplay className="w-full h-full" />
           </div>
@@ -268,17 +302,30 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
 
             <div className="absolute inset-0 flex flex-col">
               <div className="flex-1 overflow-hidden">
-                <DMPanelWrapper
-                  sessionId={sessionId}
-                  sessionData={sessionData}
-                  mapSetData={mapSetData}
-                  isPlayerWindowOpen={isPlayerWindowOpen}
-                  onEndSessionClick={handleShowEndSessionConfirm}
-                  quickNotes={quickNotes}
-                  setQuickNotes={setQuickNotes}
-                  onRequestEndSessionConfirm={handleShowEndSessionConfirm}
-                  onOpenPrepNotes={() => setShowPrepNotes(true)}
-                />
+                {fortressState.phase === "infiltration" ? (
+                  <FortressDMPanel
+                    onEndEncounter={() => {
+                      endFortressEncounter();
+                      // Go back to world map
+                      updateMapState({
+                        currentMapId: "world",
+                        fogOfWar: { enabled: false },
+                      });
+                    }}
+                  />
+                ) : (
+                  <DMPanelWrapper
+                    sessionId={sessionId}
+                    sessionData={sessionData}
+                    mapSetData={mapSetData}
+                    isPlayerWindowOpen={isPlayerWindowOpen}
+                    onEndSessionClick={handleShowEndSessionConfirm}
+                    quickNotes={quickNotes}
+                    setQuickNotes={setQuickNotes}
+                    onRequestEndSessionConfirm={handleShowEndSessionConfirm}
+                    onOpenPrepNotes={() => setShowPrepNotes(true)}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -301,7 +348,7 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
   );
 };
 
-// Main RunSession component - NOW WRAPPED with providers
+// Main RunSession component
 const RunSession = ({ sessionId, sessionData, mapSetData }) => {
   return (
     <RunSessionContext.Provider value={{ mapSetData, sessionData }}>

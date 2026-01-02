@@ -33,7 +33,7 @@ const PlayerTransitionWrapper = ({ children }) => {
   );
 };
 
-// NEW: Component that uses FortressContext
+// Component that uses FortressContext
 const PlayerViewContent = () => {
   const { fortressState, makeChoice } = useFortress();
 
@@ -41,11 +41,9 @@ const PlayerViewContent = () => {
     <>
       {/* Show choice overlay if in choice phase */}
       {fortressState.phase === "choice" ? (
-        <FortressChoiceOverlay
-          onChoiceSelect={makeChoice}
-          isDMView={false} // ← This rotates the screen 90° CCW!
-        />
+        <FortressChoiceOverlay onChoiceSelect={makeChoice} isDMView={false} />
       ) : (
+        // ✅ ALWAYS use MapDisplay - it will show fortress map automatically
         <PlayerTransitionWrapper>
           <div className="w-full h-full bg-black">
             <MapDisplay />

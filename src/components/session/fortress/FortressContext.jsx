@@ -1,5 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
+// Define fortress levels here (or import if you have them in sunblightFortressData.js)
+export const FORTRESS_LEVELS = {
+  ICE_GATE: "ice-gate",
+  COMMAND: "command",
+  FORGE: "forge",
+};
+
 const FortressContext = createContext();
 
 export const useFortress = () => {
@@ -16,6 +23,9 @@ export const FortressProvider = ({ children }) => {
     phase: null, // null | "choice" | "infiltration" | "complete"
     choiceMade: null, // null | "fortress" | "dragon"
     isRevealed: false, // Whether choice options are revealed
+    currentLevel: FORTRESS_LEVELS.COMMAND, // Ice Gate, Command, or Forge
+    currentRoom: "X1", // Current room ID
+    revealedRooms: [], // Array of room IDs that have been revealed
   });
 
   // Broadcast state updates to other windows
@@ -34,6 +44,9 @@ export const FortressProvider = ({ children }) => {
       phase: "choice",
       choiceMade: null,
       isRevealed: false,
+      currentLevel: FORTRESS_LEVELS.COMMAND,
+      currentRoom: "X1",
+      revealedRooms: [],
     };
     setFortressState(newState);
     broadcastState(newState);
@@ -62,12 +75,26 @@ export const FortressProvider = ({ children }) => {
     });
   };
 
+  const switchFortressLevel = (level) => {
+    setFortressState((prev) => {
+      const newState = {
+        ...prev,
+        currentLevel: level,
+      };
+      broadcastState(newState);
+      return newState;
+    });
+  };
+
   const endFortressEncounter = () => {
     const newState = {
       active: false,
       phase: null,
       choiceMade: null,
       isRevealed: false,
+      currentLevel: FORTRESS_LEVELS.COMMAND,
+      currentRoom: "X1",
+      revealedRooms: [],
     };
     setFortressState(newState);
     broadcastState(newState);
@@ -93,6 +120,7 @@ export const FortressProvider = ({ children }) => {
         startFortressEncounter,
         revealChoices,
         makeChoice,
+        switchFortressLevel,
         endFortressEncounter,
       }}
     >
