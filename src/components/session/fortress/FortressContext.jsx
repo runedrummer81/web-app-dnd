@@ -75,6 +75,17 @@ export const FortressProvider = ({ children }) => {
     });
   };
 
+  const setCurrentRoom = (roomId) => {
+    setFortressState((prev) => {
+      const newState = {
+        ...prev,
+        currentRoom: roomId,
+      };
+      broadcastState(newState);
+      return newState;
+    });
+  };
+
   const switchFortressLevel = (level) => {
     setFortressState((prev) => {
       const newState = {
@@ -121,6 +132,7 @@ export const FortressProvider = ({ children }) => {
         revealChoices,
         makeChoice,
         switchFortressLevel,
+        setCurrentRoom,
         endFortressEncounter,
       }}
     >

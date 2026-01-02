@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useFortress } from "./FortressContext";
 
@@ -109,16 +109,16 @@ const DMChoiceContent = ({
   const readAloudText = {
     english: {
       part1:
-        "The fortress of Sunblight is an imposing structure carved into the mountainside. Its dark walls of worked stone rise hundreds of feet, crowned with battlements of ice. Smoke belches from chimneys, and the sound of hammering echoes across the valley.",
+        "The climb carries you above the clouds, where the wind howls unchecked and the world feels raw and exposed. Ahead, the mountain wall rises sheer and merciless. Carved directly into the stone is a fortress. Sunblight is not a place of banners or beauty. It is gray rock gouged into shape, its walls bristling with narrow arrow slits where dim lights flicker like watchful eyes. From deep within the mountain comes the echo of hammer on anvil, a slow, tireless rhythm that vibrates through the stone beneath your boots. A narrow staircase clings to the cliff face, barely five feet wide, its steps glazed with ice. One misstep would send a body tumbling into the white abyss below. As you begin your ascent, the mountain shudders.",
       part2:
-        "From high above comes a loud grinding noise as large sheets of ice break off the fortress walls and tumble down the mountainside. Suddenly, great doors of ice previously hidden under snow stand open more than three hundred feet above you, and from between them flies a huge dragon made of dark ice. Its eyes glow with a bright golden light as it lets out a terrible roar, hurls itself into the air, and glides away from the fortress, then turns and heads north toward Ten-Towns.",
+        "A deafening grind rolls down from above as great slabs of ice shear loose from the fortress walls and smash against the slopes. Snow pours down like an avalanche. Then, far overhead, something moves. Massive doors of ice tear open high in the fortress face. From the darkness between them erupts a dragon. Its body is forged of jagged black crystal and dark ice, veins of golden light pulsing beneath its surface like a corrupted heart. Its eyes blaze as it lets out a roar that sounds less like a beast and more like a weapon being unleashed. With a thunderous beat of its wings, the construct lifts into the air. Frost and stone rain from its frame as it circles once, distant and uncaring, before turning north. Toward Ten-Towns.",
       prompt: "The dragon's roar still echoes in your ears. What do you do?",
     },
     danish: {
       part1:
-        "Sunblight-fæstningen er en imponerende struktur hugget ind i bjergsiden. Dens mørke vægge af bearbejdet sten rejser sig hundredvis af fødder, kronet med brystværn af is. Røg vælter ud af skorstene, og lyden af hamring genlyder over dalen.",
+        "Som I bestiger bjerget, og stille og roligt når højere op end I nogensinde har været, så ser i det. Foran jer rejser bjergvæggen sig. Indhugget direkte i klippen ligger en kæmpe fæstning. Den er ikke prydet med faner eller lignende, men bestående af grå sten som er tvunget i form, og dens mure er gennembrudt af små pilleskår, hvor I lige kan skimte svage lys flakke. En smal trappe klamrer sig til klippevæggen, hvert trin er dækkes af is. Et forkert skridt og man forsvinder i den hvide afgrund nedenfor. Idet I begynder opstigningen og langsomt nærmer jer skælver bjerget under jer.",
       part2:
-        "Fra højt oppe kommer en høj, malende lyd, mens store isplader bryder løs fra fæstningens vægge og tumler ned ad bjergsiden. Pludselig står store isdøre, tidligere skjult under sne, åbne mere end tre hundrede fod over jer, og fra mellem dem flyver en kæmpe drage lavet af mørk is. Dens øjne lyser med et klart gyldent lys, mens den udstøder et forfærdeligt brøl, kaster sig ud i luften og glider væk fra fæstningen, hvorefter den drejer og fortsætter nordpå mod Ten-Towns.",
+        "Øverst oppe ser I et par enorme isplader flå sig løs fra fæstningens mure som knuses mod bjergsiden. Sne styrter ned omkring jer, og pludselig ser I massive porte, belagt med is, stå åben. Ud fra dem bryder en drage frem. Dens krop er smedet af et sort metal, og under dens rustning ser I et pulserende gyldent lys. Som et slags fordærvet hjerte. Dens øjne ligner flammer, og dens brøl lyder ikke naturligt, men derimod mere mekanisk. Med et tordnende slag med vingerne sætter den i luften, den skal lige flyve op i en vis højde, før I ser den vender sig mod nord, og nu har retning direkte mod Ten-Towns.",
       prompt: "Dragens brøl genlyder stadig i jeres ører. Hvad gør I?",
     },
   };
@@ -166,46 +166,55 @@ const DMChoiceContent = ({
             <div className="flex justify-end mb-4">
               <button
                 onClick={onLanguageToggle}
-                className="px-4 py-2 border-2 border-[#BF883C]/50 bg-black/40 text-[#BF883C] hover:bg-black/60 hover:border-[#d9ca89] hover:text-[#d9ca89] transition-all duration-300 text-sm uppercase tracking-wider cursor-pointer"
+                className="px-4 py-2  bg-black/40 text-[#BF883C] hover:bg-black/60 hover:border-[#d9ca89] hover:text-[#d9ca89] transition-all duration-300 text-sm uppercase tracking-wider cursor-pointer"
                 style={{ fontFamily: "EB Garamond, serif" }}
               >
-                {language === "english"
-                  ? "Switch to Danish"
-                  : "Switch to English"}
+                {language === "english" ? "DA" : "EN"}
               </button>
             </div>
 
             {/* Read-aloud text in two columns */}
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column */}
-              <div className="border-2 border-[#BF883C]/30 bg-black/50 p-6">
-                <p
-                  className="text-lg text-[#d9ca89] leading-relaxed"
-                  style={{ fontFamily: "EB Garamond, serif" }}
-                >
-                  {text.part1}
-                </p>
-              </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={language}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="grid grid-cols-2 gap-8"
+              >
+                {/* Left Column */}
+                <div className="p-6">
+                  <p
+                    className="text-lg text-[#d9ca89] leading-relaxed"
+                    style={{ fontFamily: "EB Garamond, serif" }}
+                  >
+                    {text.part1}
+                  </p>
+                </div>
 
-              {/* Right Column */}
-              <div className="border-2 border-[#BF883C]/30 bg-black/50 p-6">
+                {/* Right Column */}
+                <div className="p-6">
+                  <p
+                    className="text-lg text-[#d9ca89] leading-relaxed"
+                    style={{ fontFamily: "EB Garamond, serif" }}
+                  >
+                    {text.part2}
+                  </p>
+                </div>
+
+                {/* Center text below both columns */}
                 <p
-                  className="text-lg text-[#d9ca89] leading-relaxed mb-4"
-                  style={{ fontFamily: "EB Garamond, serif" }}
-                >
-                  {text.part2}
-                </p>
-                <p
-                  className="text-xl text-[#d9ca89] font-bold italic mt-6"
+                  className="col-span-2 text-center text-xl text-[#d9ca89] font-bold italic"
                   style={{ fontFamily: "EB Garamond, serif" }}
                 >
                   {text.prompt}
                 </p>
-              </div>
-            </div>
+              </motion.div>
+            </AnimatePresence>
 
             {/* Reveal Button */}
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-20">
               <button
                 onClick={onReveal}
                 className="group relative px-12 py-5 border-4 border-[#BF883C] bg-black/60 hover:bg-black/40 hover:border-[#d9ca89] transition-all duration-300 cursor-pointer"

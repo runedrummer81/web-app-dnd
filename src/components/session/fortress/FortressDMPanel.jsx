@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useFortress } from "./FortressContext";
 import { useMapSync } from "../MapSyncContext";
 import { FORTRESS_LEVELS } from "./data/sunblightFortressData";
+import { CurrentRoomTab } from "./components/CurrentRoomTab";
 
 export const FortressDMPanel = ({ onEndEncounter }) => {
   const [activeTab, setActiveTab] = useState("map-controls"); // Start on map-controls to show fog controls
@@ -251,64 +252,6 @@ export const FortressDMPanel = ({ onEndEncounter }) => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
-  );
-};
-
-// Current Room Tab
-const CurrentRoomTab = () => {
-  return (
-    <div className="space-y-4">
-      <div className="border-2 border-[#BF883C]/30 bg-black/20 p-4">
-        <h3
-          className="text-2xl font-bold text-[#d9ca89] uppercase tracking-wider mb-2"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          X1: Entrance
-        </h3>
-        <p className="text-[#d9ca89]/80 text-sm italic mb-4">
-          A ten-foot-high double door of featureless stone...
-        </p>
-
-        {/* Quick Actions */}
-        <div className="flex gap-2 mt-4">
-          <button className="px-4 py-2 border border-[#BF883C] text-[#BF883C] hover:bg-[#BF883C]/20 text-sm uppercase cursor-pointer transition-all">
-            Reveal Room
-          </button>
-          <button className="px-4 py-2 border border-[#BF883C] text-[#BF883C] hover:bg-[#BF883C]/20 text-sm uppercase cursor-pointer transition-all">
-            Read Aloud
-          </button>
-        </div>
-      </div>
-
-      {/* Features */}
-      <div className="border-2 border-[#BF883C]/20 bg-black/10 p-3">
-        <h4
-          className="text-lg font-bold text-[#d9ca89] mb-2"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          Features
-        </h4>
-        <ul className="text-[#d9ca89]/70 text-sm space-y-1">
-          <li>• Stone double doors (barred from within)</li>
-          <li>• Iron portcullis (lowered)</li>
-          <li>• Arrow slit (three-quarters cover)</li>
-        </ul>
-      </div>
-
-      {/* Special Mechanics */}
-      <div className="border-2 border-yellow-600/30 bg-yellow-900/10 p-3">
-        <h4
-          className="text-lg font-bold text-yellow-400 mb-2"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          ⚠️ Special
-        </h4>
-        <p className="text-yellow-300/80 text-sm">
-          Duergar in X6 watches invisibly. Loyal to Grandolpha - will secretly
-          help party.
-        </p>
       </div>
     </div>
   );
