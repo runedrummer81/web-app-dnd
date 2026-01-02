@@ -20,7 +20,10 @@ import { GridOverlay } from "./GridOverlay";
 import { TokenOverlay } from "./TokenOverlay";
 import { SpellEffectOverlay } from "./SpellEffectOverlay";
 import { FogOfWarOverlay } from "./FogofWarOverlay";
-import { SummonEffects } from "./SummonEffects"; // ✨ NEW IMPORT
+import { SummonEffects } from "./SummonEffects";
+import { useFortress } from "./fortress/FortressContext";
+import { RoomLabels } from "./fortress/RoomLabels";
+import { MapAnnotations } from "./fortress/MapAnnotations";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -90,6 +93,7 @@ export const MapDisplay = () => {
   const sessionData = runSessionContext?.sessionData;
   const mapRef = useRef(null);
   const wrapperRef = useRef(null);
+  const { fortressState } = useFortress();
 
   const getCurrentMap = () => {
     if (!mapSetData) {
@@ -264,6 +268,18 @@ export const MapDisplay = () => {
           });
         }}
       />
+
+      {isDMView && fortressState.phase === "infiltration" && (
+        <>
+          <RoomLabels
+            mapDimensions={{
+              width: currentMap.width,
+              height: currentMap.height,
+            }}
+          />
+          <MapAnnotations />
+        </>
+      )}
 
       {/* 3. SPELL EFFECTS - Renders BENEATH tokens */}
       {currentMap.isCombat && (
