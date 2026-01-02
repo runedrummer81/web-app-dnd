@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import {
@@ -153,23 +153,29 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
   const { fortressState, makeChoice, endFortressEncounter } = useFortress();
   const { updateMapState } = useMapSync();
 
+  // ✅ FIX: Use ref to track if we've already switched to fortress map
+  const hasSwitchedToFortress = useRef(false);
+
   const base = import.meta.env.BASE_URL || "/web-app-dnd/";
 
   // ✅ THIS IS THE KEY: Switch to fortress map when infiltration begins
+  // BUT ONLY ONCE using a ref to prevent infinite loop
   useEffect(() => {
     if (
       fortressState.phase === "infiltration" &&
-      fortressState.choiceMade === "fortress"
+      fortressState.choiceMade === "fortress" &&
+      !hasSwitchedToFortress.current
     ) {
       console.log("🏰 Switching to fortress map!");
+      hasSwitchedToFortress.current = true; // Mark as switched
 
       // Switch to fortress map using your existing map system
       const fortressMapData = {
         id: "sunblight-fortress",
         name: "Sunblight Fortress - Command Level",
         imageUrl: "/fortress-maps/sunblight-fortress-map.webp",
-        width: 2480, // Adjust to your actual image dimensions
-        height: 3508, // Adjust to your actual image dimensions
+        width: 2480,
+        height: 3508,
         isCombat: false,
       };
 
@@ -179,12 +185,17 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
         fogOfWar: {
           enabled: true,
           isDrawing: false,
-          revealedMask: null, // Start fully covered
+          revealedMask: null,
           brushSize: 100,
         },
       });
     }
-  }, [fortressState.phase, fortressState.choiceMade, updateMapState]);
+
+    // Reset the ref when fortress encounter ends
+    if (fortressState.phase === null) {
+      hasSwitchedToFortress.current = false;
+    }
+  }, [fortressState.phase, fortressState.choiceMade]); // ✅ Removed updateMapState from dependencies
 
   const openPlayerDisplay = () => {
     const playerUrl = `${base}player-view?session=${sessionId}`;
@@ -306,6 +317,7 @@ const RunSessionContent = ({ sessionId, sessionData, mapSetData }) => {
                   <FortressDMPanel
                     onEndEncounter={() => {
                       endFortressEncounter();
+                      hasSwitchedToFortress.current = false; // Reset ref
                       // Go back to world map
                       updateMapState({
                         currentMapId: "world",
