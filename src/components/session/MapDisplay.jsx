@@ -223,6 +223,9 @@ export const MapDisplay = () => {
       maxZoom={8}
       maxBounds={mapBounds}
       maxBoundsViscosity={1.0}
+      zoomDelta={0.25}
+      zoomSnap={0.25}
+      wheelPxPerZoomLevel={120}
     >
       {/* 1. Base map image */}
       {currentMap.imageUrl && (
