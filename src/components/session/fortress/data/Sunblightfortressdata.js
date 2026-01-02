@@ -314,8 +314,309 @@ export const fortressRooms = {
     loot: [],
   },
 
-  // I'll continue with the remaining rooms (X19-X37) in the next part...
-  // This is getting quite long! Should I continue with all rooms or would you like me to focus on something else first?
+  X19: {
+    id: "X19",
+    name: "Chardalyn Throne",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "The ceiling of this hall arches to thirty feet. Stone steps lead to a dais with a misshapen throne of black crystal. Crackling flames burn in braziers. Near the east wall slumps a tall fungus creature with luminous spores floating around it.",
+      da: "Loftet i denne hal hvælver sig til ni meter. Stentrin fører til en plads med en misdannet trone af sort krystal. Knitrende flammer brænder i ildkar. Nær den østlige væg slumrer en høj svampeskabning med lysende sporer omkring.",
+    },
+    dmNotes: {
+      en: "**Xardorok May Be Here:** Sitting on throne.\n\n**Enemies:** Thonot Krob (quaggoth thonot) + 4 quaggoth spore servants. Fight to death.\n\n**Reinforcements:** Combat brings 4 duergar from X18 + 4 quaggoths from X20.\n\n**Throne:** Contact for 1 hour = random indefinite madness. Permanent after 24 hours.",
+      da: "**Xardorok Kan Være Her:** Sidder på trone.\n\n**Fjender:** Thonot Krob + 4 quaggoth spore-tjenere. Kæmper til døden.\n\n**Forstærkninger:** Kamp bringer 4 duergar fra X18 + 4 quaggoths fra X20.\n\n**Trone:** Kontakt i 1 time = tilfældig ubestemt vanvid. Permanent efter 24 timer.",
+    },
+    enemies: ["Thonot Krob", "4 Quaggoth spore servants"],
+    loot: ["Jugs of animating spores"],
+  },
+
+  X20: {
+    id: "X20",
+    name: "Quaggoth Den",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "This dark, filthy room is strewn with bones. It contains ten crude beds made of moss and fur. Loud mechanical noises come from behind the west wall.",
+      da: "Dette mørke, beskidte rum er bestrøet med knogler. Det indeholder ti primitive senge af mos og pels. Høje mekaniske lyde fra den vestlige væg.",
+    },
+    dmNotes: {
+      en: "**4 Quaggoths:** Gnawing bones. Attack on sight unless drawn to X19. Follow Thonot Krob.",
+      da: "**4 Quaggoths:** Gnasker knogler. Angriber ved øjekontakt med mindre trukket til X19. Følger Thonot Krob.",
+    },
+    enemies: ["4 Quaggoths"],
+    loot: [],
+  },
+
+  X21: {
+    id: "X21",
+    name: "Treacherous Guards",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Braziers of glowing coals in corners. Loud mechanical noises from behind the double door in the east wall.",
+      da: "Ildkar med glødende kul i hjørner. Høje mekaniske lyde fra bag dobbeltdøren i den østlige væg.",
+    },
+    dmNotes: {
+      en: "**2 Duergar (Friendly!):** Secretly loyal to Grandolpha. Allow party to pass. 50% know Xardorok's location.",
+      da: "**2 Duergar (Venlige!):** Hemmeligt loyale over for Grandolpha. Lader gruppe passere. 50% ved Xardoroks placering.",
+    },
+    enemies: ["2 Duergar (secretly friendly)"],
+    loot: [],
+  },
+
+  X22: {
+    id: "X22",
+    name: "Western Elevator",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "The elevator shaft terminates here. A large stone wheel next to the iron cage turns constantly.",
+      da: "Elevatorskakten slutter her. Et stort stenhjul ved jernburet drejer konstant.",
+    },
+    dmNotes: {
+      en: "**Elevator:** Up 100ft to X6, up 200ft to X13.",
+      da: "**Elevator:** Op 30m til X6, op 60m til X13.",
+    },
+    enemies: [],
+    loot: [],
+  },
+
+  X23: {
+    id: "X23",
+    name: "Outer Gate",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "A 15-foot-high iron gate with a bulky padlock on its eastern side.",
+      da: "En 4,5 meter høj jernport med en klumpet hængelås på dens østlige side.",
+    },
+    dmNotes: {
+      en: "**Lock:** Key with Thontara (X25). DC 20 Dex to pick. Knock spell opens. Breach alerts guards in X24-X26.",
+      da: "**Lås:** Nøgle hos Thontara (X25). DC 20 Dex at dirke. Knock åbner. Brud alarmerer vagter i X24-X26.",
+    },
+    enemies: [],
+    loot: [],
+  },
+
+  X24: {
+    id: "X24",
+    name: "The Forge",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Smoke fills this cavern. A pyramid-shaped stone forge emits heat and a pulsating heartbeat. Four guard towers overlook the area.",
+      da: "Røg fylder denne hule. En pyramideformet stensmedje udsender varme og et pulserende hjerteslag. Fire vagttårne overskuer området.",
+    },
+    dmNotes: {
+      en: "**Xardorok May Be Here:** On platform X25.\n\n**Guards:** 12 duergar (3 per tower). One per tower loyal to Grandolpha.\n\n**Forge:** Touch = 10 (3d6) fire damage. Contains red dragon heart (AC 13, 27 HP, vulnerable to cold).\n\n**Reinforcements:** 3 duergar hammerers from X28.",
+      da: "**Xardorok Kan Være Her:** På platform X25.\n\n**Vagter:** 12 duergar (3 per tårn). En per tårn loyal over for Grandolpha.\n\n**Smedje:** Berøring = 10 (3d6) ildskade. Indeholder rød drage-hjerte (AC 13, 27 HP, sårbar over for kulde).\n\n**Forstærkninger:** 3 duergar hammerers fra X28.",
+    },
+    enemies: ["12 Duergar", "Thontara", "6 Quaggoths"],
+    loot: ["Key to outer gate (Thontara's boot)"],
+  },
+
+  X25: {
+    id: "X25",
+    name: "Assembly Platform",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "An enormous iron platform with cranes and clamps. Iron stairs lead to the top.",
+      da: "En enorm jernplatform med kraner og klemmer. Jerntrapper fører til toppen.",
+    },
+    dmNotes: {
+      en: "Where dragon was assembled. 5ft crawlspace underneath.",
+      da: "Hvor dragen blev samlet. 1,5m krybekælder under.",
+    },
+    enemies: [],
+    loot: [],
+  },
+
+  X26: {
+    id: "X26",
+    name: "Vertical Shaft",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "A rectangular hole in the ceiling above. Below is a bin filled with twisted metal fragments.",
+      da: "Et rektangulært hul i loftet over. Nedenunder er en beholder fyldt med snoede metalfragmenter.",
+    },
+    dmNotes: {
+      en: "**Shaft:** Up 200ft to ice gate. Need magic/climbing gear.\n\n**Bin:** Chardalyn dragon fragments.",
+      da: "**Skakt:** Op 60m til is-port. Kræver magi/klatreudstyr.\n\n**Beholder:** Chardalyn-drage fragmenter.",
+    },
+    enemies: [],
+    loot: ["Chardalyn fragments"],
+  },
+
+  X27: {
+    id: "X27",
+    name: "Giant Lizard Pens",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Six arched cells with latched iron gates. Each houses a big lizard fitted with riding gear.",
+      da: "Seks buede celler med hægte jernporte. Hver huserer en stor øgle med ridegrej.",
+    },
+    dmNotes: {
+      en: "**6 Giant Lizards:** Mounts. Hostile to non-duergar. Can't attack through gates (latched not locked).",
+      da: "**6 Kæmpe-øgler:** Ridedyr. Fjendtlige over for ikke-duergar. Kan ikke angribe gennem porte (hægtet ikke låst).",
+    },
+    enemies: ["6 Giant Lizards (caged)"],
+    loot: [],
+  },
+
+  X28: {
+    id: "X28",
+    name: "Dungeon",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Dark corridor with iron doors. Iron crossbars seal each. Loud banging from one cell, gentle tapping from another.",
+      da: "Mørk korridor med jerndøre. Jernstænger forsegles hver. Høj banken fra en celle, blid banken fra en anden.",
+    },
+    dmNotes: {
+      en: "**3 Duergar Hammerers:** Unless at forge.\n\n**Tapping:** Doppelganger as 'Pekoe Quint'.\n\n**Banging:** Kapanuk Talltree (goliath warrior). Invites to Wyrmdoom Crag.",
+      da: "**3 Duergar Hammerers:** Med mindre ved smedje.\n\n**Banken:** Doppelganger som 'Pekoe Quint'.\n\n**Dunken:** Kapanuk Talltree (goliath-kriger). Inviterer til Wyrmdoom Crag.",
+    },
+    enemies: ["3 Duergar Hammerers"],
+    loot: [],
+  },
+
+  X29: {
+    id: "X29",
+    name: "Deep Duerra's Temple",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "A seven-foot statue of a female duergar with a brazier in its sheared-off head. An emaciated creature with a metal plate on its head is chained to the pedestal.",
+      da: "En to meter statue af en kvindelig duergar med et ildkar i dens afskårne hoved. En udmagret skabning med en metalplade på hovedet er lænket til piedestalen.",
+    },
+    dmNotes: {
+      en: "**Xardorok May Be Here:** Praying. Gets +5 (1d10) psychic damage bonus here. Extinguish flame to remove.\n\n**Mind Flayer (F'yorl):** 9 HP. Harmless, has telepathy.\n\n**Side Rooms:** NW=clothing. NE=weapons.\n\n**Secret Door (DC 15):** East to X34.",
+      da: "**Xardorok Kan Være Her:** Beder. Får +5 (1d10) psykisk skade bonus her. Sluk flamme for at fjerne.\n\n**Mind Flayer (F'yorl):** 9 HP. Harmløs, har telepati.\n\n**Siderum:** NV=tøj. NØ=våben.\n\n**Hemmelig Dør (DC 15):** Øst til X34.",
+    },
+    enemies: ["F'yorl (harmless)"],
+    loot: ["Cold weather clothing", "Weapons"],
+  },
+
+  X30: {
+    id: "X30",
+    name: "Eastern Elevator",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Elevator shaft terminates here. A duergar in an exoskeletal construct guards it, his face a mask of pain.",
+      da: "Elevatorskakt slutter her. En duergar i exoskeletal konstruktion vogter den, hans ansigt en maske af smerte.",
+    },
+    dmNotes: {
+      en: "**1 Duergar Hammerer:** Attacks on sight.\n\n**Elevator:** Up 100ft to X12, up 200ft to X15.",
+      da: "**1 Duergar Hammerer:** Angriber ved øjekontakt.\n\n**Elevator:** Op 30m til X12, op 60m til X15.",
+    },
+    enemies: ["1 Duergar Hammerer"],
+    loot: [],
+  },
+
+  X31: {
+    id: "X31",
+    name: "Devil in Disguise",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Stacks of granite tablets. Behind them lurks a bearded duergar in black robes and a tall black miter.",
+      da: "Stabler af granittavler. Bag dem lurer en skægget duergar i sorte kåber og en høj sort mitra.",
+    },
+    dmNotes: {
+      en: "**Klondorn:** BARBED DEVIL with hat of disguise. Reveals form if threatened. Vanishes at 0 HP, leaves hat.\n\n**92 Tablets:** Infernal runes reveal Asmodeus' plot.",
+      da: "**Klondorn:** PIGGET DJÆVEL med hat of disguise. Afslører form hvis truet. Forsvinder ved 0 HP, efterlader hat.\n\n**92 Tavler:** Infernalske runer afslører Asmodeus' plot.",
+    },
+    enemies: ["Klondorn (Barbed Devil)"],
+    loot: ["Hat of Disguise"],
+  },
+
+  X32: {
+    id: "X32",
+    name: "Trapped Hall",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Short corridor with black boxes bolted to walls, giving off a low hum.",
+      da: "Kort korridor med sorte kasser boltet til vægge, afgiver lav summen.",
+    },
+    dmNotes: {
+      en: "**TRAP!** Lever in X36 deactivates. Enter/start turn = DC 15 Dex or 18 (4d8) lightning.",
+      da: "**FÆLDE!** Håndtag i X36 deaktiverer. Gå ind/start tur = DC 15 Dex eller 18 (4d8) lyn.",
+    },
+    enemies: [],
+    loot: [],
+  },
+
+  X33: {
+    id: "X33",
+    name: "Lower Barracks",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Six duergar sit around hexagonal tables with copper kegs. Braziers provide light. Nine doors in the walls.",
+      da: "Seks duergar sidder omkring sekskantet borde med kobberfade. Ildkar giver lys. Ni døre i væggene.",
+    },
+    dmNotes: {
+      en: "**15 Duergar:** 6 in hall, 9 in rooms. 10 LOYAL TO GRANDOLPHA! Will turn on kin if party claims to be on her side.",
+      da: "**15 Duergar:** 6 i hal, 9 i rum. 10 LOYALE OVER FOR GRANDOLPHA! Vil vende sig mod slægt hvis gruppe påstår at være på hendes side.",
+    },
+    enemies: ["15 Duergar (10 potentially friendly)"],
+    loot: [],
+  },
+
+  X34: {
+    id: "X34",
+    name: "Torture Chamber",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Walls lined with iron sarcophagi. A duergar woman is shackled to a chair, blistered flesh. Two hooded duergar torture her with hot irons.",
+      da: "Vægge foret med jernsarkofager. En duergar-kvinde er lænket til en stol, vablende kød. To hætteklædte duergar torturerer hende med varme jern.",
+    },
+    dmNotes: {
+      en: "**Nefrun:** Prisoner (7 HP), innocent.\n\n**2 Duergar Mind Masters:** Torturers.\n\n**Xardorok May Be Here:** Retreats to X30 if losing.\n\n**10 Iron Maidens:** 11 (2d10) damage.\n\n**Secret Door (DC 15):** West to X29.",
+      da: "**Nefrun:** Fange (7 HP), uskyldig.\n\n**2 Duergar Mind Masters:** Torturere.\n\n**Xardorok Kan Være Her:** Trækker sig til X30 hvis taber.\n\n**10 Jernjomfruer:** 11 (2d10) skade.\n\n**Hemmelig Dør (DC 15):** Vest til X29.",
+    },
+    enemies: ["2 Duergar Mind Masters"],
+    loot: [],
+  },
+
+  X35: {
+    id: "X35",
+    name: "Guest Quarters",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Two beds, one with yeti hide. Stone chests and copper keg stacks. Glowing coals in braziers.",
+      da: "To senge, en med yeti-skind. Stenkister og kobberfad-stabler. Glødende kul i ildkar.",
+    },
+    dmNotes: {
+      en: "**Grandolpha's Room:** She's in X8. Empty chests. Darklake Stout kegs.",
+      da: "**Grandolphas Rum:** Hun er i X8. Tomme kister. Darklake Stout fade.",
+    },
+    enemies: [],
+    loot: [],
+  },
+
+  X36: {
+    id: "X36",
+    name: "Duergar Hammerers",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Stone pillars support ceiling. A duergar in exoskeleton before a portcullis. Another in alcove. Stone lever in south alcove.",
+      da: "Stensøjler støtter loft. En duergar i exoskeleton foran faldgitter. En anden i alkove. Stenhåndtag i sydlig alkove.",
+    },
+    dmNotes: {
+      en: "**2 Duergar Hammerers:** Attack unknowns.\n\n**Portcullis:** Needs Xardorok's gauntlet OR knock OR DC 25 Str.\n\n**Lever:** Deactivates X32 trap.",
+      da: "**2 Duergar Hammerers:** Angriber ukendte.\n\n**Faldgitter:** Kræver Xardoroks handske ELLER knock ELLER DC 25 Str.\n\n**Håndtag:** Deaktiverer X32 fælde.",
+    },
+    enemies: ["2 Duergar Hammerers"],
+    loot: [],
+  },
+
+  X37: {
+    id: "X37",
+    name: "Treasure Vault",
+    level: FORTRESS_LEVELS.FORGE,
+    readAloud: {
+      en: "Eight alcoves, each with an iron chest. Raised portcullises above.",
+      da: "Otte alkover, hver med en jernkiste. Hævede faldgitter over.",
+    },
+    dmNotes: {
+      en: "**8 Chests (combinations in X5, DC 20 Dex or knock):**\n1: Fire lichen liquor (120 gp)\n2: Gold drow mask (750 gp) + 350 gp\n3: Spider chalice (250 gp)\n4: Wand of Web + robe\n5: Piwafwi (cloak of elvenkind)\n6: Amber headdress (2,500 gp)\n7: Demogorgon statue (cursed)\n8: Moonstone eye (75 gp) + yellow mold",
+      da: "**8 Kister (kombinationer i X5, DC 20 Dex eller knock):**\n1: Ild-lav likør (120 gp)\n2: Guld drow-maske (750 gp) + 350 gp\n3: Edderkop-kalk (250 gp)\n4: Wand of Web + kjole\n5: Piwafwi (cloak of elvenkind)\n6: Rav hovedpynt (2,500 gp)\n7: Demogorgon statue (forbandet)\n8: Månesten øje (75 gp) + gul mug",
+    },
+    enemies: [],
+    loot: ["Total value: ~5,000+ gp worth of treasure + magic items"],
+  },
 };
 
 export const FORTRESS_START = {
