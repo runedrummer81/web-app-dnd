@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFortress } from "./FortressContext";
+import { useMapSync } from "../MapSyncContext";
 import { FORTRESS_LEVELS } from "./data/sunblightFortressData";
 
 export const FortressDMPanel = ({ onEndEncounter }) => {
-  const [activeTab, setActiveTab] = useState("current-room");
+  const [activeTab, setActiveTab] = useState("map-controls"); // Start on map-controls to show fog controls
   const { fortressState } = useFortress();
 
   // Fortress-specific tabs
@@ -313,10 +314,44 @@ const CurrentRoomTab = () => {
   );
 };
 
-// Map Controls Tab
+// Map Controls Tab - WITH FOG OF WAR CONTROLS
 const MapControlsTab = () => {
   const [currentLevel, setCurrentLevel] = useState(FORTRESS_LEVELS.COMMAND);
-  const [fogEnabled, setFogEnabled] = useState(true);
+  const { mapState, updateMapState } = useMapSync();
+
+  const fogSettings = mapState.fogOfWar || {
+    enabled: false,
+    isDrawing: false,
+    brushSize: 100,
+  };
+
+  const toggleFogEnabled = () => {
+    updateMapState({
+      fogOfWar: {
+        ...fogSettings,
+        enabled: !fogSettings.enabled,
+        isDrawing: false, // Reset to pan mode when toggling
+      },
+    });
+  };
+
+  const toggleFogDrawMode = () => {
+    updateMapState({
+      fogOfWar: {
+        ...fogSettings,
+        isDrawing: !fogSettings.isDrawing,
+      },
+    });
+  };
+
+  const setBrushSize = (size) => {
+    updateMapState({
+      fogOfWar: {
+        ...fogSettings,
+        brushSize: size,
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -377,49 +412,119 @@ const MapControlsTab = () => {
             Fog of War
           </h3>
           <button
-            onClick={() => setFogEnabled(!fogEnabled)}
+            onClick={toggleFogEnabled}
             className={`px-4 py-2 border-2 transition-all text-sm uppercase cursor-pointer ${
-              fogEnabled
+              fogSettings.enabled
                 ? "border-green-500 bg-green-900/30 text-green-400"
                 : "border-gray-500 bg-gray-900/30 text-gray-400"
             }`}
             style={{ fontFamily: "EB Garamond, serif" }}
           >
-            {fogEnabled ? "Enabled" : "Disabled"}
+            {fogSettings.enabled ? "Enabled" : "Disabled"}
           </button>
         </div>
 
-        {/* Quick Room Reveals */}
-        <h4
-          className="text-sm font-bold text-[#BF883C] mb-2"
-          style={{ fontFamily: "EB Garamond, serif" }}
-        >
-          Quick Reveals:
-        </h4>
-        <div className="grid grid-cols-6 gap-1">
-          {[
-            "X1",
-            "X2",
-            "X3",
-            "X4",
-            "X5",
-            "X6",
-            "X7",
-            "X8",
-            "X9",
-            "X10",
-            "X11",
-            "X12",
-          ].map((room) => (
-            <button
-              key={room}
-              className="py-2 px-1 border border-[#BF883C]/30 text-[#BF883C] hover:bg-[#BF883C]/20 text-xs cursor-pointer transition-all"
-              style={{ fontFamily: "EB Garamond, serif" }}
-            >
-              {room}
-            </button>
-          ))}
-        </div>
+        {fogSettings.enabled && (
+          <div className="space-y-4 border-t-2 border-[#BF883C]/20 pt-4 mt-4">
+            {/* Mode Toggle */}
+            <div className="bg-black/40 border-2 border-[#BF883C]/30 p-4">
+              <h4
+                className="text-sm font-bold text-[#d9ca89] mb-3 uppercase"
+                style={{ fontFamily: "EB Garamond, serif" }}
+              >
+                Current Mode
+              </h4>
+              <button
+                onClick={toggleFogDrawMode}
+                className={`w-full py-3 px-4 border-2 transition-all uppercase font-bold tracking-wider cursor-pointer ${
+                  fogSettings.isDrawing
+                    ? "border-yellow-500 bg-yellow-900/30 text-yellow-400"
+                    : "border-blue-500 bg-blue-900/30 text-blue-400"
+                }`}
+                style={{ fontFamily: "EB Garamond, serif" }}
+              >
+                {fogSettings.isDrawing ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 19l7-7 3 3-7 7-3-3z" />
+                      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+                    </svg>
+                    🎨 Fog Reveal Mode
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3" />
+                    </svg>
+                    🗺️ Pan Mode
+                  </div>
+                )}
+              </button>
+              <p
+                className="text-xs text-[#BF883C]/70 mt-2 text-center"
+                style={{ fontFamily: "EB Garamond, serif" }}
+              >
+                {fogSettings.isDrawing
+                  ? "Click & drag on map to reveal areas"
+                  : "Click & drag to pan the map"}
+              </p>
+            </div>
+
+            {/* Brush Size */}
+            {fogSettings.isDrawing && (
+              <div className="bg-black/40 border-2 border-[#BF883C]/30 p-4">
+                <h4
+                  className="text-sm font-bold text-[#d9ca89] mb-3 uppercase flex items-center justify-between"
+                  style={{ fontFamily: "EB Garamond, serif" }}
+                >
+                  <span>Brush Size</span>
+                  <span className="text-[#BF883C]">
+                    {fogSettings.brushSize}px
+                  </span>
+                </h4>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value={fogSettings.brushSize}
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className="w-full h-2 bg-[#BF883C]/30 rounded-lg appearance-none cursor-pointer accent-[#d9ca89]"
+                />
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  {[50, 100, 150].map((size, i) => (
+                    <button
+                      key={size}
+                      onClick={() => setBrushSize(size)}
+                      className={`py-2 px-3 text-xs uppercase font-bold transition-all cursor-pointer ${
+                        fogSettings.brushSize === size
+                          ? "bg-[#d9ca89] text-[var(--dark-muted-bg)]"
+                          : "border-2 border-[#BF883C] text-[#BF883C] hover:bg-[#BF883C]/20"
+                      }`}
+                      style={{ fontFamily: "EB Garamond, serif" }}
+                    >
+                      {["Small", "Medium", "Large"][i]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
